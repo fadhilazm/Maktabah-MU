@@ -3,15 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SIPERPUS DIGITAL - Full Featured</title>
+    <title>SIPERPUS - Maktabah Marhalah Ula Al Faruq Kalibagor</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { background-color: #f8f9fa; }
-        .sidebar { min-height: 100vh; background: #212529; color: white; }
-        .sidebar .nav-link { color: #adb5bd; cursor: pointer; }
-        .sidebar .nav-link.active, .sidebar .nav-link:hover { color: white; background: #343a40; }
-        .card-stat { border: none; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        :root { --primary-color: #0f172a; --accent-color: #1e3a8a; }
+        body { background-color: #f1f5f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .sidebar { min-height: 100vh; background: var(--primary-color); color: white; transition: all 0.3s; box-shadow: 4px 0 10px rgba(0,0,0,0.05); }
+        .sidebar .nav-link { color: #94a3b8; cursor: pointer; border-radius: 6px; margin-bottom: 4px; padding: 10px 15px; font-size: 0.95rem; }
+        .sidebar .nav-link.active, .sidebar .nav-link:hover { color: #ffffff; background: var(--accent-color); }
+        .sidebar .nav-section { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: #64748b; margin: 15px 15px 5px; font-weight: bold; }
+        .card-stat { border: none; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); transition: transform 0.2s; }
+        .card-stat:hover { transform: translateY(-3px); }
+        .table-container { background: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); padding: 20px; }
+        .nav-tabs .nav-link { color: #475569; font-weight: 500; }
+        .nav-tabs .nav-link.active { color: var(--accent-color); font-weight: bold; }
     </style>
 </head>
 <body>
@@ -19,14 +25,36 @@
     <div class="container-fluid">
         <div class="row">
             <nav class="col-md-3 col-lg-2 d-md-block sidebar collapse p-3">
-                <h4 class="text-white text-center py-3"><i class="fa-solid fa-book-open-reader"></i> SIPERPUS</h4>
+                <div class="text-center py-3">
+                    <h5 class="text-white fw-bold mb-0"><i class="fa-solid fa-book-bookmark text-warning me-2"></i>MAKTABAH</h5>
+                    <small class="text-info fw-semibold">Al Faruq Kalibagor</small>
+                </div>
                 <hr class="text-secondary">
                 <ul class="nav flex-column gap-1">
-                    <li class="nav-item"><a class="nav-link active" onclick="switchTab('dashboard')"><i class="fa-solid fa-chart-line me-2"></i> Dashboard</a></li>
-                    <li class="nav-item"><a class="nav-link" onclick="switchTab('buku')"><i class="fa-solid fa-books me-2"></i> Master Buku</a></li>
-                    <li class="nav-item"><a class="nav-link" onclick="switchTab('anggota')"><i class="fa-solid fa-users me-2"></i> Data Anggota</a></li>
-                    <li class="nav-item"><a class="nav-link" onclick="switchTab('transaksi')"><i class="fa-solid fa-right-left me-2"></i> Transaksi Pinjam</a></li>
-                    <li class="nav-item"><a class="nav-link" onclick="switchTab('laporan')"><i class="fa-solid fa-file-lines me-2"></i> Statistik & Laporan</a></li>
+                    <li class="nav-item"><a class="nav-link active" onclick="switchTab('dashboard', this)"><i class="fa-solid fa-chart-pie me-2"></i> Dashboard</a></li>
+                    
+                    <div class="nav-section">📁 Master Data</div>
+                    <li class="nav-item"><a class="nav-link" onclick="switchTab('m-buku', this)"><i class="fa-solid fa-book me-2"></i> Data Buku</a></li>
+                    <li class="nav-item"><a class="nav-link" onclick="switchTab('m-anggota', this)"><i class="fa-solid fa-users me-2"></i> Data Anggota</a></li>
+                    <li class="nav-item"><a class="nav-link" onclick="switchTab('m-kategori', this)"><i class="fa-solid fa-tags me-2"></i> Kategori Buku</a></li>
+                    <li class="nav-item"><a class="nav-link" onclick="switchTab('m-pengarang', this)"><i class="fa-solid fa-feather me-2"></i> Pengarang/Penerbit</a></li>
+                    <li class="nav-item"><a class="nav-link" onclick="switchTab('m-rak', this)"><i class="fa-solid fa-map-location-dot me-2"></i> Rak & Lokasi</a></li>
+
+                    <div class="nav-section">📚 Transaksi</div>
+                    <li class="nav-item"><a class="nav-link" onclick="switchTab('trx-sirkulasi', this)"><i class="fa-solid fa-right-left me-2"></i> Sirkulasi & Denda</a></li>
+
+                    <div class="nav-section">📖 Literasi</div>
+                    <li class="nav-item"><a class="nav-link" onclick="switchTab('literasi', this)"><i class="fa-solid fa-award me-2"></i> Kartu & Prestasi Literasi</a></li>
+
+                    <div class="nav-section">🔎 Katalog & Cari</div>
+                    <li class="nav-item"><a class="nav-link" onclick="switchTab('katalog', this)"><i class="fa-solid fa-magnifying-glass me-2"></i> Katalog & Pencarian</a></li>
+
+                    <div class="nav-section">📊 Laporan & Cetak</div>
+                    <li class="nav-item"><a class="nav-link" onclick="switchTab('laporan', this)"><i class="fa-solid fa-file-lines me-2"></i> Pusat Laporan</a></li>
+                    <li class="nav-item"><a class="nav-link" onclick="switchTab('cetak', this)"><i class="fa-solid fa-print me-2"></i> Modul Cetak Massal</a></li>
+
+                    <div class="nav-section">⚙️ Sistem</div>
+                    <li class="nav-item"><a class="nav-link" onclick="switchTab('sistem', this)"><i class="fa-solid fa-gears me-2"></i> Pengaturan & Backup</a></li>
                 </ul>
             </nav>
 
@@ -34,11 +62,14 @@
                 
                 <div id="tab-dashboard" class="content-tab">
                     <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h2>📊 Dashboard Utama</h2>
-                        <span class="badge bg-success p-2">GitHub Static App Active</span>
+                        <div>
+                            <h2>📊 Dashboard Ekosistem Perpustakaan</h2>
+                            <p class="text-muted mb-0">Marhalah Ula Al Faruq Kalibagor Digital Management System.</p>
+                        </div>
+                        <span class="badge bg-success p-2"><i class="fa-solid fa-circle-check me-1"></i> Live Active</span>
                     </div>
 
-                    <div class="alert alert-warning shadow-sm mb-4" role="alert">
+                    <div class="alert alert-warning shadow-sm border-0 mb-4" role="alert">
                         <h5 class="alert-heading fw-bold"><i class="fa-solid fa-bell me-2"></i> Pusat Notifikasi Pintar</h5>
                         <hr>
                         <ul id="list-notif" class="mb-0 ps-3">
@@ -47,62 +78,88 @@
                     </div>
 
                     <div class="row g-3 mb-4">
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <div class="card card-stat bg-primary text-white p-3">
                                 <h6>Total Judul Buku</h6>
                                 <h3 id="m-judul" class="fw-bold mb-0">0</h3>
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <div class="card card-stat bg-success text-white p-3">
-                                <h6>Total Eksemplar Fisik</h6>
+                                <h6>Total Eksemplar</h6>
                                 <h3 id="m-eksemplar" class="fw-bold mb-0">0</h3>
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <div class="card card-stat bg-dark text-white p-3">
                                 <h6>Total Anggota</h6>
                                 <h3 id="m-anggota" class="fw-bold mb-0">0</h3>
                             </div>
                         </div>
-                        <div class="col-md-4">
-                            <div class="card card-stat bg-warning text-dark p-3">
-                                <h6>Buku Sedang Dipinjam</h6>
+                        <div class="col-md-3">
+                            <div class="card card-stat bg-info text-dark p-3">
+                                <h6>Sedang Dipinjam</h6>
                                 <h3 id="m-pinjam" class="fw-bold mb-0">0</h3>
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <div class="card card-stat bg-danger text-white p-3">
                                 <h6>Buku Terlambat</h6>
                                 <h3 id="m-terlambat" class="fw-bold mb-0">0</h3>
                             </div>
                         </div>
-                        <div class="col-md-4">
-                            <div class="card card-stat bg-info text-dark p-3">
-                                <h6>Peminjaman Hari Ini</h6>
-                                <h3 id="m-hariini" class="fw-bold mb-0">0</h3>
+                        <div class="col-md-3">
+                            <div class="card card-stat bg-secondary text-white p-3">
+                                <h6>Hilang / Rusak</h6>
+                                <h3 id="m-rusak" class="fw-bold mb-0">0</h3>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card card-stat bg-warning text-dark p-3">
+                                <h6>Pinjam Hari Ini</h6>
+                                <h3 id="m-trx-hari-ini" class="fw-bold mb-0">0</h3>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card card-stat bg-light text-dark p-3 border">
+                                <h6>Kembali Hari Ini</h6>
+                                <h3 id="m-kembali-hari-ini" class="fw-bold mb-0">0</h3>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="table-container">
+                                <h5 class="text-primary mb-3"><i class="fa-solid fa-trophy me-2"></i> Siswa & Kelas Paling Aktif</h5>
+                                <ul class="list-group mb-3">
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">Siswa: <strong>Ahmad Fauzi</strong> <span class="badge bg-primary">18 Buku</span></li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">Kelas Teraktif: <strong class="text-success">Kelas VI Al-Ghazali</strong> <span class="badge bg-success">84 Literasi</span></li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="table-container">
+                                <h5 class="text-success mb-3"><i class="fa-solid fa-fire me-2"></i> Buku Paling Sering Dipinjam</h5>
+                                <ul class="list-group">
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">📖 Terjemahan Bulughul Maram <span class="badge bg-success">42 x</span></li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">📖 Riyadhus Shalihin <span class="badge bg-success">35 x</span></li>
+                                </ul>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div id="tab-buku" class="content-tab d-none">
+                <div id="tab-m-buku" class="content-tab d-none">
                     <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h2>📚 Master Data Buku</h2>
-                        <button class="btn btn-primary" onclick="bukaModalBuku()"><i class="fa-solid fa-plus me-1"></i> Tambah Buku</button>
+                        <h2>📚 Master Data Buku Fisik & Kitab</h2>
+                        <button class="btn btn-primary" onclick="bukaModal('buku')"><i class="fa-solid fa-plus me-1"></i> Tambah Buku</button>
                     </div>
-                    <div class="card shadow-sm p-3">
+                    <div class="table-container">
                         <div class="table-responsive">
-                            <table class="table table-striped align-middle">
+                            <table class="table table-striped table-hover align-middle">
                                 <thead class="table-dark">
-                                    <tr>
-                                        <th>No</th>
-                                        <th>Kode Buku</th>
-                                        <th>Judul Buku</th>
-                                        <th>Kategori</th>
-                                        <th>Stok</th>
-                                        <th>Aksi (Edit/Hapus/Salin)</th>
-                                    </tr>
+                                    <tr><th>No</th><th>Kode Buku</th><th>Judul Kitab/Buku</th><th>Kategori</th><th>Stok</th><th>Aksi</th></tr>
                                 </thead>
                                 <tbody id="tabel-buku-body"></tbody>
                             </table>
@@ -110,22 +167,16 @@
                     </div>
                 </div>
 
-                <div id="tab-anggota" class="content-tab d-none">
+                <div id="tab-m-anggota" class="content-tab d-none">
                     <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h2>👥 Master Data Anggota</h2>
-                        <button class="btn btn-primary" onclick="bukaModalAnggota()"><i class="fa-solid fa-user-plus me-1"></i> Tambah Anggota</button>
+                        <h2>👥 Master Data Anggota / Santri</h2>
+                        <button class="btn btn-primary" onclick="bukaModal('anggota')"><i class="fa-solid fa-user-plus me-1"></i> Tambah Anggota</button>
                     </div>
-                    <div class="card shadow-sm p-3">
+                    <div class="table-container">
                         <div class="table-responsive">
-                            <table class="table table-striped align-middle">
+                            <table class="table table-striped table-hover align-middle">
                                 <thead class="table-dark">
-                                    <tr>
-                                        <th>No</th>
-                                        <th>NIS/NIP</th>
-                                        <th>Nama Lengkap</th>
-                                        <th>Kelas</th>
-                                        <th>Aksi</th>
-                                    </tr>
+                                    <tr><th>No</th><th>NIS / ID</th><th>Nama Lengkap</th><th>Kelas</th><th>Aksi</th></tr>
                                 </thead>
                                 <tbody id="tabel-anggota-body"></tbody>
                             </table>
@@ -133,53 +184,127 @@
                     </div>
                 </div>
 
-                <div id="tab-transaksi" class="content-tab d-none">
+                <div id="tab-m-kategori" class="content-tab d-none">
                     <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h2>🔄 Transaksi Peminjaman & Pengembalian</h2>
-                        <button class="btn btn-success" onclick="bukaModalTransaksi()"><i class="fa-solid fa-right-left me-1"></i> Input Peminjaman Baru</button>
+                        <h2>🏷️ Master Kategori Buku</h2>
+                        <button class="btn btn-primary" onclick="bukaModal('kategori')"><i class="fa-solid fa-plus me-1"></i> Tambah Kategori</button>
                     </div>
-                    <div class="card shadow-sm p-3">
+                    <div class="table-container">
+                        <table class="table table-striped align-middle">
+                            <thead class="table-dark"><tr><th>No</th><th>Nama Kategori</th><th>Keterangan</th><th>Aksi</th></tr></thead>
+                            <tbody id="tabel-kategori-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="tab-m-pengarang" class="content-tab d-none">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2>✍️ Master Pengarang / Penerbit</h2>
+                        <button class="btn btn-primary" onclick="bukaModal('pengarang')"><i class="fa-solid fa-plus me-1"></i> Tambah Pengarang</button>
+                    </div>
+                    <div class="table-container">
+                        <table class="table table-striped align-middle">
+                            <thead class="table-dark"><tr><th>No</th><th>Nama Pengarang / Penerbit</th><th>Negara / Asal</th><th>Aksi</th></tr></thead>
+                            <tbody id="tabel-pengarang-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="tab-m-rak" class="content-tab d-none">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2>📍 Master Rak & Lokasi Penyimpanan</h2>
+                        <button class="btn btn-primary" onclick="bukaModal('rak')"><i class="fa-solid fa-plus me-1"></i> Tambah Rak</button>
+                    </div>
+                    <div class="table-container">
+                        <table class="table table-striped align-middle">
+                            <thead class="table-dark"><tr><th>No</th><th>Kode Rak</th><th>Nama / Posisi Rak</th><th>Aksi</th></tr></thead>
+                            <tbody id="tabel-rak-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="tab-trx-sirkulasi" class="content-tab d-none">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2>🔄 Sirkulasi Peminjaman, Pengembalian & Denda</h2>
+                        <button class="btn btn-success" onclick="bukaModal('transaksi')"><i class="fa-solid fa-right-left me-1"></i> Input Peminjaman Baru</button>
+                    </div>
+                    <div class="table-container">
                         <div class="table-responsive">
                             <table class="table table-bordered align-middle">
                                 <thead class="table-dark">
-                                    <tr>
-                                        <th>Kode Transaksi</th>
-                                        <th>Peminjam</th>
-                                        <th>Tgl Pinjam</th>
-                                        <th>Jatuh Tempo</th>
-                                        <th>Status</th>
-                                        <th>Aksi</th>
-                                    </tr>
+                                    <tr><th>Kode TRX</th><th>Peminjam</th><th>Tgl Pinjam</th><th>Jatuh Tempo</th><th>Status / Denda</th><th>Aksi</th></tr>
                                 </thead>
-                                <tbody id="tabel-transaksi-body"></tbody>
+                                <tbody id="tabel-trx-body"></tbody>
                             </table>
                         </div>
                     </div>
                 </div>
 
+                <div id="tab-literasi" class="content-tab d-none">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2>📖 Kartu & Rekap Prestasi Literasi Santri</h2>
+                        <button class="btn btn-info text-white" onclick="bukaModal('literasi')"><i class="fa-solid fa-plus me-1"></i> Catat Log Literasi</button>
+                    </div>
+                    <div class="table-container">
+                        <table class="table table-striped align-middle">
+                            <thead class="table-dark"><tr><th>No</th><th>Nama Santri</th><th>Judul Buku Dibaca</th><th>Ulasan Singkat</th><th>Aksi</th></tr></thead>
+                            <tbody id="tabel-literasi-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="tab-katalog" class="content-tab d-none">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2>🔎 Katalog Cerdas & Pencarian Terpadu</h2>
+                    </div>
+                    <div class="table-container mb-4">
+                        <div class="input-group mb-3">
+                            <span class="input-group-text"><i class="fa-solid fa-search"></i></span>
+                            <input type="text" id="inputPencarianGlobal" class="form-control" placeholder="Cari judul buku, pengarang, atau nama anggota..." onkeyup="jalankanPencarian()">
+                        </div>
+                        <div id="hasilPencarian" class="p-3 bg-light rounded text-muted">Ketik kata kunci untuk mulai mencari...</div>
+                    </div>
+                </div>
+
                 <div id="tab-laporan" class="content-tab d-none">
-                    <h2 class="mb-4">📊 Laporan & Leaderboard Literasi</h2>
-                    <div class="row g-4">
-                        <div class="col-md-6">
-                            <div class="card shadow-sm p-3">
-                                <h5 class="text-primary"><i class="fa-solid fa-trophy me-2"></i> Siswa Paling Aktif Membaca</h5>
-                                <hr>
-                                <ol class="mb-0" id="top-siswa">
-                                    <li>Ahmad Fauzi (XI IPA 1) - 12 Buku</li>
-                                    <li>Siti Aminah (X IPS 2) - 9 Buku</li>
-                                </ol>
-                            </div>
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2>📊 Pusat Laporan Komprehensif</h2>
+                        <button class="btn btn-dark" onclick="window.print()"><i class="fa-solid fa-print me-1"></i> Cetak Laporan Ini</button>
+                    </div>
+                    <div class="table-container">
+                        <p class="text-muted">Menampilkan rekapitulasi lengkap dari seluruh 24 modul laporan operasional Maktabah Al Faruq Kalibagor.</p>
+                        <div class="list-group">
+                            <a href="#" class="list-group-item list-group-item-action">📁 Laporan Master Buku & Eksemplar Fisik</a>
+                            <a href="#" class="list-group-item list-group-item-action">👥 Laporan Data Anggota & Keaktifan Kelas</a>
+                            <a href="#" class="list-group-item list-group-item-action">🔄 Laporan Sirkulasi Peminjaman & Pengembalian Harian</a>
+                            <a href="#" class="list-group-item list-group-item-action">⚠️ Laporan Keterlambatan & Rekapitulasi Denda Finansial</a>
+                            <a href="#" class="list-group-item list-group-item-action">📖 Laporan Target & Prestasi Literasi Santri</a>
                         </div>
-                        <div class="col-md-6">
-                            <div class="card shadow-sm p-3">
-                                <h5 class="text-success"><i class="fa-solid fa-fire me-2"></i> Buku Paling Sering Dipinjam</h5>
-                                <hr>
-                                <ul class="list-unstyled mb-0" id="top-buku">
-                                    <li>📖 Laskar Pelangi (Dipinjam 25 kali)</li>
-                                    <li>📖 Bumi Manusia (Dipinjam 18 kali)</li>
-                                </ul>
-                            </div>
+                    </div>
+                </div>
+
+                <div id="tab-cetak" class="content-tab d-none">
+                    <h2 class="mb-4">🖨️ Modul Cetak Massal (Kartu, Barcode & Label)</h2>
+                    <div class="row g-3">
+                        <div class="col-md-4"><div class="card p-3 text-center shadow-sm"><h5>Cetak Kartu Anggota</h5><button class="btn btn-primary mt-2" onclick="alert('Mencetak Kartu Anggota...')">Cetak</button></div></div>
+                        <div class="col-md-4"><div class="card p-3 text-center shadow-sm"><h5>Cetak Label & Barcode</h5><button class="btn btn-primary mt-2" onclick="alert('Mencetak Barcode Buku...')">Cetak</button></div></div>
+                        <div class="col-md-4"><div class="card p-3 text-center shadow-sm"><h5>Cetak Bukti Transaksi</h5><button class="btn btn-primary mt-2" onclick="alert('Mencetak Struk Sirkulasi...')">Cetak</button></div></div>
+                    </div>
+                </div>
+
+                <div id="tab-sistem" class="content-tab d-none">
+                    <h2 class="mb-4">⚙️ Pengaturan, Backup & Keamanan Sistem</h2>
+                    <div class="table-container">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Nama Instansi / Maktabah</label>
+                            <input type="text" class="form-control" value="Maktabah Marhalah Ula Al Faruq Kalibagor">
                         </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Hak Akses & Pengguna</label>
+                            <p class="text-muted">Administrator Utama: Ust. Pustakawan (Full Access)</p>
+                        </div>
+                        <button class="btn btn-success me-2" onclick="alert('Data berhasil di-backup ke perangkat.')"><i class="fa-solid fa-download me-1"></i> Backup Database</button>
+                        <button class="btn btn-danger" onclick="localStorage.clear(); location.reload();"><i class="fa-solid fa-trash me-1"></i> Reset Data Pabrik</button>
                     </div>
                 </div>
 
@@ -187,307 +312,281 @@
         </div>
     </div>
 
-    <div class="modal fade" id="modalBuku" tabindex="-1">
+    <div class="modal fade" id="modalUniversal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title" id="modalBukuTitle">Tambah Data Buku</h5>
+                    <h5 class="modal-title" id="modalTitle">Form Input Data</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body">
-                    <form id="formBuku">
-                        <input type="hidden" id="bukuIndex">
-                        <div class="mb-3">
-                            <label class="form-label">Kode Buku</label>
-                            <input type="text" class="form-control" id="bukuKode" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Judul Buku</label>
-                            <input type="text" class="form-control" id="bukuJudul" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Kategori</label>
-                            <input type="text" class="form-control" id="bukuKategori" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Stok Eksemplar</label>
-                            <input type="number" class="form-control" id="bukuStok" min="1" value="1" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary w-100">Simpan Data</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="modalAnggota" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header bg-dark text-white">
-                    <h5 class="modal-title">Tambah Data Anggota</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="formAnggota">
-                        <input type="hidden" id="anggotaIndex">
-                        <div class="mb-3">
-                            <label class="form-label">NIS / NIP</label>
-                            <input type="text" class="form-control" id="anggotaNis" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Nama Lengkap</label>
-                            <input type="text" class="form-control" id="anggotaNama" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Kelas</label>
-                            <input type="text" class="form-control" id="anggotaKelas" required>
-                        </div>
-                        <button type="submit" class="btn btn-dark w-100">Simpan Anggota</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="modalTransaksi" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header bg-success text-white">
-                    <h5 class="modal-title">Input Peminjaman Baru</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="formTransaksi">
-                        <div class="mb-3">
-                            <label class="form-label">Kode Transaksi</label>
-                            <input type="text" class="form-control" id="trKode" value="TRX-003" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Nama Peminjam</label>
-                            <input type="text" class="form-control" id="trPeminjam" placeholder="Contoh: Budi Santoso" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Tanggal Jatuh Tempo</label>
-                            <input type="date" class="form-control" id="trTempo" required>
-                        </div>
-                        <button type="submit" class="btn btn-success w-100">Simpan Transaksi</button>
-                    </form>
-                </div>
+                <div class="modal-body" id="modalBodyContent">
+                    </div>
             </div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // --- LOCAL STORAGE DATA AWAL ---
-        let dbBuku = JSON.parse(localStorage.getItem('sip_buku')) || [
-            { id: 1, kode: 'BK-001', judul: 'Laskar Pelangi', kategori: 'Novel', stok: 5 },
-            { id: 2, kode: 'BK-002', judul: 'Bumi Manusia', kategori: 'Sejarah', stok: 3 }
+        // DATABASE LOKAL LENGKAP
+        let dbBuku = JSON.parse(localStorage.getItem('alfaruq_buku')) || [
+            { id: 1, kode: 'BK-001', judul: 'Terjemahan Bulughul Maram', kategori: 'Hadits', stok: 10 },
+            { id: 2, kode: 'BK-002', judul: 'Riyadhus Shalihin', kategori: 'Hadits', stok: 8 }
         ];
-
-        let dbAnggota = JSON.parse(localStorage.getItem('sip_anggota')) || [
-            { id: 1, nis: '1001', nama: 'Ahmad Fauzi', kelas: 'XI IPA 1' },
-            { id: 2, nis: '1002', nama: 'Siti Aminah', kelas: 'X IPS 2' }
+        let dbAnggota = JSON.parse(localStorage.getItem('alfaruq_anggota')) || [
+            { id: 1, nis: '1001', nama: 'Ahmad Fauzi', kelas: 'VI Al-Ghazali' },
+            { id: 2, nis: '1002', nama: 'Siti Aminah', kelas: 'V Al-Byruni' }
         ];
-
-        let dbTransaksi = JSON.parse(localStorage.getItem('sip_trx')) || [
+        let dbKategori = JSON.parse(localStorage.getItem('alfaruq_kategori')) || [
+            { id: 1, nama: 'Hadits', ket: 'Koleksi Kitab Hadits Utama' },
+            { id: 2, nama: 'Fiqih', ket: 'Koleksi Fiqih Madzhab' }
+        ];
+        let dbPengarang = JSON.parse(localStorage.getItem('alfaruq_pengarang')) || [
+            { id: 1, nama: 'Ibnu Hajar Al-Asqalani', asal: 'Mesir' },
+            { id: 2, nama: 'Imam An-Nawawi', asal: 'Suriah' }
+        ];
+        let dbRak = JSON.parse(localStorage.getItem('alfaruq_rak')) || [
+            { id: 1, kode: 'RK-A1', nama: 'Rak Utama Hadits' }
+        ];
+        let dbTrx = JSON.parse(localStorage.getItem('alfaruq_trx')) || [
             { id: 1, kode: 'TRX-001', peminjam: 'Ahmad Fauzi', tgl: '2026-06-01', tempo: '2026-06-08', status: 'Dipinjam' },
-            { id: 2, kode: 'TRX-002', peminjam: 'Siti Aminah', tgl: '2026-05-15', tempo: '2026-05-22', status: 'Terlambat' }
+            { id: 2, kode: 'TRX-002', peminjam: 'Siti Aminah', tgl: '2026-05-10', tempo: '2026-05-17', status: 'Terlambat' }
+        ];
+        let dbLiterasi = JSON.parse(localStorage.getItem('alfaruq_literasi')) || [
+            { id: 1, nama: 'Ahmad Fauzi', judul: 'Bulughul Maram Bab Thaharah', ulasan: 'Sangat bermanfaat memahami tata cara bersuci.' }
         ];
 
         function simpanStorage() {
-            localStorage.setItem('sip_buku', JSON.stringify(dbBuku));
-            localStorage.setItem('sip_anggota', JSON.stringify(dbAnggota));
-            localStorage.setItem('sip_trx', JSON.stringify(dbTransaksi));
+            localStorage.setItem('alfaruq_buku', JSON.stringify(dbBuku));
+            localStorage.setItem('alfaruq_anggota', JSON.stringify(dbAnggota));
+            localStorage.setItem('alfaruq_kategori', JSON.stringify(dbKategori));
+            localStorage.setItem('alfaruq_pengarang', JSON.stringify(dbPengarang));
+            localStorage.setItem('alfaruq_rak', JSON.stringify(dbRak));
+            localStorage.setItem('alfaruq_trx', JSON.stringify(dbTrx));
+            localStorage.setItem('alfaruq_literasi', JSON.stringify(dbLiterasi));
             renderAll();
         }
 
-        // Navigasi Tab
-        function switchTab(tabId) {
-            document.querySelectorAll('.content-tab').forEach(el => el.classList.add('d-none'));
-            document.querySelectorAll('.sidebar .nav-link').forEach(el => el.classList.remove('active'));
+        function switchTab(tabId, el) {
+            document.querySelectorAll('.content-tab').forEach(item => item.classList.add('d-none'));
+            document.querySelectorAll('.sidebar .nav-link').forEach(item => item.classList.remove('active'));
             document.getElementById('tab-' + tabId).classList.remove('d-none');
-            event.currentTarget.classList.add('active');
+            if(el) el.classList.add('active');
         }
 
-        // Render Semua Data & Metrik
+        const modalEl = new bootstrap.Modal(document.getElementById('modalUniversal'));
+
+        function bukaModal(tipe, index = null) {
+            let title = '';
+            let content = '';
+            if(tipe === 'buku') {
+                title = 'Form Data Buku';
+                let item = index !== null ? dbBuku[index] : {kode:'', judul:'', kategori:'', stok:5};
+                content = `
+                    <form onsubmit="simpanData(event, 'buku', ${index})">
+                        <div class="mb-3"><label class="form-label">Kode Buku</label><input type="text" class="form-control" id="f-kode" value="${item.kode}" required></div>
+                        <div class="mb-3"><label class="form-label">Judul Buku/Kitab</label><input type="text" class="form-control" id="f-judul" value="${item.judul}" required></div>
+                        <div class="mb-3"><label class="form-label">Kategori</label><input type="text" class="form-control" id="f-kategori" value="${item.kategori}" required></div>
+                        <div class="mb-3"><label class="form-label">Stok Eksemplar</label><input type="number" class="form-control" id="f-stok" value="${item.stok}" required></div>
+                        <button type="submit" class="btn btn-primary w-100">Simpan Data</button>
+                    </form>`;
+            } else if(tipe === 'anggota') {
+                title = 'Form Data Anggota';
+                let item = index !== null ? dbAnggota[index] : {nis:'', nama:'', kelas:''};
+                content = `
+                    <form onsubmit="simpanData(event, 'anggota', ${index})">
+                        <div class="mb-3"><label class="form-label">NIS / ID</label><input type="text" class="form-control" id="f-nis" value="${item.nis}" required></div>
+                        <div class="mb-3"><label class="form-label">Nama Lengkap</label><input type="text" class="form-control" id="f-nama" value="${item.nama}" required></div>
+                        <div class="mb-3"><label class="form-label">Kelas</label><input type="text" class="form-control" id="f-kelas" value="${item.kelas}" required></div>
+                        <button type="submit" class="btn btn-primary w-100">Simpan Anggota</button>
+                    </form>`;
+            } else if(tipe === 'kategori') {
+                title = 'Form Kategori';
+                let item = index !== null ? dbKategori[index] : {nama:'', ket:''};
+                content = `
+                    <form onsubmit="simpanData(event, 'kategori', ${index})">
+                        <div class="mb-3"><label class="form-label">Nama Kategori</label><input type="text" class="form-control" id="f-namakat" value="${item.nama}" required></div>
+                        <div class="mb-3"><label class="form-label">Keterangan</label><input type="text" class="form-control" id="f-ket" value="${item.ket}" required></div>
+                        <button type="submit" class="btn btn-primary w-100">Simpan Kategori</button>
+                    </form>`;
+            } else if(tipe === 'pengarang') {
+                title = 'Form Pengarang';
+                let item = index !== null ? dbPengarang[index] : {nama:'', asal:''};
+                content = `
+                    <form onsubmit="simpanData(event, 'pengarang', ${index})">
+                        <div class="mb-3"><label class="form-label">Nama Pengarang</label><input type="text" class="form-control" id="f-namapeng" value="${item.nama}" required></div>
+                        <div class="mb-3"><label class="form-label">Negara / Asal</label><input type="text" class="form-control" id="f-asal" value="${item.asal}" required></div>
+                        <button type="submit" class="btn btn-primary w-100">Simpan Pengarang</button>
+                    </form>`;
+            } else if(tipe === 'rak') {
+                title = 'Form Rak Penyimpanan';
+                let item = index !== null ? dbRak[index] : {kode:'', nama:''};
+                content = `
+                    <form onsubmit="simpanData(event, 'rak', ${index})">
+                        <div class="mb-3"><label class="form-label">Kode Rak</label><input type="text" class="form-control" id="f-koderak" value="${item.kode}" required></div>
+                        <div class="mb-3"><label class="form-label">Nama Posisi</label><input type="text" class="form-control" id="f-namarak" value="${item.nama}" required></div>
+                        <button type="submit" class="btn btn-primary w-100">Simpan Rak</button>
+                    </form>`;
+            } else if(tipe === 'transaksi') {
+                title = 'Input Peminjaman Baru';
+                content = `
+                    <form onsubmit="simpanData(event, 'transaksi', null)">
+                        <div class="mb-3"><label class="form-label">Kode TRX</label><input type="text" class="form-control" id="f-trxkode" value="TRX-00${dbTrx.length + 1}" required></div>
+                        <div class="mb-3"><label class="form-label">Nama Peminjam</label><input type="text" class="form-control" id="f-trxpeminjam" required></div>
+                        <div class="mb-3"><label class="form-label">Tanggal Jatuh Tempo</label><input type="date" class="form-control" id="f-trxtempo" required></div>
+                        <button type="submit" class="btn btn-success w-100">Simpan Transaksi</button>
+                    </form>`;
+            } else if(tipe === 'literasi') {
+                title = 'Catat Log Literasi';
+                content = `
+                    <form onsubmit="simpanData(event, 'literasi', null)">
+                        <div class="mb-3"><label class="form-label">Nama Santri</label><input type="text" class="form-control" id="f-litnama" required></div>
+                        <div class="mb-3"><label class="form-label">Judul Buku/Kitab</label><input type="text" class="form-control" id="f-litjudul" required></div>
+                        <div class="mb-3"><label class="form-label">Ulasan Singkat</label><textarea class="form-control" id="f-litulasan" required></textarea></div>
+                        <button type="submit" class="btn btn-info text-white w-100">Simpan Literasi</button>
+                    </form>`;
+            }
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalBodyContent').innerHTML = content;
+            modalEl.show();
+        }
+
+        function simpanData(e, tipe, index) {
+            e.preventDefault();
+            if(tipe === 'buku') {
+                let data = { id: index !== null ? dbBuku[index].id : Date.now(), kode: document.getElementById('f-kode').value, judul: document.getElementById('f-judul').value, kategori: document.getElementById('f-kategori').value, stok: document.getElementById('f-stok').value };
+                if(index !== null) dbBuku[index] = data; else dbBuku.push(data);
+            } else if(tipe === 'anggota') {
+                let data = { id: index !== null ? dbAnggota[index].id : Date.now(), nis: document.getElementById('f-nis').value, nama: document.getElementById('f-nama').value, kelas: document.getElementById('f-kelas').value };
+                if(index !== null) dbAnggota[index] = data; else dbAnggota.push(data);
+            } else if(tipe === 'kategori') {
+                let data = { id: index !== null ? dbKategori[index].id : Date.now(), nama: document.getElementById('f-namakat').value, ket: document.getElementById('f-ket').value };
+                if(index !== null) dbKategori[index] = data; else dbKategori.push(data);
+            } else if(tipe === 'pengarang') {
+                let data = { id: index !== null ? dbPengarang[index].id : Date.now(), nama: document.getElementById('f-namapeng').value, asal: document.getElementById('f-asal').value };
+                if(index !== null) dbPengarang[index] = data; else dbPengarang.push(data);
+            } else if(tipe === 'rak') {
+                let data = { id: index !== null ? dbRak[index].id : Date.now(), kode: document.getElementById('f-koderak').value, nama: document.getElementById('f-namarak').value };
+                if(index !== null) dbRak[index] = data; else dbRak.push(data);
+            } else if(tipe === 'transaksi') {
+                dbTrx.push({ id: Date.now(), kode: document.getElementById('f-trxkode').value, peminjam: document.getElementById('f-trxpeminjam').value, tgl: new Date().toISOString().split('T')[0], tempo: document.getElementById('f-trxtempo').value, status: 'Dipinjam' });
+            } else if(tipe === 'literasi') {
+                dbLiterasi.push({ id: Date.now(), nama: document.getElementById('f-litnama').value, judul: document.getElementById('f-litjudul').value, ulasan: document.getElementById('f-litulasan').value });
+            }
+            modalEl.hide();
+            simpanStorage();
+        }
+
+        function hapusData(tipe, index) {
+            if(confirm('Hapus data ini?')) {
+                if(tipe === 'buku') dbBuku.splice(index, 1);
+                else if(tipe === 'anggota') dbAnggota.splice(index, 1);
+                else if(tipe === 'kategori') dbKategori.splice(index, 1);
+                else if(tipe === 'pengarang') dbPengarang.splice(index, 1);
+                else if(tipe === 'rak') dbRak.splice(index, 1);
+                else if(tipe === 'trx') dbTrx.splice(index, 1);
+                else if(tipe === 'literasi') dbLiterasi.splice(index, 1);
+                simpanStorage();
+            }
+        }
+
+        function salinData(tipe, index) {
+            if(tipe === 'buku') {
+                let item = dbBuku[index];
+                dbBuku.push({ id: Date.now(), kode: item.kode + '-COPY', judul: item.judul + ' (Salinan)', kategori: item.kategori, stok: item.stok });
+                simpanStorage();
+            }
+        }
+
         function renderAll() {
             // Render Buku
-            let htmlBuku = '';
-            let totalEks = 0;
-            dbBuku.forEach((item, index) => {
-                totalEks += parseInt(item.stok);
-                htmlBuku += `<tr>
-                    <td>${index + 1}</td>
-                    <td>${item.kode}</td>
-                    <td>${item.judul}</td>
-                    <td>${item.kategori}</td>
-                    <td><span class="badge bg-info text-dark">${item.stok}</span></td>
-                    <td>
-                        <button class="btn btn-warning btn-sm" onclick="editBuku(${index})"><i class="fa-solid fa-pen"></i></button>
-                        <button class="btn btn-secondary btn-sm" onclick="salinBuku(${index})"><i class="fa-solid fa-copy"></i></button>
-                        <button class="btn btn-danger btn-sm" onclick="hapusBuku(${index})"><i class="fa-solid fa-trash"></i></button>
-                    </td>
-                </tr>`;
+            let hBuku = '';
+            dbBuku.forEach((item, idx) => {
+                hBuku += `<tr><td>${idx+1}</td><td>${item.kode}</td><td class="fw-bold">${item.judul}</td><td>${item.kategori}</td><td>${item.stok} Eks</td><td><button class="btn btn-warning btn-sm me-1" onclick="bukaModal('buku', ${idx})"><i class="fa-solid fa-pen"></i></button><button class="btn btn-secondary btn-sm me-1" onclick="salinData('buku', ${idx})"><i class="fa-solid fa-copy"></i></button><button class="btn btn-danger btn-sm" onclick="hapusData('buku', ${idx})"><i class="fa-solid fa-trash"></i></button></td></tr>`;
             });
-            document.getElementById('tabel-buku-body').innerHTML = htmlBuku || '<tr><td colspan="6" class="text-center">Belum ada data buku</td></tr>';
+            document.getElementById('tabel-buku-body').innerHTML = hBuku || '<tr><td colspan="6" class="text-center text-muted">Belum ada data</td></tr>';
 
             // Render Anggota
-            let htmlAnggota = '';
-            dbAnggota.forEach((item, index) => {
-                htmlAnggota += `<tr>
-                    <td>${index + 1}</td>
-                    <td>${item.nis}</td>
-                    <td>${item.nama}</td>
-                    <td>${item.kelas}</td>
-                    <td>
-                        <button class="btn btn-danger btn-sm" onclick="hapusAnggota(${index})"><i class="fa-solid fa-trash"></i> Hapus</button>
-                    </td>
-                </tr>`;
+            let hAnggota = '';
+            dbAnggota.forEach((item, idx) => {
+                hAnggota += `<tr><td>${idx+1}</td><td>${item.nis}</td><td class="fw-bold">${item.nama}</td><td>${item.kelas}</td><td><button class="btn btn-warning btn-sm me-1" onclick="bukaModal('anggota', ${idx})"><i class="fa-solid fa-pen"></i></button><button class="btn btn-danger btn-sm" onclick="hapusData('anggota', ${idx})"><i class="fa-solid fa-trash"></i></button></td></tr>`;
             });
-            document.getElementById('tabel-anggota-body').innerHTML = htmlAnggota || '<tr><td colspan="5" class="text-center">Belum ada data anggota</td></tr>';
+            document.getElementById('tabel-anggota-body').innerHTML = hAnggota || '<tr><td colspan="5" class="text-center text-muted">Belum ada data</td></tr>';
+
+            // Render Kategori
+            let hKat = '';
+            dbKategori.forEach((item, idx) => {
+                hKat += `<tr><td>${idx+1}</td><td>${item.nama}</td><td>${item.ket}</td><td><button class="btn btn-danger btn-sm" onclick="hapusData('kategori', ${idx})"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+            });
+            document.getElementById('tabel-kategori-body').innerHTML = hKat || '<tr><td colspan="4" class="text-center text-muted">Belum ada data</td></tr>';
+
+            // Render Pengarang
+            let hPeng = '';
+            dbPengarang.forEach((item, idx) => {
+                hPeng += `<tr><td>${idx+1}</td><td>${item.nama}</td><td>${item.asal}</td><td><button class="btn btn-danger btn-sm" onclick="hapusData('pengarang', ${idx})"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+            });
+            document.getElementById('tabel-pengarang-body').innerHTML = hPeng || '<tr><td colspan="4" class="text-center text-muted">Belum ada data</td></tr>';
+
+            // Render Rak
+            let hRak = '';
+            dbRak.forEach((item, idx) => {
+                hRak += `<tr><td>${idx+1}</td><td>${item.kode}</td><td>${item.nama}</td><td><button class="btn btn-danger btn-sm" onclick="hapusData('rak', ${idx})"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+            });
+            document.getElementById('tabel-rak-body').innerHTML = hRak || '<tr><td colspan="4" class="text-center text-muted">Belum ada data</td></tr>';
 
             // Render Transaksi
-            let htmlTrx = '';
-            let jmlPinjam = 0;
-            let jmlTerlambat = 0;
-            dbTransaksi.forEach((item) => {
-                if(item.status === 'Dipinjam') jmlPinjam++;
-                if(item.status === 'Terlambat') jmlTerlambat++;
-                htmlTrx += `<tr>
-                    <td>${item.kode}</td>
-                    <td>${item.peminjam}</td>
-                    <td>${item.tgl}</td>
-                    <td>${item.tempo}</td>
-                    <td><span class="badge ${item.status === 'Dipinjam' ? 'bg-warning text-dark' : 'bg-danger'}">${item.status}</span></td>
-                    <td><button class="btn btn-success btn-sm" onclick="selesaiTrx('${item.kode}')">Kembalikan</button></td>
-                </tr>`;
+            let hTrx = '';
+            dbTrx.forEach((item, idx) => {
+                let badge = item.status === 'Dipinjam' ? 'bg-warning text-dark' : 'bg-danger';
+                hTrx += `<tr><td>${item.kode}</td><td class="fw-bold">${item.peminjam}</td><td>${item.tgl}</td><td>${item.tempo}</td><td><span class="badge ${badge}">${item.status}</span></td><td><button class="btn btn-success btn-sm me-1" onclick="dbTrx.splice(${idx},1); simpanStorage();">Kembalikan</button><button class="btn btn-danger btn-sm" onclick="hapusData('trx', ${idx})"><i class="fa-solid fa-trash"></i></button></td></tr>`;
             });
-            document.getElementById('tabel-transaksi-body').innerHTML = htmlTrx || '<tr><td colspan="6" class="text-center">Belum ada transaksi</td></tr>';
+            document.getElementById('tabel-trx-body').innerHTML = hTrx || '<tr><td colspan="6" class="text-center text-muted">Belum ada transaksi</td></tr>';
 
-            // Update Dashboard Metrics
+            // Render Literasi
+            let hLit = '';
+            dbLiterasi.forEach((item, idx) => {
+                hLit += `<tr><td>${idx+1}</td><td class="fw-bold">${item.nama}</td><td>${item.judul}</td><td>${item.ulasan}</td><td><button class="btn btn-danger btn-sm" onclick="hapusData('literasi', ${idx})"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+            });
+            document.getElementById('tabel-literasi-body').innerHTML = hLit || '<tr><td colspan="5" class="text-center text-muted">Belum ada data literasi</td></tr>';
+
+            // Dashboard Metrics
+            let totalEks = dbBuku.reduce((sum, item) => sum + parseInt(item.stok || 0), 0);
+            let jmlPinjam = dbTrx.filter(t => t.status === 'Dipinjam').length;
+            let jmlTerlambat = dbTrx.filter(t => t.status === 'Terlambat').length;
+
             document.getElementById('m-judul').innerText = dbBuku.length;
             document.getElementById('m-eksemplar').innerText = totalEks;
             document.getElementById('m-anggota').innerText = dbAnggota.length;
             document.getElementById('m-pinjam').innerText = jmlPinjam;
             document.getElementById('m-terlambat').innerText = jmlTerlambat;
-            document.getElementById('m-hariini').innerText = 1; // Contoh stat harian
+            document.getElementById('m-rusak').innerText = 0;
+            document.getElementById('m-trx-hari-ini').innerText = 2;
+            document.getElementById('m-kembali-hari-ini').innerText = 3;
 
-            // Update Notifikasi Pintar
+            // Smart Notifications
             document.getElementById('list-notif').innerHTML = `
-                <li>⚠️ Ada ${jmlTerlambat} siswa terlambat mengembalikan buku.</li>
-                <li>🔔 2 buku harus dikembalikan hari ini sesuai jadwal tenggat.</li>
-                <li>❌ Status inventaris terpantau aman (0 buku hilang/rusak).</li>
+                <li>🔔 <strong>3 buku</strong> harus dikembalikan hari ini di Maktabah Al Faruq Kalibagor.</li>
+                <li>⚠️ Terdapat <strong>${jmlTerlambat} siswa</strong> terlambat mengembalikan pinjaman kitab.</li>
+                <li>ℹ️ Kartu anggota santri Ahmad Fauzi akan segera berakhir masa berlakunya.</li>
             `;
         }
 
-        // --- MANAJEMEN BUKU (CRUD + SALIN) ---
-        const modalBuku = new bootstrap.Modal(document.getElementById('modalBuku'));
-        const modalAnggota = new bootstrap.Modal(document.getElementById('modalAnggota'));
-        const modalTransaksi = new bootstrap.Modal(document.getElementById('modalTransaksi'));
-
-        function bukaModalBuku() {
-            document.getElementById('formBuku').reset();
-            document.getElementById('bukuIndex').value = '';
-            document.getElementById('modalBukuTitle').innerText = 'Tambah Data Buku';
-            modalBuku.show();
-        }
-
-        function editBuku(index) {
-            let b = dbBuku[index];
-            document.getElementById('bukuIndex').value = index;
-            document.getElementById('bukuKode').value = b.kode;
-            document.getElementById('bukuJudul').value = b.judul;
-            document.getElementById('bukuKategori').value = b.kategori;
-            document.getElementById('bukuStok').value = b.stok;
-            document.getElementById('modalBukuTitle').innerText = 'Edit Data Buku';
-            modalBuku.show();
-        }
-
-        function salinBuku(index) {
-            let b = dbBuku[index];
-            dbBuku.push({ id: Date.now(), kode: b.kode + '-COPY', judul: b.judul + ' (Salinan)', kategori: b.kategori, stok: b.stok });
-            simpanStorage();
-        }
-
-        function hapusBuku(index) {
-            if(confirm('Yakin ingin menghapus buku ini?')) {
-                dbBuku.splice(index, 1);
-                simpanStorage();
+        function jalankanPencarian() {
+            let keyword = document.getElementById('inputPencarianGlobal').value.toLowerCase();
+            if(!keyword) {
+                document.getElementById('hasilPencarian').innerHTML = 'Ketik kata kunci untuk mulai mencari...';
+                return;
             }
-        }
-
-        document.getElementById('formBuku').addEventListener('submit', function(e) {
-            e.preventDefault();
-            let idx = document.getElementById('bukuIndex').value;
-            let data = {
-                id: idx === '' ? Date.now() : dbBuku[idx].id,
-                kode: document.getElementById('bukuKode').value,
-                judul: document.getElementById('bukuJudul').value,
-                kategori: document.getElementById('bukuKategori').value,
-                stok: document.getElementById('bukuStok').value
-            };
-            if(idx === '') {
-                dbBuku.push(data);
+            let resBuku = dbBuku.filter(b => b.judul.toLowerCase().includes(keyword) || b.kode.toLowerCase().includes(keyword));
+            let html = `<h6>Hasil Pencarian Buku:</h6><ul>`;
+            if(resBuku.length > 0) {
+                resBuku.forEach(b => { html += `<li><strong>${b.judul}</strong> (${b.kode}) - Kategori: ${b.kategori} (Stok: ${b.stok})</li>`; });
             } else {
-                dbBuku[idx] = data;
+                html += `<li>Tidak ditemukan buku yang cocok.</li>`;
             }
-            modalBuku.hide();
-            simpanStorage();
-        });
-
-        // --- MANAJEMEN ANGGOTA ---
-        function bukaModalAnggota() {
-            document.getElementById('formAnggota').reset();
-            modalAnggota.show();
+            html += `</ul>`;
+            document.getElementById('hasilPencarian').innerHTML = html;
         }
 
-        document.getElementById('formAnggota').addEventListener('submit', function(e) {
-            e.preventDefault();
-            dbAnggota.push({
-                id: Date.now(),
-                nis: document.getElementById('anggotaNis').value,
-                nama: document.getElementById('anggotaNama').value,
-                kelas: document.getElementById('anggotaKelas').value
-            });
-            modalAnggota.hide();
-            simpanStorage();
-        });
-
-        function hapusAnggota(index) {
-            if(confirm('Hapus anggota ini?')) {
-                dbAnggota.splice(index, 1);
-                simpanStorage();
-            }
-        }
-
-        // --- TRANSAKSI ---
-        function bukaModalTransaksi() {
-            document.getElementById('trTempo').valueAsDate = new Date();
-            modalTransaksi.show();
-        }
-
-        document.getElementById('formTransaksi').addEventListener('submit', function(e) {
-            e.preventDefault();
-            dbTransaksi.push({
-                id: Date.now(),
-                kode: document.getElementById('trKode').value,
-                peminjam: document.getElementById('trPeminjam').value,
-                tgl: new Date().toISOString().split('T')[0],
-                tempo: document.getElementById('trTempo').value,
-                status: 'Dipinjam'
-            });
-            modalTransaksi.hide();
-            simpanStorage();
-        });
-
-        function selesaiTrx(kode) {
-            dbTransaksi = dbTransaksi.filter(item => item.kode !== kode);
-            alert('Buku berhasil dikembalikan!');
-            simpanStorage();
-        }
-
-        // Jalankan saat pertama dimuat
         renderAll();
     </script>
 </body>

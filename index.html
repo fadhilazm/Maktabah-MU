@@ -1,1404 +1,809 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Antrian Forum Wali Santri</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Maktabah Marhalah Ula Al-Faruq — Kalibagor</title>
 <style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap');
+
   :root{
-    --bg:#F3F0E6;
-    --ink:#20281F;
-    --ink-soft:#5B6157;
-    --primary:#123726;
-    --primary-light:#245C42;
-    --primary-deep:#0B2A1B;
-    --gold:#A67C2E;
-    --gold-soft:#E0C685;
-    --card:#FFFFFF;
-    --sand:#ECE3C9;
-    --line:#D8C68A;
-    --danger:#8F3A2E;
-    --ok:#3C7350;
+    --ink:#241B2E; --ink-soft:#6B6178;
+    --plum:#4A2545; --plum-deep:#2E1730;
+    --gold:#C9A227; --gold-soft:#E4CE87;
+    --rose:#A63D5C; --rose-soft:#F1DCE1;
+    --ivory:#FAF6EF; --ivory-deep:#F1E9DA;
+    --card:#FFFFFF; --line:#E6DCC8;
+    --display: 'Fraunces', Georgia, serif;
+    --body: 'Inter', -apple-system, 'Segoe UI', sans-serif;
+    --mono: 'JetBrains Mono', 'SFMono-Regular', Consolas, monospace;
   }
-  *{box-sizing:border-box;}
-  body{
-    margin:0;
-    background:
-      radial-gradient(circle at 14px 14px, rgba(166,124,46,0.10) 1px, transparent 1.6px) 0 0/28px 28px,
-      var(--bg);
-    color:var(--ink);
-    font-family:'Plus Jakarta Sans', sans-serif;
-    min-height:100vh;
-  }
-  .display-font{ font-family:'Amiri', serif; }
-  .mono{ font-family:'JetBrains Mono', monospace; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:var(--ivory); color:var(--ink); font-family:var(--body); }
+  ::selection{ background:var(--gold-soft); }
+  input:focus, select:focus, textarea:focus{ outline:2px solid var(--gold); outline-offset:1px; }
+  button{ font-family:var(--body); }
+  button:focus-visible{ outline:2px solid var(--gold); outline-offset:2px; }
+  .max{ max-width:1100px; margin:0 auto; padding:0 24px; }
 
-  .mode-banner{
-    background:#7A2E22;
-    color:#fff;
-    text-align:center;
-    font-size:13px;
-    font-weight:700;
-    padding:10px 16px;
-    line-height:1.4;
-    position:sticky;
-    top:0;
-    z-index:60;
-  }
-  header.top{
-    background:linear-gradient(160deg, var(--primary) 0%, var(--primary-deep) 100%);
-    color:#fff;
-    padding:22px 20px 0;
-    position:relative;
-    overflow:hidden;
-  }
-  header.top::after{
-    content:"";
-    display:block;
-    height:16px;
-    margin-top:18px;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='26' height='26'%3E%3Cpath d='M13 1 L25 13 L13 25 L1 13 Z' fill='none' stroke='%23C9A227' stroke-width='1.3'/%3E%3C/svg%3E");
-    background-repeat:repeat-x;
-    background-size:26px 26px;
-    background-position:center;
-    opacity:0.9;
-  }
-  .brand{
-    display:flex;
-    align-items:baseline;
-    gap:10px;
-    flex-wrap:wrap;
-    max-width:640px;
-    margin:0 auto;
-  }
-  .brand h1{
-    font-family:'Amiri', serif;
-    font-weight:700;
-    font-size:24px;
-    margin:0;
-  }
-  .brand span{
-    color:var(--gold-soft);
-    font-size:13px;
-    letter-spacing:.03em;
-  }
-  nav.tabs{
-    max-width:640px;
-    margin:16px auto 0;
-    display:flex;
-    gap:4px;
-  }
-  nav.tabs button{
-    flex:1;
-    background:rgba(255,255,255,0.08);
-    border:none;
-    color:rgba(255,255,255,0.75);
-    padding:10px 8px;
-    font-family:inherit;
-    font-size:13px;
-    font-weight:600;
-    border-radius:10px 10px 0 0;
-    cursor:pointer;
-  }
-  nav.tabs button.active{
-    background:var(--bg);
-    color:var(--primary);
-  }
+  /* header */
+  header.top{ background:linear-gradient(135deg, var(--plum-deep), var(--plum)); color:var(--ivory); border-bottom:3px solid var(--gold); }
+  .brand-row{ display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-wrap:wrap; padding:32px 0 22px; }
+  .eyebrow{ font-family:var(--mono); font-size:11px; letter-spacing:.22em; color:var(--gold-soft); text-transform:uppercase; margin-bottom:8px; }
+  h1.brand{ font-family:var(--display); font-size:clamp(26px,3.6vw,38px); font-weight:600; margin:0; line-height:1.15; }
+  .brand-sub{ margin:6px 0 0; color:var(--gold-soft); font-size:13.5px; }
 
-  main{
-    max-width:640px;
-    margin:0 auto;
-    padding:24px 20px 60px;
-  }
-  section[hidden]{ display:none !important; }
+  .tabs{ display:flex; gap:8px; overflow-x:auto; }
+  .tab-btn{ display:flex; align-items:center; gap:8px; font-size:13.5px; font-weight:700; white-space:nowrap; padding:10px 16px; cursor:pointer; border:none; border-radius:8px 8px 0 0; background:rgba(255,255,255,.08); color:var(--ivory); }
+  .tab-btn.active{ background:var(--ivory); color:var(--plum); transform:translateY(1px); }
+  .tab-icon{ font-size:14px; }
 
-  .card{
-    background:var(--card);
-    border-radius:16px;
-    padding:22px;
-    box-shadow:0 1px 3px rgba(18,55,38,0.08), 0 6px 16px rgba(18,55,38,0.06);
-    position:relative;
-    border-top:3px solid var(--sand);
-  }
-  .card + .card{ margin-top:16px; }
+  main{ padding:28px 0 60px; }
 
-  label{
-    display:block;
-    font-size:13px;
-    font-weight:600;
-    color:var(--ink-soft);
-    margin:16px 0 6px;
-  }
-  label:first-of-type{ margin-top:0; }
-  input{
-    width:100%;
-    padding:12px 14px;
-    border-radius:10px;
-    border:1.5px solid #DED2A8;
-    background:#FAFBF8;
-    font-family:inherit;
-    font-size:15px;
-    color:var(--ink);
-  }
-  input:focus{
-    outline:none;
-    border-color:var(--primary-light);
-    background:#fff;
-  }
-  .hint{
-    font-size:12.5px;
-    color:var(--ink-soft);
-    margin-top:6px;
-  }
-  .hint.warn{ color:var(--danger); font-weight:600; }
-  .hint.ok{ color:var(--ok); font-weight:600; }
+  /* stat cards */
+  .stat-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:16px; margin-bottom:22px; }
+  .stat-card{ background:var(--card); border:1px solid var(--line); border-radius:10px; padding:18px 20px; position:relative; overflow:hidden; }
+  .stat-blob{ position:absolute; top:-18px; right:-18px; width:70px; height:70px; border-radius:50%; opacity:.10; }
+  .stat-icon{ width:34px; height:34px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:16px; color:#fff; margin-bottom:8px; }
+  .stat-value{ font-family:var(--display); font-size:30px; font-weight:600; line-height:1; }
+  .stat-label{ font-size:12px; color:var(--ink-soft); margin-top:4px; font-weight:500; }
 
-  button.primary{
-    margin-top:22px;
-    width:100%;
-    background:linear-gradient(135deg, var(--primary-light), var(--primary) 70%);
-    color:#fff;
-    border:1px solid var(--primary-deep);
-    padding:14px;
-    border-radius:10px;
-    font-family:inherit;
-    font-size:15px;
-    font-weight:700;
-    cursor:pointer;
-    box-shadow:0 4px 12px rgba(18,55,38,0.22);
-  }
-  button.primary:disabled{ background:#A9B6AC; border-color:#A9B6AC; box-shadow:none; cursor:not-allowed; }
-  button.primary:active:not(:disabled){ background:var(--primary-light); }
-  button.primary:focus-visible, button:focus-visible, input:focus-visible{
-    outline:3px solid var(--gold);
-    outline-offset:1px;
-  }
+  .alert-overdue{ display:flex; align-items:center; gap:8px; background:var(--rose-soft); border:1px solid var(--rose); border-radius:8px; padding:10px 14px; color:var(--rose); font-size:13px; font-weight:600; margin-bottom:22px; }
 
-  .csel{
-    position:relative;
-    width:100%;
-  }
-  .csel-btn{
-    width:100%;
-    text-align:left;
-    padding:12px 38px 12px 14px;
-    border-radius:10px;
-    border:1.5px solid #DED2A8;
-    background:#FAFBF8;
-    font-family:inherit;
-    font-size:15px;
-    color:var(--ink);
-    cursor:pointer;
-    position:relative;
-    -webkit-tap-highlight-color: rgba(31,77,58,0.15);
-  }
-  .csel-btn.placeholder{ color:#8B958E; }
-  .csel-btn.csel-empty{ background:#EFE9D4; color:#9AA39C; cursor:not-allowed; }
-  .csel-btn::after{
-    content:"";
-    position:absolute;
-    right:14px;
-    top:50%;
-    width:9px;
-    height:9px;
-    border-right:2px solid var(--ink-soft);
-    border-bottom:2px solid var(--ink-soft);
-    transform:translateY(-65%) rotate(45deg);
-    pointer-events:none;
-  }
-  .csel-btn:focus-visible{
-    outline:3px solid var(--gold);
-    outline-offset:1px;
-  }
-  .csel-list{
-    position:absolute;
-    left:0; right:0;
-    top:calc(100% + 6px);
-    background:#fff;
-    border:1.5px solid #DED2A8;
-    border-radius:10px;
-    box-shadow:0 10px 24px rgba(28,43,34,0.18);
-    max-height:260px;
-    overflow-y:auto;
-    z-index:40;
-    padding:6px;
-  }
-  .csel-opt{
-    padding:11px 12px;
-    border-radius:8px;
-    font-size:14.5px;
-    cursor:pointer;
-  }
-  .csel-opt:active{ background:#EEF2EA; }
-  .csel-opt.sel{ background:var(--sand); font-weight:700; color:var(--primary); }
-  .csel-opt.csel-disabled{ color:#B7BFB4; cursor:not-allowed; }
+  .dash-grid{ display:grid; grid-template-columns:1.3fr 1fr; gap:20px; }
+  @media (max-width:760px){ .dash-grid{ grid-template-columns:1fr; } }
+  .panel{ background:var(--card); border:1px solid var(--line); border-radius:10px; padding:20px; }
+  .panel-title{ font-family:var(--display); font-size:17px; margin:0 0 14px; }
+  .muted{ color:var(--ink-soft); font-size:13px; padding:14px 0; }
 
-  .schedule{
-    display:flex;
-    flex-direction:column;
-    gap:6px;
-  }
-  .schedule .row{
-    display:flex;
-    justify-content:space-between;
-    font-size:13.5px;
-    padding:6px 0;
-    border-bottom:1px dashed #E5E9DF;
-  }
-  .schedule .row.break{
-    color:var(--ink-soft);
-    font-style:italic;
-    font-size:12.5px;
-    border-bottom:none;
-  }
-  .schedule .row:last-child{ border-bottom:none; }
+  .chart-bars{ display:flex; align-items:flex-end; gap:14px; height:200px; padding-top:10px; }
+  .chart-col{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%; }
+  .chart-val{ font-family:var(--mono); font-size:11px; color:var(--ink-soft); margin-bottom:4px; }
+  .chart-bar{ width:100%; max-width:40px; border-radius:6px 6px 0 0; background:var(--plum); }
+  .chart-lbl{ font-size:11.5px; color:var(--ink-soft); margin-top:8px; font-weight:600; }
 
-  .practice-notice{
-    background:#7A2E22;
-    color:#fff;
-    font-size:13px;
-    font-weight:700;
-    text-align:center;
-    padding:12px 16px;
-    border-radius:12px;
-    margin-bottom:14px;
-    line-height:1.5;
-  }
-  .arch{
-    background:linear-gradient(165deg, var(--primary-light) 0%, var(--primary) 55%, var(--primary-deep) 100%);
-    border-radius:200px 200px 16px 16px;
-    padding:46px 24px 28px;
-    text-align:center;
-    color:#fff;
-    position:relative;
-    border:1px solid var(--gold);
-    box-shadow:0 10px 28px rgba(11,42,27,0.28);
-  }
-  .arch::before{
-    content:"";
-    position:absolute;
-    inset:8px;
-    border:1px solid rgba(224,198,133,0.45);
-    border-radius:200px 200px 10px 10px;
-    pointer-events:none;
-  }
-  .arch .eyebrow{
-    font-size:12px;
-    letter-spacing:.14em;
-    text-transform:uppercase;
-    color:var(--gold-soft);
-    font-weight:700;
-  }
-  .arch .num{
-    font-family:'Amiri', serif;
-    font-weight:700;
-    font-size:76px;
-    line-height:1;
-    margin:10px 0 6px;
-    text-shadow:0 2px 10px rgba(0,0,0,0.2);
-  }
-  .arch .sub{ font-size:14px; color:rgba(255,255,255,0.88); }
+  .top-list{ display:flex; flex-direction:column; gap:12px; }
+  .top-item{ display:flex; align-items:center; gap:12px; }
+  .top-rank{ font-family:var(--display); font-size:15px; color:var(--gold); font-weight:700; width:20px; }
+  .top-title{ flex:1; font-size:13px; font-weight:600; }
+  .top-count{ font-family:var(--mono); font-size:12px; color:var(--ink-soft); }
 
-  .info-row{
-    display:flex;
-    justify-content:space-between;
-    gap:12px;
-    padding:10px 0;
-    border-bottom:1px solid #EEF0E4;
-    font-size:14px;
-  }
-  .info-row:last-child{ border-bottom:none; }
-  .info-row .k{ color:var(--ink-soft); flex-shrink:0; }
-  .info-row .v{ font-weight:600; text-align:right; }
+  .activity-item{ display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--line); font-size:13px; }
+  .activity-item:last-child{ border-bottom:none; }
+  .activity-time{ margin-left:auto; font-size:12px; color:var(--ink-soft); white-space:nowrap; }
 
-  .board-current{
-    text-align:center;
-    padding:18px 0 8px;
-  }
-  .board-current .label{
-    font-size:13px;
-    font-weight:700;
-    letter-spacing:.12em;
-    text-transform:uppercase;
-    color:var(--gold);
-  }
-  .board-current .bignum{
-    font-family:'Amiri', serif;
-    font-weight:700;
-    font-size:92px;
-    line-height:1;
-    color:var(--primary);
-    margin:10px auto;
-    width:180px;
-    height:180px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    background:var(--sand);
-    border:1px solid var(--line);
-    border-radius:50% 50% 12% 12% / 60% 60% 8% 8%;
-    box-shadow:inset 0 0 0 6px #fff;
-  }
-  .board-current .name{
-    font-size:16px;
-    color:var(--ink-soft);
-    margin-top:10px;
-  }
-  .board-current .termin-tag{
-    display:inline-block;
-    margin-top:8px;
-    background:var(--primary);
-    color:#fff;
-    font-size:12px;
-    font-weight:700;
-    padding:4px 12px;
-    border-radius:999px;
-    letter-spacing:.03em;
-  }
-  .waiting-list h3{
-    font-size:13px;
-    text-transform:uppercase;
-    letter-spacing:.08em;
-    color:var(--ink-soft);
-    margin:0 0 10px;
-  }
-  .waiting-item{
-    display:flex;
-    align-items:center;
-    gap:12px;
-    padding:10px 0;
-    border-bottom:1px solid #EEF0E4;
-  }
-  .waiting-item:last-child{ border-bottom:none; }
-  .badge{
-    width:38px; height:38px;
-    border-radius:9px;
-    background:var(--sand);
-    border:1px solid var(--line);
-    color:var(--primary);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-family:'JetBrains Mono', monospace;
-    font-weight:700;
-    font-size:14px;
-    flex-shrink:0;
-  }
-  .waiting-item .meta{ flex:1; }
-  .waiting-item .meta .n{ font-weight:600; font-size:14.5px; }
-  .waiting-item .meta .k{ font-size:12.5px; color:var(--ink-soft); }
-  .empty{
-    text-align:center;
-    color:var(--ink-soft);
-    font-size:14px;
-    padding:20px 0;
-  }
-  .field-row{ display:flex; gap:10px; }
-  .field-row > div{ flex:1; }
-  .field-row label{ margin-top:0; }
+  /* toolbar */
+  .toolbar{ display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-bottom:20px; }
+  .search-box{ display:flex; align-items:center; gap:8px; padding:9px 12px; border:1px solid var(--line); border-radius:7px; background:var(--card); flex:1 1 220px; }
+  .search-box input{ border:none; outline:none; background:transparent; font-size:14px; width:100%; font-family:var(--body); }
+  select, .field input, .field textarea{ padding:9px 10px; border-radius:7px; border:1px solid var(--line); font-size:13px; font-family:var(--body); background:var(--card); }
 
-  .pin-box{ text-align:center; padding:30px 22px; }
-  .pin-box input{ text-align:center; letter-spacing:.4em; font-size:20px; }
-  .admin-stats{
-    display:flex;
-    gap:10px;
-    margin-bottom:16px;
-  }
-  .stat{
-    flex:1;
-    background:var(--card);
-    border-radius:12px;
-    padding:14px;
-    text-align:center;
-    border-top:3px solid var(--gold-soft);
-    box-shadow:0 1px 3px rgba(18,55,38,0.06);
-  }
-  .stat .n{ font-family:'JetBrains Mono',monospace; font-weight:700; font-size:20px; color:var(--primary); }
-  .stat .l{ font-size:10.5px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.04em; }
+  .btn{ display:inline-flex; align-items:center; gap:6px; padding:9px 14px; border-radius:7px; font-weight:700; font-size:13px; cursor:pointer; border:none; }
+  .btn-primary{ background:var(--plum); color:#fff; }
+  .btn-outline{ background:#fff; color:var(--plum); border:1px solid var(--plum); }
+  .btn-gold{ background:var(--gold); color:var(--plum-deep); }
+  .btn:disabled{ background:#D9D2C9 !important; color:#fff !important; cursor:not-allowed; border:none !important; }
+  .btn-block{ width:100%; padding:11px; border-radius:7px; font-size:14px; }
 
-  .call-next{
-    width:100%;
-    background:linear-gradient(135deg, #C29A42, var(--gold) 70%);
-    color:#fff;
-    border:1px solid #8E6A22;
-    padding:16px;
-    border-radius:10px;
-    font-family:inherit;
-    font-weight:700;
-    font-size:15px;
-    cursor:pointer;
-    box-shadow:0 4px 12px rgba(166,124,46,0.28);
-  }
-  .call-next:disabled{ background:#DCDCD4; border-color:#C7C7BC; color:#8A8A80; box-shadow:none; cursor:not-allowed; opacity:0.75; }
-  .call-next-hint{ text-align:center; font-size:12.5px; color:var(--ink-soft); margin-top:10px; }
+  /* book grid */
+  .book-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:16px; }
+  .book-card{ background:var(--card); border:1px solid var(--line); border-radius:9px; padding:16px; display:flex; flex-direction:column; gap:9px; }
+  .row-between{ display:flex; align-items:center; justify-content:space-between; }
+  .kode-chip{ font-family:var(--mono); font-size:11.5px; font-weight:600; letter-spacing:.03em; padding:3px 8px; border-radius:5px; color:#fff; white-space:nowrap; }
+  .due-stub{ display:inline-flex; align-items:center; gap:5px; border-radius:3px 3px 8px 8px; padding:3px 9px 3px 7px; font-family:var(--mono); font-size:10.5px; font-weight:700; letter-spacing:.05em; text-transform:uppercase; background:#fff; }
+  .due-dot{ width:5px; height:5px; border-radius:50%; display:inline-block; }
+  .kat-label{ font-size:10.5px; letter-spacing:.05em; text-transform:uppercase; font-weight:700; }
+  .book-title{ font-family:var(--display); font-size:16.5px; font-weight:600; margin:0; line-height:1.3; }
+  .book-meta{ font-size:12.5px; color:var(--ink-soft); margin:0; }
+  .book-meta.small{ font-size:11.5px; }
+  .book-loan-note{ font-size:11.5px; color:var(--rose); margin:0; font-weight:600; }
+  .book-actions{ display:flex; gap:8px; margin-top:2px; }
+  .icon-btn{ padding:7px 9px; border-radius:6px; border:1px solid var(--line); background:#fff; cursor:pointer; }
 
-  .entry-row{
-    display:flex;
-    align-items:center;
-    gap:10px;
-    padding:12px 0;
-    border-bottom:1px solid #EFE9D4;
-    flex-wrap:wrap;
-  }
-  .entry-row:last-child{ border-bottom:none; }
-  .entry-row .meta{ flex:1; min-width:140px; }
-  .entry-row .meta .n{ font-weight:600; font-size:14.5px; }
-  .entry-row .meta .k{ font-size:12px; color:var(--ink-soft); }
-  .status-pill{
-    font-size:11px;
-    font-weight:700;
-    padding:4px 9px;
-    border-radius:999px;
-    text-transform:uppercase;
-    letter-spacing:.04em;
-    flex-shrink:0;
-  }
-  .st-menunggu{ background:#EFEAD8; color:#8A6D1F; }
-  .st-dilayani{ background:#DDEFE3; color:var(--ok); }
-  .st-selesai{ background:#E4E9E1; color:var(--ink-soft); }
-  .st-dilewati{ background:#F5DEDA; color:var(--danger); }
-  .entry-actions{ display:flex; gap:6px; }
-  .entry-actions button{
-    border:none;
-    background:#F0F2EC;
-    color:var(--ink);
-    padding:6px 9px;
-    border-radius:7px;
-    font-size:11px;
-    font-weight:700;
-    cursor:pointer;
-  }
-  .entry-actions button.btn-hapus{
-    background:#F5E4DF;
-    color:var(--danger);
-  }
-  .reset-btn{
-    width:100%;
-    margin-top:18px;
-    background:none;
-    border:1.5px solid #DED2A8;
-    color:var(--danger);
-    padding:10px;
-    border-radius:10px;
-    font-family:inherit;
-    font-weight:700;
-    font-size:13px;
-    cursor:pointer;
-  }
-  .reset-btn-all{
-    background:var(--danger);
-    border-color:var(--danger);
-    color:#fff;
-  }
-  .toast{
-    position:fixed;
-    left:50%; bottom:24px;
-    transform:translateX(-50%);
-    background:var(--ink);
-    color:#fff;
-    padding:11px 18px;
-    border-radius:10px;
-    font-size:13.5px;
-    font-weight:600;
-    box-shadow:0 6px 18px rgba(0,0,0,0.2);
-    opacity:0;
-    pointer-events:none;
-    transition:opacity .25s ease;
-    z-index:80;
-    max-width:85vw;
-    text-align:center;
-  }
-  .toast.show{ opacity:1; }
+  /* loan lists */
+  .loan-row{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; background:var(--card); border:1px solid var(--line); border-radius:9px; padding:13px 16px; margin-bottom:12px; }
+  .loan-row.late{ background:var(--rose-soft); border-color:var(--rose); }
+  .loan-left{ display:flex; align-items:center; gap:12px; }
+  .loan-title{ font-family:var(--display); font-weight:600; font-size:15px; }
+  .loan-sub{ font-size:12.5px; color:var(--ink-soft); }
+  .status-tag{ display:flex; align-items:center; gap:5px; font-size:12px; font-weight:700; }
 
-  @media (prefers-reduced-motion: reduce){
-    *{ transition:none !important; }
-  }
+  .history-panel{ background:var(--card); border:1px solid var(--line); border-radius:9px; overflow:hidden; }
+  .history-row{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; padding:12px 16px; border-bottom:1px solid var(--line); }
+  .history-row:last-child{ border-bottom:none; }
+
+  /* modal */
+  .modal-backdrop{ position:fixed; inset:0; background:rgba(36,27,46,.6); display:flex; align-items:center; justify-content:center; padding:16px; z-index:50; }
+  .modal{ background:var(--card); border-radius:10px; padding:22px; width:100%; max-width:440px; max-height:88vh; overflow-y:auto; }
+  .modal-header{ display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+  .modal-title{ font-family:var(--display); font-size:18px; margin:0; }
+  .close-x{ background:none; border:none; cursor:pointer; font-size:18px; color:var(--ink-soft); line-height:1; }
+  .field{ margin-top:12px; }
+  .field:first-child{ margin-top:0; }
+  .field-label{ font-size:11.5px; font-weight:700; color:var(--ink-soft); display:block; margin-bottom:4px; }
+  .field input, .field select{ width:100%; }
+  .field-row{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .radio-group{ display:flex; gap:8px; margin-top:4px; }
+  .radio-btn{ flex:1; padding:8px 0; border-radius:6px; border:1.5px solid var(--line); background:#fff; color:var(--ink); font-size:12.5px; font-weight:700; cursor:pointer; }
+  .radio-btn.active{ border-color:var(--plum); background:var(--plum); color:#fff; }
+  .hint{ font-size:11px; color:var(--ink-soft); margin:6px 0 0; }
+  .link-btn{ margin-top:4px; background:none; border:none; padding:0; color:var(--plum); font-size:11px; font-weight:700; cursor:pointer; text-decoration:underline; }
+
+  .kat-row{ display:flex; align-items:center; gap:8px; border:1px solid var(--line); border-radius:7px; padding:8px 10px; margin-bottom:8px; }
+  .kat-swatch{ width:26px; height:26px; border:none; border-radius:5px; padding:0; cursor:pointer; flex-shrink:0; }
+  .kat-input-kode{ width:64px; padding:6px 7px; border-radius:5px; border:1px solid var(--line); font-size:12.5px; font-family:var(--mono); text-transform:uppercase; }
+  .kat-input-nama{ flex:1; min-width:0; padding:6px 7px; border-radius:5px; border:1px solid var(--line); font-size:13px; }
+  .kat-del{ background:none; border:none; cursor:pointer; flex-shrink:0; color:var(--rose); font-size:15px; }
+
+  .toast{ position:fixed; bottom:24px; left:50%; transform:translateX(-50%); color:#fff; padding:10px 18px; border-radius:7px; font-size:13px; font-weight:700; box-shadow:0 8px 22px rgba(0,0,0,.25); z-index:60; }
+
+  footer{ text-align:center; padding:20px 0 32px; color:var(--ink-soft); font-size:12px; }
 </style>
 </head>
 <body>
-
-<div id="modeBanner" class="mode-banner" hidden>
-  &#9888;&#65039; MODE LATIHAN &mdash; Ini bukan pendaftaran resmi, data akan dihapus sebelum pendaftaran sesungguhnya dibuka.
-</div>
-
-<header class="top">
-  <div class="brand">
-    <h1 class="display-font">Antrian Wali Santri</h1>
-    <span id="dateLabel"></span>
-  </div>
-  <nav class="tabs">
-    <button data-view="form" class="active">Daftar Antrian</button>
-    <button data-view="papan">Papan Antrian</button>
-    <button data-view="admin">Panel Admin</button>
-  </nav>
-</header>
-
-<main>
-
-  <section id="view-form">
-    <div id="formCardWrap" class="card">
-      <label for="f-nama-wali">Nama Wali Santri</label>
-      <input id="f-nama-wali" type="text" placeholder="Contoh: Bapak Ahmad Fauzi">
-
-      <label for="f-nama-santri">Nama Santri</label>
-      <input id="f-nama-santri" type="text" placeholder="Contoh: Muhammad Rizki">
-
-      <label for="f-sekolah">Sekolah</label>
-      <div id="f-sekolah" class="csel"></div>
-
-      <label for="f-kelas">Kelas</label>
-      <div id="f-kelas" class="csel"></div>
-      <div class="hint" id="kelasHint"></div>
-
-      <label for="f-termin">Termin / Jam Kedatangan</label>
-      <div id="f-termin" class="csel"></div>
-
-      <label for="f-hp">Nomor HP/WA (opsional)</label>
-      <input id="f-hp" type="tel" placeholder="08xxxxxxxxxx">
-
-      <button class="primary" id="btnSubmit">Ambil Nomor Antrian</button>
-    </div>
-
-    <div class="card" style="margin-top:16px;">
-      <h3 style="margin:0 0 4px;font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft);">Jadwal</h3>
-      <p style="margin:0 0 10px;font-size:12.5px;color:var(--ink-soft);">Jam kedatangan tiap kelas menyesuaikan jumlah santri.</p>
-      <div class="schedule" id="scheduleRef"></div>
-    </div>
-
-    <div id="confirmWrap" hidden>
-      <div id="practiceNotice" class="practice-notice" hidden>Ini baru LATIHAN &mdash; belum tersimpan sebagai pendaftaran resmi. Pendaftaran resmi mulai Senin, 10 Agustus 2026 pukul 16.00.</div>
-      <div class="arch">
-        <div class="eyebrow" id="confEyebrow">Nomor Antrian Anda</div>
-        <div class="num mono" id="confNum">000</div>
-        <div class="sub" id="confKelasLabel">-</div>
-      </div>
-      <div class="card" style="margin-top:14px;">
-        <div class="info-row"><span class="k">Wali Santri</span><span class="v" id="confWali">-</span></div>
-        <div class="info-row"><span class="k">Nama Santri</span><span class="v" id="confSantri">-</span></div>
-        <div class="info-row"><span class="k">Sekolah</span><span class="v" id="confSekolah">-</span></div>
-        <div class="info-row"><span class="k">Kelas</span><span class="v" id="confKelas">-</span></div>
-        <div class="info-row"><span class="k">Jam</span><span class="v" id="confTermin">-</span></div>
-      </div>
-      <button class="primary" id="btnNewForm">Daftar Antrian Lain</button>
-    </div>
-  </section>
-
-  <section id="view-papan" hidden>
-    <div class="card">
-      <div class="field-row">
-        <div>
-          <label for="papan-sekolah">Sekolah</label>
-          <div id="papan-sekolah" class="csel"></div>
-        </div>
-        <div>
-          <label for="papan-kelas">Kelas</label>
-          <div id="papan-kelas" class="csel"></div>
-        </div>
-      </div>
-      <div class="board-current">
-        <div class="label">Sedang Dilayani</div>
-        <div class="bignum mono" id="boardCurrent">&mdash;</div>
-        <div class="name" id="boardCurrentName">Menunggu panggilan pertama</div>
-        <div id="boardTerminTag"></div>
-      </div>
-    </div>
-    <div class="card waiting-list">
-      <h3>Menunggu Giliran</h3>
-      <div id="waitingList"><div class="empty">Belum ada antrian menunggu.</div></div>
-    </div>
-  </section>
-
-  <section id="view-admin" hidden>
-    <div id="pinGate" class="card pin-box">
-      <p style="margin:0 0 4px;font-weight:600;">Masukkan PIN Admin</p>
-      <p style="margin:0 0 16px;font-size:13px;color:var(--ink-soft);">Khusus panitia/wali kelas.</p>
-      <input id="pinInput" type="password" inputmode="numeric" maxlength="6" placeholder="****">
-      <button class="primary" id="btnPinSubmit">Masuk</button>
-    </div>
-
-    <div id="adminPanel" hidden>
-      <div class="card mode-card">
-        <h3 style="margin:0 0 10px;font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft);">Status Pendaftaran</h3>
-        <div id="modeStatusText" style="font-size:14px;font-weight:700;"></div>
-      </div>
-
-      <div class="card">
-        <div class="field-row">
-          <div>
-            <label for="admin-sekolah">Sekolah</label>
-            <div id="admin-sekolah" class="csel"></div>
-          </div>
-          <div>
-            <label for="admin-kelas">Kelas</label>
-            <div id="admin-kelas" class="csel"></div>
-          </div>
-        </div>
-        <label for="admin-termin">Termin Aktif</label>
-        <div id="admin-termin" class="csel"></div>
-      </div>
-
-      <div class="admin-stats">
-        <div class="stat"><div class="n" id="statMenunggu">0</div><div class="l">Menunggu (termin ini)</div></div>
-        <div class="stat"><div class="n" id="statTerdaftar">0</div><div class="l">Terdaftar / Kuota</div></div>
-        <div class="stat"><div class="n" id="statSelesai">0</div><div class="l">Selesai</div></div>
-      </div>
-
-      <div class="card">
-        <button class="call-next" id="btnCallNext">Panggil Nomor Berikutnya &rarr;</button>
-        <div class="call-next-hint" id="callNextHint"></div>
-      </div>
-
-      <div class="card" style="margin-top:16px;">
-        <h3 style="margin:0 0 4px;font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft);">Daftar Antrian Kelas Ini</h3>
-        <div id="adminList"><div class="empty">Belum ada pendaftar untuk kelas ini.</div></div>
-      </div>
-
-      <button class="reset-btn" id="btnReset">Reset Antrian Kelas Ini</button>
-      <button class="reset-btn reset-btn-all" id="btnResetAll">Reset SEMUA Sekolah &amp; Kelas</button>
-    </div>
-  </section>
-
-</main>
-
-<div class="toast" id="toast"></div>
+<div id="root"></div>
 
 <script>
-(function(){
-  // ====== KONFIGURASI FIREBASE ======
-  const firebaseConfig = {
-    apiKey: "AIzaSyA44b_ruY8nLz_Egt_Opj8l2mCa03rop_0",
-    authDomain: "arisan-walimah-ummah.firebaseapp.com",
-    databaseURL: "https://arisan-walimah-ummah-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "arisan-walimah-ummah",
-    storageBucket: "arisan-walimah-ummah.firebasestorage.app",
-    messagingSenderId: "808217881031",
-    appId: "1:808217881031:web:a240faa30509e0e37a91e2",
-    measurementId: "G-5SRH6YXL4Z"
-  };
-  let db = null;
-  let firebaseOk = false;
+/* ============ TOKENS ============ */
+const KAT_PALETTE = ["#C9A227","#A63D5C","#7A4A73","#C1653C","#3F5B7A","#8C6239","#4E7A5E","#6B5CA5"];
+
+/* ============ HELPERS ============ */
+const uid = () => Math.random().toString(36).slice(2,10);
+const pad4 = (n) => String(n).padStart(4,"0");
+const todayDate = new Date();
+const addDays = (d,n) => { const x = new Date(d); x.setDate(x.getDate()+n); return x; };
+const iso = (d) => new Date(d).toISOString().slice(0,10);
+const fmt = (d) => d ? new Date(d).toLocaleDateString("id-ID",{day:"numeric",month:"short",year:"numeric"}) : "-";
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+function suggestKode(kategori, books){
+  const nums = books.map(b=>b.kode||"").filter(k=>k.toUpperCase().startsWith(kategori))
+    .map(k=>parseInt(k.slice(kategori.length),10)).filter(n=>!isNaN(n));
+  const next = nums.length ? Math.max(...nums)+1 : 1;
+  return `${kategori}${pad4(next)}`;
+}
+
+/* ============ SEED DATA ============ */
+function seedKategoriList(){
+  return [ { kode:"A", nama:"Aqidah & Ibadah", color:"#C9A227" } ];
+}
+function seedBooks(){
+  return [
+    { id:"s1", kode:"A0001", kategori:"A", judul:"Indahnya Kehidupan Surga Versi Anak 1", penyusun:"Abu Ishaq Musa", penerbit:"At Tuqa", tahunTerbit:"1443H/2022M", sumber:"Beli", tanggalDiterima:"2022-03-01", keterangan:"" },
+    { id:"s2", kode:"A0002", kategori:"A", judul:"Indahnya Kehidupan Surga Versi Anak 2", penyusun:"Abu Ishaq Musa", penerbit:"At Tuqa", tahunTerbit:"1443H/2022M", sumber:"Beli", tanggalDiterima:"2022-03-01", keterangan:"" },
+    { id:"s3", kode:"A0011", kategori:"A", judul:"Indahnya Kehidupan Surga (Pengantar)", penyusun:"Fathul Mujib (Pengantar)", penerbit:"At Tuqa", tahunTerbit:"1443H/2021M", sumber:"Beli", tanggalDiterima:"2022-03-01", keterangan:"" },
+    { id:"s4", kode:"A0019", kategori:"A", judul:"Pend. Sejarah Islam 4 MI", penyusun:"Fathul Mujib", penerbit:"At Tuqa", tahunTerbit:"1440H/2019M", sumber:"Beli", tanggalDiterima:"2021-09-05", keterangan:"" },
+    { id:"s5", kode:"A0026", kategori:"A", judul:"Ayo Menghafal Al Qur'an", penyusun:"Fathul Mujib", penerbit:"Pena Hikmah", tahunTerbit:"1442H/2020M", sumber:"Beli", tanggalDiterima:"2021-09-05", keterangan:"" },
+    { id:"s6", kode:"A0028", kategori:"A", judul:"Kisah Hebat Para Ulama", penyusun:"Ust. Abu Umar as-Sidawi", penerbit:"At Tuqa", tahunTerbit:"1442H/2021M", sumber:"Infak", tanggalDiterima:"2021-09-05", keterangan:"Wakaf" },
+    { id:"s7", kode:"A0029", kategori:"A", judul:"Khalifah Harun Ar-Rasyid", penyusun:"Al-Ust. Abu Hanan Harts", penerbit:"At Tuqa", tahunTerbit:"1441H/2019M", sumber:"Beli", tanggalDiterima:"2022-04-06", keterangan:"" },
+    { id:"s8", kode:"A0030", kategori:"A", judul:"10 Mukjizat Nabi Muhammad", penyusun:"Al. Ust. Abu Amr as-Sidawi", penerbit:"At Tuqa", tahunTerbit:"1440H/2019M", sumber:"Beli", tanggalDiterima:"2022-04-06", keterangan:"" },
+    { id:"s9", kode:"A0031", kategori:"A", judul:"Keajaiban Hewan, Pohon, dan Batu dalam Al Qur'an dan Hadits", penyusun:"Ummu Abdil Aziz Asma", penerbit:"At Tuqa", tahunTerbit:"1441H/2019M", sumber:"Beli", tanggalDiterima:"2022-04-06", keterangan:"" },
+  ];
+}
+function seedLoans(){
+  return [
+    { id:uid(), kodeBuku:"A0001", judulBuku:"Indahnya Kehidupan Surga Versi Anak 1", nama:"Muhammad Rizki", kelas:"1", tanggalPinjam:iso(addDays(todayDate,-4)), tanggalKembali:null, status:"dipinjam" },
+    { id:uid(), kodeBuku:"A0002", judulBuku:"Indahnya Kehidupan Surga Versi Anak 2", nama:"Fatimah Azzahra", kelas:"2", tanggalPinjam:iso(addDays(todayDate,-2)), tanggalKembali:null, status:"dipinjam" },
+    { id:uid(), kodeBuku:"A0011", judulBuku:"Indahnya Kehidupan Surga (Pengantar)", nama:"Yusuf Ibrahim", kelas:"3", tanggalPinjam:iso(addDays(todayDate,-6)), tanggalKembali:null, status:"dipinjam" },
+    { id:uid(), kodeBuku:"A0019", judulBuku:"Pend. Sejarah Islam 4 MI", nama:"Zahra Amelia", kelas:"4", tanggalPinjam:iso(addDays(todayDate,-1)), tanggalKembali:null, status:"dipinjam" },
+    { id:uid(), kodeBuku:"A0026", judulBuku:"Ayo Menghafal Al Qur'an", nama:"Afifah N. H", kelas:"5", tanggalPinjam:iso(addDays(todayDate,-9)), tanggalKembali:null, status:"dipinjam" },
+    { id:uid(), kodeBuku:"A0028", judulBuku:"Kisah Hebat Para Ulama", nama:"Abdullah Malik", kelas:"6", tanggalPinjam:iso(addDays(todayDate,-3)), tanggalKembali:null, status:"dipinjam" },
+    { id:uid(), kodeBuku:"A0029", judulBuku:"Khalifah Harun Ar-Rasyid", nama:"Nabiya", kelas:"5", tanggalPinjam:iso(addDays(todayDate,-20)), tanggalKembali:iso(addDays(todayDate,-13)), status:"dikembalikan" },
+    { id:uid(), kodeBuku:"A0030", judulBuku:"10 Mukjizat Nabi Muhammad", nama:"Khonsa", kelas:"2", tanggalPinjam:iso(addDays(todayDate,-16)), tanggalKembali:iso(addDays(todayDate,-9)), status:"dikembalikan" },
+  ];
+}
+
+/* ============ STATE ============ */
+let state = {
+  books: seedBooks(),
+  loans: seedLoans(),
+  kategoriList: seedKategoriList(),
+  loaded: false,
+  tab: "dashboard",
+  search: "",
+  katFilter: "Semua",
+  statusFilter: "Semua",
+  bookModal: null,      // { mode:'add'|'edit', data:{...} }
+  loanTarget: null,     // book object
+  katModalOpen: false,
+};
+
+const TABS = [
+  { key:"dashboard", label:"Dashboard", icon:"◧" },
+  { key:"katalog", label:"Katalog Buku", icon:"▤" },
+  { key:"aktif", label:"Peminjaman Aktif", icon:"◔" },
+  { key:"riwayat", label:"Riwayat", icon:"↺" },
+];
+
+/* ============ PERSISTENCE ============ */
+let saveTimer = null;
+function scheduleSave(){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(async () => {
+    try{
+      await window.storage.set("maktabah-alfaruq-v3", JSON.stringify({
+        books: state.books, loans: state.loans, kategoriList: state.kategoriList
+      }), true);
+    }catch(e){ console.error("Gagal menyimpan", e); }
+  }, 300);
+}
+
+async function loadData(){
   try{
-    if(typeof firebase === 'undefined') throw new Error('SDK Firebase tidak termuat');
-    firebase.initializeApp(firebaseConfig);
-    db = firebase.database();
-    firebaseOk = true;
-  }catch(e){
-    console.error('Firebase gagal dimuat, pakai penyimpanan lokal sementara:', e);
-    firebaseOk = false;
-  }
-  // ===================================
-
-  const TERMIN_LIST = [
-    {key:1, label:'Termin 1', start:'07.30', end:'08.15'},
-    {key:2, label:'Termin 2', start:'08.30', end:'09.15'},
-    {key:3, label:'Termin 3', start:'09.45', end:'10.30'},
-    {key:4, label:'Termin 4', start:'10.45', end:'11.30'},
-    {key:5, label:'Termin 5', start:'12.15', end:'13.00'},
-  ];
-
-  const SEKOLAH_LIST = [
-    {key:'banat-kalibagor', label:'MI Banat Kalibagor', kelas:[
-      {key:'I',  label:'Kelas I',  santri:8},
-      {key:'II', label:'Kelas II', santri:13},
-      {key:'III',label:'Kelas III',santri:18},
-      {key:'IV', label:'Kelas IV', santri:13},
-      {key:'V',  label:'Kelas V',  santri:12},
-      {key:'VI', label:'Kelas VI', santri:8, startIdx:2},
-    ]},
-    {key:'banin-kalibagor', label:'MI Banin Kalibagor', kelas:[
-      {key:'I',  label:'Kelas I',  santri:18},
-      {key:'II', label:'Kelas II', santri:15},
-      {key:'III',label:'Kelas III',santri:10},
-      {key:'IV', label:'Kelas IV', santri:12},
-      {key:'V',  label:'Kelas V',  santri:11},
-      {key:'VI', label:'Kelas VI', santri:10},
-    ]},
-    {key:'banat-purwokerto', label:'MI Banat Purwokerto', kelas:[
-      {key:'I',  label:'Kelas I',  santri:6},
-      {key:'II', label:'Kelas II', santri:19},
-      {key:'III',label:'Kelas III',santri:21},
-      {key:'IV', label:'Kelas IV', santri:10},
-      {key:'V',  label:'Kelas V',  santri:17},
-      {key:'VI', label:'Kelas VI', santri:17},
-    ]},
-    {key:'banin-purwokerto', label:'MI Banin Purwokerto', kelas:[
-      {key:'IA', label:'Kelas IA', santri:12},
-      {key:'IB', label:'Kelas IB', santri:12},
-      {key:'II', label:'Kelas II', santri:19},
-      {key:'III',label:'Kelas III',santri:10},
-      {key:'IV', label:'Kelas IV', santri:8},
-      {key:'V',  label:'Kelas V',  santri:16},
-      {key:'VI', label:'Kelas VI', santri:17},
-    ]},
-  ];
-
-  const ADMIN_PIN = '1212';
-  const RESET_PIN = '3434';
-  function askResetPin(actionLabel){
-    const p = prompt(`Masukkan PIN untuk ${actionLabel}:`);
-    if(p === null) return false;
-    if(p !== RESET_PIN){ toast('PIN salah.'); return false; }
-    return true;
-  }
-
-  const sekolahByKey = s => SEKOLAH_LIST.find(x=>x.key===s);
-  const kelasByKey = (s,k) => { const sk = sekolahByKey(s); return sk ? sk.kelas.find(x=>x.key===k) : null; };
-  const terminByKey = t => TERMIN_LIST.find(x=>x.key===Number(t));
-
-  function kelasCapacity(sekolahKey, kelasKey){
-    const k = kelasByKey(sekolahKey, kelasKey);
-    if(!k) return 3;
-    const startIdx = k.startIdx || 0;
-    const available = TERMIN_LIST.length - startIdx;
-    return Math.max(3, Math.ceil(k.santri / available));
-  }
-  function terminsNeeded(sekolahKey, kelasKey){
-    const k = kelasByKey(sekolahKey, kelasKey);
-    if(!k) return [];
-    const startIdx = k.startIdx || 0;
-    const available = TERMIN_LIST.slice(startIdx);
-    const cap = kelasCapacity(sekolahKey, kelasKey);
-    const n = Math.ceil(k.santri / cap);
-    return available.slice(0, n);
-  }
-  function countForTermin(data, sekolahKey, kelasKey, terminKey){
-    return data.entries.filter(e=>e.sekolah===sekolahKey && e.kelas===kelasKey && e.termin===terminKey).length;
-  }
-  function counterKey(sekolahKey, kelasKey){ return sekolahKey+'|'+kelasKey; }
-
-  const practiceCounters = {};
-  function nextPracticeNumber(sekolahKey, kelasKey){
-    const ck = counterKey(sekolahKey, kelasKey);
-    practiceCounters[ck] = (practiceCounters[ck] || 0) + 1;
-    return practiceCounters[ck];
-  }
-
-  // Mengunci tanggal acuan database ke Senin, 10 Agustus 2026 agar data tidak tereset/terlewat setiap pergantian hari
-  const dateKey = () => {
-    return '2026-08-10';
-  };
-
-  const dateLabel = document.getElementById('dateLabel');
-  const HARI_ID = ['Ahad','Senin','Selasa','Rabu','Kamis',"Jum'at",'Sabtu'];
-  const BULAN_ID = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
-  (function(){
-    const now = new Date();
-    dateLabel.textContent = `${HARI_ID[now.getDay()]}, ${now.getDate()} ${BULAN_ID[now.getMonth()]} ${now.getFullYear()}`;
-  })();
-
-  function toast(msg){
-    const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.classList.add('show');
-    setTimeout(()=>t.classList.remove('show'), 2400);
-  }
-
-  let warnedOffline = false;
-  function warnOfflineOnce(){
-    if(warnedOffline) return;
-    warnedOffline = true;
-    toast('Firebase tidak tersambung. Data disimpan sementara di perangkat ini saja.');
-  }
-
-  function normalizeQueueData(val){
-    return {
-      counters: (val && val.counters) ? val.counters : {},
-      entries: (val && Array.isArray(val.entries)) ? val.entries : [],
-    };
-  }
-  async function loadQueue(){
-    if(firebaseOk){
-      try{
-        const snap = await db.ref('queue/' + dateKey()).once('value');
-        const val = snap.val();
-        return normalizeQueueData(val);
-      }catch(e){
-        console.error('Gagal memuat data dari Firebase', e);
-        warnOfflineOnce();
-      }
-    } else {
-      warnOfflineOnce();
+    const res = await window.storage.get("maktabah-alfaruq-v3", true);
+    if(res && res.value){
+      const parsed = JSON.parse(res.value);
+      if(parsed.books) state.books = parsed.books;
+      if(parsed.loans) state.loans = parsed.loans;
+      if(parsed.kategoriList) state.kategoriList = parsed.kategoriList;
     }
-    try{
-      const raw = localStorage.getItem('queue_local_' + dateKey());
-      if(raw) return normalizeQueueData(JSON.parse(raw));
-    }catch(e){}
-    return {counters:{}, entries:[]};
-  }
-  async function saveQueue(data){
-    if(firebaseOk){
-      try{
-        await db.ref('queue/' + dateKey()).set(data);
-        return;
-      }catch(e){
-        console.error('Gagal menyimpan data ke Firebase', e);
-        warnOfflineOnce();
-      }
-    } else {
-      warnOfflineOnce();
-    }
-    try{
-      localStorage.setItem('queue_local_' + dateKey(), JSON.stringify(data));
-    }catch(e){
-      console.error('Gagal menyimpan data lokal', e);
-      toast('Gagal menyimpan data, coba lagi.');
-    }
-  }
+  }catch(e){ /* belum ada data tersimpan — pakai contoh */ }
+  state.loaded = true;
+}
 
-  const RESMI_CUTOFF = new Date(2026, 7, 10, 16, 0, 0).getTime();
-  function isResmiTimeNow(){
-    return Date.now() >= RESMI_CUTOFF;
-  }
-  async function getCurrentMode(){
-    return isResmiTimeNow() ? 'resmi' : 'latihan';
-  }
-  async function refreshModeBanner(){
-    const mode = await getCurrentMode();
-    const banner = document.getElementById('modeBanner');
-    banner.hidden = (mode !== 'latihan');
-    const statusText = document.getElementById('modeStatusText');
-    if(statusText){
-      const cutoffStr = 'Senin, 10 Agustus 2026 pukul 16.00';
-      statusText.textContent = mode === 'latihan'
-        ? `Sedang MODE LATIHAN \u2014 isian TIDAK tersimpan. Otomatis jadi Resmi mulai ${cutoffStr}.`
-        : 'Sedang MODE RESMI \u2014 isian TERSIMPAN sungguhan.';
-      statusText.style.color = mode === 'latihan' ? '#7A2E22' : 'var(--ok)';
-    }
-    return mode;
-  }
+/* ============ DERIVED HELPERS ============ */
+const katByKode = (kode) => state.kategoriList.find(k=>k.kode===kode) || { kode, nama:"Tanpa kategori", color:"#6B6178" };
+const isDipinjam = (kode) => state.loans.some(l=>l.kodeBuku===kode && l.status==="dipinjam");
+const bookByKode = (kode) => state.books.find(b=>b.kode===kode);
+const activeLoans = () => state.loans.filter(l=>l.status==="dipinjam").sort((a,b)=>new Date(a.tanggalPinjam)-new Date(b.tanggalPinjam));
+const historyLoans = () => state.loans.filter(l=>l.status==="dikembalikan").sort((a,b)=>new Date(b.tanggalKembali)-new Date(a.tanggalKembali));
+const isOverdue = (l) => new Date(l.tanggalPinjam) < addDays(todayDate,-7);
 
-  function ensureCustomSelect(el){
-    if(el._csInit) return;
-    el._csInit = true;
-    el.classList.add('csel');
-    el._value = '';
-    el._options = [];
-    el.innerHTML = `<button type="button" class="csel-btn placeholder"></button><div class="csel-list" hidden></div>`;
-    const btn = el.querySelector('.csel-btn');
-    const list = el.querySelector('.csel-list');
-    Object.defineProperty(el, 'value', {
-      get(){ return el._value; },
-      set(v){
-        el._value = v;
-        const opt = el._options.find(o=>String(o.value)===String(v));
-        btn.textContent = opt ? opt.label : (el._placeholder || '');
-        btn.classList.toggle('placeholder', !opt);
-        list.querySelectorAll('.csel-opt').forEach(d=> d.classList.toggle('sel', String(d.dataset.value)===String(v)));
-      }
-    });
-    btn.addEventListener('click', (e)=>{
-      e.stopPropagation();
-      if(!el._options || el._options.length === 0){
-        toast(el._placeholder || 'Pilih dahulu');
-        return;
-      }
-      document.querySelectorAll('.csel-list').forEach(l=>{ if(l!==list) l.hidden = true; });
-      list.hidden = !list.hidden;
-    });
-    document.addEventListener('click', ()=>{ list.hidden = true; });
-    list.addEventListener('click', (e)=> e.stopPropagation());
-  }
+/* ============ TOAST ============ */
+let toastTimer = null;
+function showToast(msg, tone){
+  const root = document.getElementById("toastRoot");
+  root.innerHTML = `<div class="toast" style="background:${tone==='rose' ? 'var(--rose)' : 'var(--plum)'}">${esc(msg)}</div>`;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>{ root.innerHTML = ""; }, 2600);
+}
 
-  function csSetOptions(el, options, placeholder){
-    ensureCustomSelect(el);
-    el._options = options;
-    el._placeholder = placeholder || '';
-    const btn = el.querySelector('.csel-btn');
-    const list = el.querySelector('.csel-list');
-    btn.classList.toggle('csel-empty', options.length === 0);
-    list.innerHTML = options.map(o=>`<div class="csel-opt ${o.disabled?'csel-disabled':''}" data-value="${escapeHtml(String(o.value))}">${o.label}</div>`).join('');
-    list.querySelectorAll('.csel-opt').forEach(d=>{
-      d.addEventListener('click', ()=>{
-        if(d.classList.contains('csel-disabled')) return;
-        el.value = d.dataset.value;
-        list.hidden = true;
-        el.dispatchEvent(new Event('change'));
-      });
-    });
-    const stillValid = el._value && options.some(o=>String(o.value)===String(el._value) && !o.disabled);
-    if(stillValid){
-      el.value = el._value;
-    } else {
-      el._value = '';
-      btn.textContent = placeholder || '';
-      btn.classList.add('placeholder');
-      list.querySelectorAll('.csel-opt').forEach(d=>d.classList.remove('sel'));
-    }
-  }
-
-  document.addEventListener('DOMContentLoaded', ()=>{
-    document.querySelectorAll('label[for]').forEach(lbl=>{
-      const target = document.getElementById(lbl.htmlFor);
-      if(target && target.classList.contains('csel')){
-        lbl.addEventListener('click', ()=>{
-          const btn = target.querySelector('.csel-btn');
-          if(btn) btn.click();
-        });
-      }
-    });
-  });
-
-  const sekolahOptions = SEKOLAH_LIST.map(s=>({value:s.key, label:s.label}));
-  ['f-sekolah','papan-sekolah','admin-sekolah'].forEach(id=>{
-    csSetOptions(document.getElementById(id), sekolahOptions, 'Pilih sekolah');
-  });
-
-  function kelasOptionsFor(sekolahKey){
-    const sk = sekolahByKey(sekolahKey);
-    if(!sk) return [];
-    return sk.kelas.map(k=>({value:k.key, label:k.label}));
-  }
-
-  async function renderTerminOptions(selEl, sekolahKey, kelasKey, keepValue, disableFull){
-    if(disableFull === undefined) disableFull = true;
-    if(!sekolahKey || !kelasKey){
-      csSetOptions(selEl, [], 'Pilih kelas dahulu');
-      return;
-    }
-    const cap = kelasCapacity(sekolahKey, kelasKey);
-    const data = await loadQueue();
-    const list = terminsNeeded(sekolahKey, kelasKey);
-    const prev = keepValue !== undefined ? keepValue : selEl.value;
-    const options = list.map(t=>{
-      const c = countForTermin(data, sekolahKey, kelasKey, t.key);
-      const full = c >= cap;
-      return {value:t.key, label:`${t.start}-${t.end} \u2014 ${c}/${cap}${full?' PENUH':''}`, disabled: disableFull && full};
-    });
-    csSetOptions(selEl, options, 'Pilih jam');
-    if(prev && options.some(o=>String(o.value)===String(prev) && !o.disabled)) selEl.value = prev;
-  }
-
-  (function renderSchedule(){
-    const rows = [];
-    rows.push({type:'row', t:TERMIN_LIST[0]});
-    rows.push({type:'break', label:'Jeda 15 menit'});
-    rows.push({type:'row', t:TERMIN_LIST[1]});
-    rows.push({type:'break', label:'Istirahat'});
-    rows.push({type:'row', t:TERMIN_LIST[2]});
-    rows.push({type:'break', label:'Jeda 15 menit'});
-    rows.push({type:'row', t:TERMIN_LIST[3]});
-    rows.push({type:'break', label:'Istirahat / Dzuhur'});
-    rows.push({type:'row', t:TERMIN_LIST[4]});
-    document.getElementById('scheduleRef').innerHTML = rows.map(r=>{
-      if(r.type==='row'){
-        return `<div class="row mono"><span>${r.t.start} - ${r.t.end}</span></div>`;
-      }
-      return `<div class="row break">${r.label}</div>`;
-    }).join('');
-  })();
-
-  const tabButtons = document.querySelectorAll('nav.tabs button');
-  const views = {
-    form: document.getElementById('view-form'),
-    papan: document.getElementById('view-papan'),
-    admin: document.getElementById('view-admin'),
-  };
-  let pollTimer = null;
-
-  function setView(name){
-    Object.keys(views).forEach(k=>{ views[k].hidden = (k !== name); });
-    tabButtons.forEach(b=> b.classList.toggle('active', b.dataset.view === name));
-    if(pollTimer){ clearInterval(pollTimer); pollTimer = null; }
-    if(name === 'papan'){
-      refreshPapan();
-      pollTimer = setInterval(refreshPapan, 4000);
-    } else if(name === 'admin'){
-      if(sessionStorage.getItem('adminOk') === '1'){
-        showAdminPanel();
-      }
-    }
-    location.hash = name;
-  }
-  tabButtons.forEach(b=> b.addEventListener('click', ()=> setView(b.dataset.view)));
-  const initial = location.hash.replace('#','');
-  setView(['form','papan','admin'].includes(initial) ? initial : 'form');
-  refreshModeBanner();
-  setInterval(refreshModeBanner, 6000);
-
-  const els = {
-    wali: document.getElementById('f-nama-wali'),
-    santri: document.getElementById('f-nama-santri'),
-    sekolah: document.getElementById('f-sekolah'),
-    kelas: document.getElementById('f-kelas'),
-    termin: document.getElementById('f-termin'),
-    hp: document.getElementById('f-hp'),
-  };
-
-  async function updateKelasHint(){
-    const hint = document.getElementById('kelasHint');
-    if(!els.sekolah.value || !els.kelas.value){ hint.textContent=''; hint.className='hint'; return; }
-    const k = kelasByKey(els.sekolah.value, els.kelas.value);
-    const data = await loadQueue();
-    const terdaftar = data.entries.filter(e=>e.sekolah===els.sekolah.value && e.kelas===k.key && e.status!=='dilewati').length;
-    const sisa = k.santri - terdaftar;
-    if(sisa <= 0){
-      hint.textContent = `Kuota ${k.label} sudah penuh (${terdaftar}/${k.santri} santri).`;
-      hint.className = 'hint warn';
-    } else {
-      hint.textContent = `${k.label}: ${terdaftar}/${k.santri} santri terdaftar. Sisa kuota: ${sisa}.`;
-      hint.className = 'hint ok';
-    }
-  }
-
-  els.sekolah.addEventListener('change', ()=>{
-    csSetOptions(els.kelas, kelasOptionsFor(els.sekolah.value), 'Pilih kelas');
-    csSetOptions(els.termin, [], 'Pilih kelas dahulu');
-    document.getElementById('kelasHint').textContent = '';
-  });
-  els.kelas.addEventListener('change', ()=>{
-    updateKelasHint();
-    renderTerminOptions(els.termin, els.sekolah.value, els.kelas.value);
-  });
-  csSetOptions(els.kelas, [], 'Pilih sekolah dahulu');
-  csSetOptions(els.termin, [], 'Pilih kelas dahulu');
-
-  document.getElementById('btnSubmit').addEventListener('click', async ()=>{
-    if(!els.wali.value.trim() || !els.santri.value.trim() || !els.sekolah.value || !els.kelas.value || !els.termin.value){
-      toast('Mohon lengkapi nama wali, nama santri, sekolah, kelas, dan jam.');
-      return;
-    }
-    const btn = document.getElementById('btnSubmit');
-    btn.disabled = true;
-    btn.textContent = 'Menyimpan...';
-
-    const sekolahKey = els.sekolah.value;
-    const k = kelasByKey(sekolahKey, els.kelas.value);
-    const terminKey = Number(els.termin.value);
-    const sk = sekolahByKey(sekolahKey);
-    const t = terminByKey(terminKey);
-    const mode = await getCurrentMode();
-    const practiceNotice = document.getElementById('practiceNotice');
-
-    if(mode === 'latihan'){
-      const practiceNo = nextPracticeNumber(sekolahKey, k.key);
-      practiceNotice.hidden = false;
-      document.getElementById('confEyebrow').textContent = 'Nomor Simulasi (Latihan)';
-      document.getElementById('confNum').textContent = String(practiceNo).padStart(2,'0');
-      document.getElementById('confKelasLabel').textContent = sk.label + ' \u00b7 ' + k.label + ' \u00b7 LATIHAN';
-      document.getElementById('confWali').textContent = els.wali.value.trim();
-      document.getElementById('confSantri').textContent = els.santri.value.trim();
-      document.getElementById('confSekolah').textContent = sk.label;
-      document.getElementById('confKelas').textContent = k.label;
-      document.getElementById('confTermin').textContent = t.start + ' - ' + t.end;
-
-      document.getElementById('formCardWrap').hidden = true;
-      document.getElementById('confirmWrap').hidden = false;
-
-      btn.disabled = false;
-      btn.textContent = 'Ambil Nomor Antrian';
-      return;
-    }
-
-    practiceNotice.hidden = true;
-    document.getElementById('confEyebrow').textContent = 'Nomor Antrian Anda';
-
-    const data = await loadQueue();
-    const terdaftar = data.entries.filter(e=>e.sekolah===sekolahKey && e.kelas===k.key && e.status!=='dilewati').length;
-    if(terdaftar >= k.santri){
-      toast(`Kuota ${k.label} sudah penuh.`);
-      btn.disabled = false;
-      btn.textContent = 'Ambil Nomor Antrian';
-      return;
-    }
-    const cap = kelasCapacity(sekolahKey, k.key);
-    const countThisTermin = countForTermin(data, sekolahKey, k.key, terminKey);
-    if(countThisTermin >= cap){
-      toast(`Termin ini untuk ${k.label} sudah penuh (maks ${cap} wali santri). Pilih jam lain.`);
-      await renderTerminOptions(els.termin, sekolahKey, k.key, '');
-      btn.disabled = false;
-      btn.textContent = 'Ambil Nomor Antrian';
-      return;
-    }
-
-    const ck = counterKey(sekolahKey, k.key);
-    if(!data.counters[ck]) data.counters[ck] = 0;
-    data.counters[ck] += 1;
-    const entry = {
-      no: data.counters[ck],
-      sekolah: sekolahKey,
-      kelas: k.key,
-      termin: terminKey,
-      wali: els.wali.value.trim(),
-      santri: els.santri.value.trim(),
-      hp: els.hp.value.trim(),
-      status: 'menunggu',
-      time: new Date().toISOString(),
-    };
-    data.entries.push(entry);
-    await saveQueue(data);
-
-    document.getElementById('confNum').textContent = String(entry.no).padStart(2,'0');
-    document.getElementById('confKelasLabel').textContent = sk.label + ' \u00b7 ' + k.label;
-    document.getElementById('confWali').textContent = entry.wali;
-    document.getElementById('confSantri').textContent = entry.santri;
-    document.getElementById('confSekolah').textContent = sk.label;
-    document.getElementById('confKelas').textContent = k.label;
-    document.getElementById('confTermin').textContent = t.start + ' - ' + t.end;
-
-    document.getElementById('formCardWrap').hidden = true;
-    document.getElementById('confirmWrap').hidden = false;
-
-    btn.disabled = false;
-    btn.textContent = 'Ambil Nomor Antrian';
-  });
-
-  document.getElementById('btnNewForm').addEventListener('click', ()=>{
-    els.wali.value=''; els.santri.value=''; els.hp.value='';
-    els.sekolah.value=''; els.sekolah.querySelector('.csel-btn').textContent = 'Pilih sekolah';
-    els.sekolah.querySelector('.csel-btn').classList.add('placeholder');
-    csSetOptions(els.kelas, [], 'Pilih sekolah dahulu');
-    csSetOptions(els.termin, [], 'Pilih kelas dahulu');
-    document.getElementById('kelasHint').textContent='';
-    document.getElementById('formCardWrap').hidden = false;
-    document.getElementById('confirmWrap').hidden = true;
-  });
-
-  const papanSekolahSel = document.getElementById('papan-sekolah');
-  const papanKelasSel = document.getElementById('papan-kelas');
-  papanSekolahSel.addEventListener('change', ()=>{
-    csSetOptions(papanKelasSel, kelasOptionsFor(papanSekolahSel.value), 'Pilih kelas');
-    refreshPapan();
-  });
-  papanKelasSel.addEventListener('change', refreshPapan);
-
-  async function refreshPapan(){
-    if(!papanSekolahSel.value){
-      papanSekolahSel.value = SEKOLAH_LIST[0].key;
-      csSetOptions(papanKelasSel, kelasOptionsFor(papanSekolahSel.value), 'Pilih kelas');
-    }
-    if(!papanKelasSel.value){
-      const opts = kelasOptionsFor(papanSekolahSel.value);
-      if(opts.length){ papanKelasSel.value = opts[0].value; }
-    }
-    const sekolahKey = papanSekolahSel.value;
-    const kelasKey = papanKelasSel.value;
-    if(!sekolahKey || !kelasKey) return;
-
-    const data = await loadQueue();
-    const entries = data.entries.filter(e=>e.sekolah===sekolahKey && e.kelas===kelasKey);
-    const current = entries.find(e=>e.status==='dilayani');
-
-    document.getElementById('boardCurrent').textContent = current ? String(current.no).padStart(2,'0') : '\u2014';
-    document.getElementById('boardCurrentName').textContent = current ? current.santri : 'Menunggu panggilan pertama';
-    document.getElementById('boardTerminTag').innerHTML = current ? `<span class="termin-tag">${terminByKey(current.termin).start}-${terminByKey(current.termin).end}</span>` : '';
-
-    const waiting = entries.filter(e=>e.status==='menunggu').sort((a,b)=> a.termin-b.termin || a.no-b.no);
-    const heading = document.querySelector('#view-papan .waiting-list h3');
-    if(heading) heading.textContent = waiting.length ? `Menunggu Giliran (${waiting.length})` : 'Menunggu Giliran';
-    const list = document.getElementById('waitingList');
-    if(waiting.length===0){
-      list.innerHTML = '<div class="empty">Belum ada antrian menunggu.</div>';
-    } else {
-      list.innerHTML = waiting.map(e=>`
-        <div class="waiting-item">
-          <div class="badge mono">${String(e.no).padStart(2,'0')}</div>
-          <div class="meta">
-            <div class="n">${escapeHtml(e.santri)}</div>
-            <div class="k">${terminByKey(e.termin).start}-${terminByKey(e.termin).end}</div>
+/* ============ ROOT RENDER ============ */
+function render(){
+  const root = document.getElementById("root");
+  root.innerHTML = `
+    <header class="top">
+      <div class="max">
+        <div class="brand-row">
+          <div>
+            <div class="eyebrow">Buku Induk Digital &nbsp;·&nbsp; Est. Kalibagor</div>
+            <h1 class="brand">Maktabah Marhalah Ula Al-Faruq</h1>
+            <p class="brand-sub">Kalibagor, Banyumas — Jawa Tengah</p>
           </div>
         </div>
-      `).join('');
-    }
-  }
+        <div class="tabs">
+          ${TABS.map(t=>`
+            <button class="tab-btn ${state.tab===t.key?'active':''}" data-tab="${t.key}">
+              <span class="tab-icon">${t.icon}</span> ${t.label}${t.key==='aktif' ? ` (${activeLoans().length})` : ''}
+            </button>
+          `).join("")}
+        </div>
+      </div>
+    </header>
+    <main><div class="max" id="content"></div></main>
+    <footer>Data disimpan bersama (shared) untuk semua pengguna halaman ini · Buku Induk Maktabah Marhalah Ula Al-Faruq, Kalibagor</footer>
+    <div id="modalRoot"></div>
+    <div id="toastRoot"></div>
+  `;
+  document.querySelectorAll(".tab-btn").forEach(b=>b.addEventListener("click", ()=>{ state.tab = b.dataset.tab; render(); }));
+  renderContent();
+  renderModal();
+}
 
-  document.getElementById('btnPinSubmit').addEventListener('click', ()=>{
-    const val = document.getElementById('pinInput').value;
-    if(val === ADMIN_PIN){
-      sessionStorage.setItem('adminOk','1');
-      showAdminPanel();
-    } else {
-      toast('PIN salah.');
-    }
+function renderContent(){
+  const el = document.getElementById("content");
+  if(state.tab==="dashboard") el.innerHTML = dashboardHTML();
+  if(state.tab==="katalog"){ el.innerHTML = katalogShellHTML(); bindKatalogToolbar(); renderKatalogGrid(); }
+  if(state.tab==="aktif") el.innerHTML = aktifHTML();
+  if(state.tab==="riwayat") el.innerHTML = riwayatHTML();
+  bindContentActions();
+}
+
+/* ============ DASHBOARD ============ */
+function dashboardHTML(){
+  const al = activeLoans();
+  const overdueCount = al.filter(isOverdue).length;
+  const returnedThisMonth = state.loans.filter(l=>l.tanggalKembali && new Date(l.tanggalKembali).getMonth()===todayDate.getMonth() && new Date(l.tanggalKembali).getFullYear()===todayDate.getFullYear()).length;
+  const anggotaAktif = new Set(al.map(l=>l.nama)).size;
+
+  const perKelasMap = {};
+  state.loans.forEach(l=>{ perKelasMap[l.kelas] = (perKelasMap[l.kelas]||0)+1; });
+  const perKelas = Object.entries(perKelasMap).map(([kelas,jumlah])=>({kelas,jumlah})).sort((a,b)=>a.kelas.localeCompare(b.kelas));
+  const maxJumlah = Math.max(1, ...perKelas.map(p=>p.jumlah));
+
+  const topMap = {};
+  state.loans.forEach(l=>{ topMap[l.judulBuku] = (topMap[l.judulBuku]||0)+1; });
+  const topBuku = Object.entries(topMap).map(([judul,jumlah])=>({judul,jumlah})).sort((a,b)=>b.jumlah-a.jumlah).slice(0,5);
+
+  const events = [];
+  state.loans.forEach(l=>{
+    events.push({type:"pinjam", nama:l.nama, judul:l.judulBuku, tanggal:l.tanggalPinjam});
+    if(l.tanggalKembali) events.push({type:"kembali", nama:l.nama, judul:l.judulBuku, tanggal:l.tanggalKembali});
   });
-  document.getElementById('pinInput').addEventListener('keydown', (e)=>{
-    if(e.key==='Enter') document.getElementById('btnPinSubmit').click();
-  });
+  events.sort((a,b)=>new Date(b.tanggal)-new Date(a.tanggal));
+  const recent = events.slice(0,6);
 
-  const adminSekolahSel = document.getElementById('admin-sekolah');
-  const adminKelasSel = document.getElementById('admin-kelas');
-  const adminTerminSel = document.getElementById('admin-termin');
-
-  adminSekolahSel.addEventListener('change', async ()=>{
-    const opts = kelasOptionsFor(adminSekolahSel.value);
-    csSetOptions(adminKelasSel, opts, 'Pilih kelas');
-    if(opts.length) adminKelasSel.value = opts[0].value;
-    await renderTerminOptions(adminTerminSel, adminSekolahSel.value, adminKelasSel.value, currentTerminGuess(), false);
-    refreshAdmin();
-  });
-  adminKelasSel.addEventListener('change', async ()=>{
-    await renderTerminOptions(adminTerminSel, adminSekolahSel.value, adminKelasSel.value, currentTerminGuess(), false);
-    refreshAdmin();
-  });
-  adminTerminSel.addEventListener('change', refreshAdmin);
-
-  function currentTerminGuess(){
-    const now = new Date();
-    const mins = now.getHours()*60 + now.getMinutes();
-    const toMin = (s)=>{ const [h,m]=s.split('.').map(Number); return h*60+m; };
-    for(const t of TERMIN_LIST){
-      if(mins <= toMin(t.end)) return t.key;
-    }
-    return TERMIN_LIST[TERMIN_LIST.length-1].key;
-  }
-
-  let adminPollTimer = null;
-  async function showAdminPanel(){
-    document.getElementById('pinGate').hidden = true;
-    document.getElementById('adminPanel').hidden = false;
-    refreshModeBanner();
-    if(!adminSekolahSel.value){
-      adminSekolahSel.value = SEKOLAH_LIST[0].key;
-      csSetOptions(adminKelasSel, kelasOptionsFor(adminSekolahSel.value), 'Pilih kelas');
-    }
-    if(!adminKelasSel.value){
-      const opts = kelasOptionsFor(adminSekolahSel.value);
-      if(opts.length) adminKelasSel.value = opts[0].value;
-    }
-    await renderTerminOptions(adminTerminSel, adminSekolahSel.value, adminKelasSel.value, currentTerminGuess(), false);
-    refreshAdmin();
-    if(adminPollTimer) clearInterval(adminPollTimer);
-    adminPollTimer = setInterval(refreshAdmin, 5000);
-  }
-
-  async function refreshAdmin(){
-    const sekolahKey = adminSekolahSel.value;
-    const kelasKey = adminKelasSel.value;
-    if(!sekolahKey || !kelasKey) return;
-    const terminKey = Number(adminTerminSel.value);
-    const k = kelasByKey(sekolahKey, kelasKey);
-    const data = await loadQueue();
-    const entries = data.entries.filter(e=>e.sekolah===sekolahKey && e.kelas===kelasKey);
-
-    const menungguTermin = entries.filter(e=>e.status==='menunggu' && e.termin===terminKey).length;
-    const terdaftar = entries.filter(e=>e.status!=='dilewati').length;
-    const selesai = entries.filter(e=>e.status==='selesai').length;
-
-    document.getElementById('statMenunggu').textContent = menungguTermin;
-    document.getElementById('statTerdaftar').textContent = terdaftar + '/' + k.santri;
-    document.getElementById('statSelesai').textContent = selesai;
-
-    const btnCall = document.getElementById('btnCallNext');
-    btnCall.disabled = menungguTermin === 0;
-    document.getElementById('callNextHint').textContent = menungguTermin === 0
-      ? 'Belum ada wali santri yang menunggu di termin ini.'
-      : '';
-
-    const list = document.getElementById('adminList');
-    if(entries.length===0){
-      list.innerHTML = '<div class="empty">Belum ada pendaftar untuk kelas ini.</div>';
-    } else {
-      const sorted = [...entries].sort((a,b)=> a.termin-b.termin || a.no-b.no);
-      list.innerHTML = sorted.map(e=>`
-        <div class="entry-row">
-          <div class="badge mono">${String(e.no).padStart(2,'0')}</div>
-          <div class="meta">
-            <div class="n">${escapeHtml(e.santri)} <span style="font-weight:400;color:var(--ink-soft);">/ ${escapeHtml(e.wali)}</span></div>
-            <div class="k">${terminByKey(e.termin).start}-${terminByKey(e.termin).end}${e.hp ? ' \u00b7 '+escapeHtml(e.hp) : ''}</div>
+  return `
+    <div class="stat-grid">
+      ${statCard("Total Koleksi", state.books.length, "var(--plum)", "▤")}
+      ${statCard("Sedang Dipinjam", al.length, "var(--rose)", "◔")}
+      ${statCard("Dikembalikan Bulan Ini", returnedThisMonth, "var(--gold)", "✓")}
+      ${statCard("Peminjam Aktif", anggotaAktif, "#3F5B7A", "☺")}
+    </div>
+    ${overdueCount>0 ? `<div class="alert-overdue">⚠ ${overdueCount} peminjaman sudah lebih dari 7 hari — cek tab Peminjaman Aktif.</div>` : ""}
+    <div class="dash-grid">
+      <div class="panel">
+        <h3 class="panel-title">Peminjaman per Kelas</h3>
+        ${perKelas.length===0 ? `<div class="muted">Belum ada data peminjaman.</div>` : `
+          <div class="chart-bars">
+            ${perKelas.map(p=>`
+              <div class="chart-col">
+                <div class="chart-val">${p.jumlah}</div>
+                <div class="chart-bar" style="height:${Math.max(8,(p.jumlah/maxJumlah)*160)}px"></div>
+                <div class="chart-lbl">Kls ${esc(p.kelas)}</div>
+              </div>
+            `).join("")}
           </div>
-          <span class="status-pill st-${e.status}">${statusLabel(e.status)}</span>
-          <div class="entry-actions">
-            ${e.status==='menunggu' ? `<button data-act="lewati" data-no="${e.no}">Lewati</button>` : ''}
-            ${e.status==='dilayani' ? `<button data-act="selesai" data-no="${e.no}">Selesai</button>` : ''}
-            <button data-act="hapus" data-no="${e.no}" class="btn-hapus">Hapus</button>
+        `}
+      </div>
+      <div class="panel">
+        <h3 class="panel-title">Buku Terpopuler</h3>
+        ${topBuku.length===0 ? `<div class="muted">Belum ada data.</div>` : `
+          <div class="top-list">
+            ${topBuku.map((b,i)=>`
+              <div class="top-item">
+                <div class="top-rank">${i+1}</div>
+                <div class="top-title">${esc(b.judul)}</div>
+                <div class="top-count">${b.jumlah}×</div>
+              </div>
+            `).join("")}
+          </div>
+        `}
+      </div>
+    </div>
+    <div class="panel" style="margin-top:20px;">
+      <h3 class="panel-title">Aktivitas Terbaru</h3>
+      ${recent.length===0 ? `<div class="muted">Belum ada aktivitas.</div>` : recent.map(e=>`
+        <div class="activity-item">
+          <span>${e.type==='pinjam' ? '📖' : '↺'}</span>
+          <span><b>${esc(e.nama)}</b> ${e.type==='pinjam'?'meminjam':'mengembalikan'} <i>${esc(e.judul)}</i></span>
+          <span class="activity-time">${fmt(e.tanggal)}</span>
+        </div>
+      `).join("")}
+    </div>
+  `;
+}
+function statCard(label, value, color, icon){
+  return `
+    <div class="stat-card">
+      <div class="stat-blob" style="background:${color}"></div>
+      <div class="stat-icon" style="background:${color}">${icon}</div>
+      <div class="stat-value">${value}</div>
+      <div class="stat-label">${label}</div>
+    </div>
+  `;
+}
+
+/* ============ KATALOG ============ */
+function katalogShellHTML(){
+  return `
+    <div class="toolbar">
+      <div class="search-box">
+        <span>🔍</span>
+        <input id="searchInput" type="text" placeholder="Cari judul, penyusun, atau kode buku..." value="${esc(state.search)}" />
+      </div>
+      <select id="katFilterSelect">
+        <option value="Semua" ${state.katFilter==='Semua'?'selected':''}>Semua Kategori</option>
+        ${state.kategoriList.map(k=>`<option value="${esc(k.kode)}" ${state.katFilter===k.kode?'selected':''}>${esc(k.kode)} — ${esc(k.nama)}</option>`).join("")}
+      </select>
+      <select id="statusFilterSelect">
+        <option value="Semua" ${state.statusFilter==='Semua'?'selected':''}>Semua Status</option>
+        <option value="tersedia" ${state.statusFilter==='tersedia'?'selected':''}>Tersedia</option>
+        <option value="dipinjam" ${state.statusFilter==='dipinjam'?'selected':''}>Dipinjam</option>
+      </select>
+      <button class="btn btn-outline" id="btnKelolaKategori">🏷 Kelola Kategori</button>
+      <button class="btn btn-primary" id="btnTambahBuku">+ Tambah Buku</button>
+    </div>
+    <div id="katalogGrid"></div>
+  `;
+}
+function bindKatalogToolbar(){
+  document.getElementById("searchInput").addEventListener("input", e=>{ state.search=e.target.value; renderKatalogGrid(); });
+  document.getElementById("katFilterSelect").addEventListener("change", e=>{ state.katFilter=e.target.value; renderKatalogGrid(); });
+  document.getElementById("statusFilterSelect").addEventListener("change", e=>{ state.statusFilter=e.target.value; renderKatalogGrid(); });
+  document.getElementById("btnKelolaKategori").addEventListener("click", ()=>{ state.katModalOpen=true; renderModal(); });
+  document.getElementById("btnTambahBuku").addEventListener("click", openAddBook);
+}
+function renderKatalogGrid(){
+  const grid = document.getElementById("katalogGrid");
+  const q = state.search.toLowerCase();
+  const list = state.books
+    .map(b=>({...b, status: isDipinjam(b.kode)?"dipinjam":"tersedia"}))
+    .filter(b=>{
+      const matchQ = b.judul.toLowerCase().includes(q) || b.penyusun.toLowerCase().includes(q) || b.kode.toLowerCase().includes(q);
+      const matchKat = state.katFilter==="Semua" || b.kategori===state.katFilter;
+      const matchStatus = state.statusFilter==="Semua" || b.status===state.statusFilter;
+      return matchQ && matchKat && matchStatus;
+    })
+    .sort((a,b)=>a.kode.localeCompare(b.kode));
+
+  if(list.length===0){ grid.innerHTML = `<div class="muted" style="text-align:center;padding:60px 0;">Tidak ada buku yang cocok.</div>`; return; }
+
+  grid.innerHTML = `<div class="book-grid">
+    ${list.map(b=>{
+      const kat = katByKode(b.kategori);
+      const loanRec = activeLoans().find(l=>l.kodeBuku===b.kode);
+      const late = loanRec ? isOverdue(loanRec) : false;
+      const stubLabel = b.status==='dipinjam' ? (late?'Terlambat':'Dipinjam') : 'Tersedia';
+      const stubColor = b.status==='dipinjam' ? 'var(--rose)' : 'var(--plum)';
+      return `
+        <div class="book-card">
+          <div class="row-between">
+            <span class="kode-chip" style="background:${kat.color}">${esc(b.kode)}</span>
+            <span class="due-stub" style="border:1.5px solid ${stubColor};color:${stubColor};${b.status==='dipinjam'&&late?'background:var(--rose-soft);':''}">
+              <span class="due-dot" style="background:${stubColor}"></span>${stubLabel}
+            </span>
+          </div>
+          <div class="kat-label" style="color:${kat.color}">${esc(kat.nama)}</div>
+          <h3 class="book-title">${esc(b.judul)}</h3>
+          <p class="book-meta">${esc(b.penyusun)} · ${esc(b.penerbit)}</p>
+          <p class="book-meta small">Terbit ${esc(b.tahunTerbit)} · ${esc(b.sumber)}${b.keterangan?` · ${esc(b.keterangan)}`:''}</p>
+          ${loanRec ? `<p class="book-loan-note">Dipinjam ${esc(loanRec.nama)} (Kls ${esc(loanRec.kelas)}) sejak ${fmt(loanRec.tanggalPinjam)}</p>` : ""}
+          <div class="book-actions">
+            <button class="btn btn-primary" style="flex:1;justify-content:center;" data-loan="${esc(b.id)}" ${b.status==='dipinjam'?'disabled':''}>📖 Pinjamkan</button>
+            <button class="icon-btn" data-edit="${esc(b.id)}">✎</button>
+            <button class="icon-btn" data-del="${esc(b.id)}">🗑</button>
           </div>
         </div>
-      `).join('');
-      list.querySelectorAll('button[data-act]').forEach(btn=>{
-        btn.addEventListener('click', async ()=>{
-          const no = Number(btn.dataset.no);
-          const act = btn.dataset.act;
-          if(act === 'hapus'){
-            const d0 = await loadQueue();
-            const entry0 = d0.entries.find(x=>x.sekolah===sekolahKey && x.kelas===kelasKey && x.no===no);
-            if(!entry0) return;
-            const ok = confirm(`Hapus data antrian No. ${String(no).padStart(2,'0')} a.n. ${entry0.santri} (${entry0.wali})?\n\nData yang dihapus tidak bisa dikembalikan.`);
-            if(!ok) return;
-            if(!askResetPin('menghapus data antrian')) return;
-            d0.entries = d0.entries.filter(x=>!(x.sekolah===sekolahKey && x.kelas===kelasKey && x.no===no));
-            await saveQueue(d0);
-            toast(`Data No. ${String(no).padStart(2,'0')} telah dihapus.`);
-            refreshAdmin();
-            return;
-          }
-          const d = await loadQueue();
-          const entry = d.entries.find(x=>x.sekolah===sekolahKey && x.kelas===kelasKey && x.no===no);
-          if(!entry) return;
-          if(act==='lewati') entry.status='dilewati';
-          if(act==='selesai') entry.status='selesai';
-          await saveQueue(d);
-          refreshAdmin();
-        });
-      });
-    }
+      `;
+    }).join("")}
+  </div>`;
+
+  grid.querySelectorAll("[data-loan]").forEach(btn=>btn.addEventListener("click", ()=>openLoanModal(btn.dataset.loan)));
+  grid.querySelectorAll("[data-edit]").forEach(btn=>btn.addEventListener("click", ()=>openEditBook(btn.dataset.edit)));
+  grid.querySelectorAll("[data-del]").forEach(btn=>btn.addEventListener("click", ()=>deleteBook(btn.dataset.del)));
+}
+
+/* ============ PEMINJAMAN AKTIF ============ */
+function aktifHTML(){
+  const al = activeLoans();
+  if(al.length===0) return `<h2 style="font-family:var(--display);font-size:21px;">Peminjaman Aktif</h2><div class="muted" style="text-align:center;padding:60px 0;">Tidak ada buku yang sedang dipinjam.</div>`;
+  return `
+    <h2 style="font-family:var(--display);font-size:21px;margin-bottom:16px;">Peminjaman Aktif</h2>
+    ${al.map(l=>{
+      const late = isOverdue(l);
+      const book = bookByKode(l.kodeBuku);
+      const kat = book ? katByKode(book.kategori) : {color:"#6B6178"};
+      return `
+        <div class="loan-row ${late?'late':''}">
+          <div class="loan-left">
+            <span class="kode-chip" style="background:${kat.color}">${esc(l.kodeBuku)}</span>
+            <div>
+              <div class="loan-title">${esc(l.judulBuku)}</div>
+              <div class="loan-sub">${esc(l.nama)} · Kelas ${esc(l.kelas)} · dipinjam ${fmt(l.tanggalPinjam)}</div>
+            </div>
+          </div>
+          <div class="loan-left">
+            <span class="status-tag" style="color:${late?'var(--rose)':'var(--plum)'}">${late?'⚠ Terlambat':'◔ Berjalan'}</span>
+            <button class="btn btn-gold" data-return="${esc(l.id)}">↺ Kembalikan</button>
+          </div>
+        </div>
+      `;
+    }).join("")}
+  `;
+}
+
+/* ============ RIWAYAT ============ */
+function riwayatHTML(){
+  const hl = historyLoans();
+  if(hl.length===0) return `<h2 style="font-family:var(--display);font-size:21px;">Riwayat Pengembalian</h2><div class="muted" style="text-align:center;padding:60px 0;">Belum ada riwayat.</div>`;
+  return `
+    <h2 style="font-family:var(--display);font-size:21px;margin-bottom:16px;">Riwayat Pengembalian</h2>
+    <div class="history-panel">
+      ${hl.map(l=>{
+        const book = bookByKode(l.kodeBuku);
+        const kat = book ? katByKode(book.kategori) : {color:"#6B6178"};
+        return `
+          <div class="history-row">
+            <span class="kode-chip" style="background:${kat.color}">${esc(l.kodeBuku)}</span>
+            <div style="flex:1;min-width:160px;">
+              <div style="font-weight:600;font-size:13.5px;">${esc(l.judulBuku)}</div>
+              <div style="font-size:12px;color:var(--ink-soft);">${esc(l.nama)} · Kelas ${esc(l.kelas)}</div>
+            </div>
+            <div style="font-size:12px;color:var(--ink-soft);">✓ ${fmt(l.tanggalPinjam)} → ${fmt(l.tanggalKembali)}</div>
+          </div>
+        `;
+      }).join("")}
+    </div>
+  `;
+}
+
+function bindContentActions(){
+  document.querySelectorAll("[data-return]").forEach(btn=>btn.addEventListener("click", ()=>returnLoan(btn.dataset.return)));
+}
+
+/* ============ BOOK ADD/EDIT ============ */
+function openAddBook(){
+  if(state.kategoriList.length===0){ showToast("Tambahkan kategori dulu lewat 'Kelola Kategori'", "rose"); state.katModalOpen=true; renderModal(); return; }
+  const kat = state.kategoriList[0].kode;
+  state.bookModal = { mode:"add", data:{ kategori:kat, kode:suggestKode(kat, state.books), judul:"", penyusun:"", penerbit:"", tahunTerbit:"", sumber:"Beli", tanggalDiterima: iso(todayDate), keterangan:"" } };
+  renderModal();
+}
+function openEditBook(id){
+  const b = state.books.find(x=>x.id===id);
+  if(!b) return;
+  state.bookModal = { mode:"edit", data:{...b} };
+  renderModal();
+}
+function deleteBook(id){
+  const b = state.books.find(x=>x.id===id);
+  if(!b) return;
+  if(isDipinjam(b.kode)){ showToast("Tidak bisa dihapus — buku sedang dipinjam", "rose"); return; }
+  if(confirm(`Hapus "${b.judul}" (${b.kode}) dari katalog?`)){
+    state.books = state.books.filter(x=>x.id!==id);
+    scheduleSave();
+    showToast("Buku dihapus dari katalog", "rose");
+    renderContent();
   }
+}
+function saveBookFromForm(){
+  const m = state.bookModal;
+  const data = {
+    ...m.data,
+    kategori: document.getElementById("f_kategori").value,
+    kode: document.getElementById("f_kode").value.trim().toUpperCase(),
+    judul: document.getElementById("f_judul").value.trim(),
+    penyusun: document.getElementById("f_penyusun").value.trim(),
+    penerbit: document.getElementById("f_penerbit").value.trim(),
+    tahunTerbit: document.getElementById("f_tahun").value.trim(),
+    sumber: m.data.sumber,
+    tanggalDiterima: document.getElementById("f_tanggal").value,
+    keterangan: document.getElementById("f_ket").value.trim(),
+  };
+  if(!data.judul){ showToast("Judul buku tidak boleh kosong", "rose"); return; }
+  if(!data.kode){ showToast("Kode buku tidak boleh kosong", "rose"); return; }
+  const dupe = state.books.some(b=>b.kode===data.kode && b.id!==data.id);
+  if(dupe){ showToast(`Kode ${data.kode} sudah dipakai buku lain`, "rose"); return; }
 
-  document.getElementById('btnCallNext').addEventListener('click', async ()=>{
-    const sekolahKey = adminSekolahSel.value;
-    const kelasKey = adminKelasSel.value;
-    const terminKey = Number(adminTerminSel.value);
-    const data = await loadQueue();
-    const entries = data.entries.filter(e=>e.sekolah===sekolahKey && e.kelas===kelasKey);
-
-    const next = entries.filter(e=>e.status==='menunggu' && e.termin===terminKey).sort((a,b)=>a.no-b.no)[0];
-    if(!next){
-      toast('Tidak ada antrian menunggu di termin ini.');
-      return;
+  if(m.mode==="add"){
+    state.books.push({...data, id:uid()});
+    showToast(`Buku "${data.judul}" (${data.kode}) ditambahkan ke katalog`, "plum");
+  }else{
+    const old = state.books.find(b=>b.id===data.id);
+    const oldKode = old.kode;
+    state.books = state.books.map(b=> b.id===data.id ? data : b);
+    if(oldKode !== data.kode){
+      state.loans = state.loans.map(l=> l.kodeBuku===oldKode ? {...l, kodeBuku:data.kode} : l);
     }
-    const prevCurrent = entries.find(e=>e.status==='dilayani');
-    if(prevCurrent) prevCurrent.status = 'selesai';
-    next.status = 'dilayani';
-    await saveQueue(data);
-    toast('Memanggil nomor '+String(next.no).padStart(2,'0')+' \u2014 '+next.santri);
-    refreshAdmin();
-  });
-
-  document.getElementById('btnReset').addEventListener('click', async ()=>{
-    const sekolahKey = adminSekolahSel.value;
-    const kelasKey = adminKelasSel.value;
-    const k = kelasByKey(sekolahKey, kelasKey);
-    if(!confirm(`Reset seluruh antrian ${k.label} hari ini? Data yang sudah masuk akan dihapus.`)) return;
-    if(!askResetPin('reset antrian kelas ini')) return;
-    const data = await loadQueue();
-    data.entries = data.entries.filter(e=>!(e.sekolah===sekolahKey && e.kelas===kelasKey));
-    data.counters[counterKey(sekolahKey,kelasKey)] = 0;
-    await saveQueue(data);
-    toast(`Antrian ${k.label} telah direset.`);
-    refreshAdmin();
-  });
-
-  document.getElementById('btnResetAll').addEventListener('click', async ()=>{
-    const totalSekolah = SEKOLAH_LIST.length;
-    const totalKelas = SEKOLAH_LIST.reduce((n,s)=>n+s.kelas.length, 0);
-    const ok1 = confirm(`RESET SEMUA?\n\nIni akan menghapus SELURUH data antrian untuk ${totalSekolah} sekolah (${totalKelas} kelas). Nomor akan mulai dari 1 lagi untuk semua kelas.\n\nLanjutkan?`);
-    if(!ok1) return;
-    if(!askResetPin('reset SEMUA data')) return;
-    const ok2 = confirm('Konfirmasi sekali lagi: semua data antrian (semua sekolah & kelas) akan dihapus permanen. Yakin?');
-    if(!ok2) return;
-    await saveQueue({counters:{}, entries:[]});
-    toast('Semua antrian telah direset.');
-    refreshAdmin();
-  });
-
-  function statusLabel(s){
-    return {menunggu:'Menunggu', dilayani:'Dilayani', selesai:'Selesai', dilewati:'Dilewati'}[s] || s;
+    showToast(`Data buku "${data.judul}" diperbarui`, "plum");
   }
-  function escapeHtml(str){
-    return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  }
+  scheduleSave();
+  state.bookModal = null;
+  renderModal();
+  renderContent();
+}
 
-  document.querySelectorAll('label[for]').forEach(lbl=>{
-    const target = document.getElementById(lbl.htmlFor);
-    if(target && target.classList.contains('csel')){
-      lbl.addEventListener('click', ()=>{
-        const btn = target.querySelector('.csel-btn');
-        if(btn) btn.click();
-      });
-    }
+/* ============ PEMINJAMAN ============ */
+function openLoanModal(bookId){
+  const b = state.books.find(x=>x.id===bookId);
+  if(!b) return;
+  state.loanTarget = b;
+  renderModal();
+}
+function confirmLoanFromForm(){
+  const nama = document.getElementById("l_nama").value.trim();
+  const kelas = document.getElementById("l_kelas").value;
+  if(!nama){ showToast("Nama siswa tidak boleh kosong", "rose"); return; }
+  const b = state.loanTarget;
+  state.loans.unshift({ id:uid(), kodeBuku:b.kode, judulBuku:b.judul, nama, kelas, tanggalPinjam: iso(todayDate), tanggalKembali:null, status:"dipinjam" });
+  showToast(`"${b.judul}" dipinjamkan ke ${nama}`, "plum");
+  scheduleSave();
+  state.loanTarget = null;
+  renderModal();
+  renderContent();
+}
+function returnLoan(id){
+  const l = state.loans.find(x=>x.id===id);
+  if(!l) return;
+  state.loans = state.loans.map(x=> x.id===id ? {...x, status:"dikembalikan", tanggalKembali: iso(todayDate)} : x);
+  scheduleSave();
+  showToast(`"${l.judulBuku}" dikembalikan oleh ${l.nama}`, "rose");
+  renderContent();
+}
+
+/* ============ KATEGORI MANAGEMENT ============ */
+function addKategoriFromForm(){
+  const kode = document.getElementById("nk_kode").value.trim().toUpperCase();
+  const nama = document.getElementById("nk_nama").value.trim();
+  if(!kode || !nama) return;
+  if(state.kategoriList.some(k=>k.kode===kode)){ showToast(`Kode kategori "${kode}" sudah ada`, "rose"); return; }
+  state.kategoriList.push({ kode, nama, color: KAT_PALETTE[state.kategoriList.length % KAT_PALETTE.length] });
+  scheduleSave();
+  renderModal();
+}
+function updateKategoriField(oldKode, field, value){
+  if(field==="kode"){
+    const nk = value.trim().toUpperCase();
+    if(!nk) return;
+    if(state.kategoriList.some(k=>k.kode===nk && k.kode!==oldKode)){ showToast(`Kode kategori "${nk}" sudah dipakai`, "rose"); renderModal(); return; }
+    state.kategoriList = state.kategoriList.map(k=> k.kode===oldKode ? {...k, kode:nk} : k);
+    state.books = state.books.map(b=> b.kategori===oldKode ? {...b, kategori:nk} : b);
+    if(state.katFilter===oldKode) state.katFilter = nk;
+  }else{
+    state.kategoriList = state.kategoriList.map(k=> k.kode===oldKode ? {...k, [field]:value} : k);
+  }
+  scheduleSave();
+}
+function deleteKategoriRow(kode){
+  if(state.books.some(b=>b.kategori===kode)){ showToast("Pindahkan dulu buku dari kategori ini sebelum menghapusnya", "rose"); return; }
+  if(confirm(`Hapus kategori "${kode}"?`)){
+    state.kategoriList = state.kategoriList.filter(k=>k.kode!==kode);
+    if(state.katFilter===kode) state.katFilter="Semua";
+    scheduleSave();
+    renderModal();
+  }
+}
+
+/* ============ MODAL RENDER ============ */
+function renderModal(){
+  const root = document.getElementById("modalRoot");
+  if(state.bookModal){ root.innerHTML = bookModalHTML(); bindBookModal(); return; }
+  if(state.loanTarget){ root.innerHTML = loanModalHTML(); bindLoanModal(); return; }
+  if(state.katModalOpen){ root.innerHTML = katModalHTML(); bindKatModal(); return; }
+  root.innerHTML = "";
+}
+
+function bookModalHTML(){
+  const m = state.bookModal;
+  const d = m.data;
+  return `
+    <div class="modal-backdrop" id="bookBackdrop">
+      <div class="modal" id="bookModalBox">
+        <div class="modal-header">
+          <h3 class="modal-title">${m.mode==='add'?'Tambah Buku':'Edit Buku'}</h3>
+          <button class="close-x" id="closeBookModal">✕</button>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label class="field-label">Kategori</label>
+            <select id="f_kategori">
+              ${state.kategoriList.map(k=>`<option value="${esc(k.kode)}" ${d.kategori===k.kode?'selected':''}>${esc(k.kode)} — ${esc(k.nama)}</option>`).join("")}
+            </select>
+            <button type="button" class="link-btn" id="openKatFromBook">+ kategori baru</button>
+          </div>
+          <div class="field">
+            <label class="field-label">Kode Buku</label>
+            <div style="display:flex;gap:6px;">
+              <input id="f_kode" value="${esc(d.kode)}" placeholder="cth. A0001" style="flex:1;min-width:0;font-family:var(--mono);text-transform:uppercase;" />
+              <button type="button" class="icon-btn" id="suggestKodeBtn" title="Sarankan kode berikutnya">↻</button>
+            </div>
+          </div>
+        </div>
+        <p class="hint">Kode boleh diisi bebas sesuai buku induk asli — tombol ↻ hanya saran, bukan keharusan.</p>
+
+        <div class="field"><label class="field-label">Judul Buku</label><input id="f_judul" value="${esc(d.judul)}" /></div>
+        <div class="field"><label class="field-label">Penyusun / Pengarang</label><input id="f_penyusun" value="${esc(d.penyusun)}" /></div>
+        <div class="field"><label class="field-label">Penerbit</label><input id="f_penerbit" value="${esc(d.penerbit)}" /></div>
+        <div class="field"><label class="field-label">Tahun Terbit (cth. 1443H/2022M)</label><input id="f_tahun" value="${esc(d.tahunTerbit)}" /></div>
+
+        <div class="field-row" style="margin-top:12px;">
+          <div class="field" style="margin-top:0;">
+            <label class="field-label">Sumber Buku</label>
+            <div class="radio-group">
+              <button type="button" class="radio-btn ${d.sumber==='Beli'?'active':''}" data-sumber="Beli">Beli</button>
+              <button type="button" class="radio-btn ${d.sumber==='Infak'?'active':''}" data-sumber="Infak">Infak</button>
+            </div>
+          </div>
+          <div class="field" style="margin-top:0;">
+            <label class="field-label">Tanggal Diterima</label>
+            <input type="date" id="f_tanggal" value="${esc(d.tanggalDiterima)}" />
+          </div>
+        </div>
+
+        <div class="field"><label class="field-label">Keterangan (opsional)</label><input id="f_ket" value="${esc(d.keterangan)}" placeholder="cth. Wakaf dari..." /></div>
+
+        <button class="btn btn-primary btn-block" id="saveBookBtn" style="margin-top:18px;">${m.mode==='add'?'Simpan ke Katalog':'Simpan Perubahan'}</button>
+      </div>
+    </div>
+  `;
+}
+function bindBookModal(){
+  document.getElementById("bookBackdrop").addEventListener("click", e=>{ if(e.target.id==="bookBackdrop"){ state.bookModal=null; renderModal(); } });
+  document.getElementById("closeBookModal").addEventListener("click", ()=>{ state.bookModal=null; renderModal(); });
+  document.getElementById("openKatFromBook").addEventListener("click", ()=>{ state.katModalOpen=true; renderModal(); });
+  document.getElementById("f_kategori").addEventListener("change", e=>{
+    const kodeInput = document.getElementById("f_kode");
+    if(kodeInput.value.trim()===""){ kodeInput.value = suggestKode(e.target.value, state.books); }
   });
+  document.getElementById("suggestKodeBtn").addEventListener("click", ()=>{
+    const kat = document.getElementById("f_kategori").value;
+    document.getElementById("f_kode").value = suggestKode(kat, state.books);
+  });
+  document.querySelectorAll("[data-sumber]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      state.bookModal.data.sumber = btn.dataset.sumber;
+      document.querySelectorAll("[data-sumber]").forEach(b=>b.classList.toggle("active", b.dataset.sumber===btn.dataset.sumber));
+    });
+  });
+  document.getElementById("saveBookBtn").addEventListener("click", saveBookFromForm);
+}
+
+function loanModalHTML(){
+  const b = state.loanTarget;
+  const kat = katByKode(b.kategori);
+  return `
+    <div class="modal-backdrop" id="loanBackdrop">
+      <div class="modal" style="max-width:380px;">
+        <div class="modal-header" style="align-items:flex-start;">
+          <div>
+            <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--gold);font-weight:700;">Formulir Peminjaman</div>
+            <h3 class="modal-title" style="margin-top:3px;">${esc(b.judul)}</h3>
+            <span class="kode-chip" style="background:${kat.color}">${esc(b.kode)}</span>
+          </div>
+          <button class="close-x" id="closeLoanModal">✕</button>
+        </div>
+        <div class="field" style="margin-top:14px;"><label class="field-label">Nama Siswa</label><input id="l_nama" placeholder="cth. Ahmad Fauzan" autofocus /></div>
+        <div class="field"><label class="field-label">Kelas</label>
+          <select id="l_kelas">${["1","2","3","4","5","6"].map(k=>`<option value="${k}">Kelas ${k}</option>`).join("")}</select>
+        </div>
+        <div class="hint" style="margin:10px 0 16px;">Tanggal pinjam: ${fmt(todayDate)}</div>
+        <button class="btn btn-primary btn-block" id="confirmLoanBtn">Konfirmasi Peminjaman</button>
+      </div>
+    </div>
+  `;
+}
+function bindLoanModal(){
+  document.getElementById("loanBackdrop").addEventListener("click", e=>{ if(e.target.id==="loanBackdrop"){ state.loanTarget=null; renderModal(); } });
+  document.getElementById("closeLoanModal").addEventListener("click", ()=>{ state.loanTarget=null; renderModal(); });
+  document.getElementById("confirmLoanBtn").addEventListener("click", confirmLoanFromForm);
+  document.getElementById("l_nama").focus();
+}
+
+function katModalHTML(){
+  return `
+    <div class="modal-backdrop" id="katBackdrop">
+      <div class="modal" style="max-width:460px;">
+        <div class="modal-header" style="margin-bottom:2px;">
+          <h3 class="modal-title">Kelola Kategori</h3>
+          <button class="close-x" id="closeKatModal">✕</button>
+        </div>
+        <p class="hint" style="margin:2px 0 14px;">Kode dan nama kategori sepenuhnya bebas — sesuaikan dengan sistem klasifikasi maktabah kalian sendiri.</p>
+        <div>
+          ${state.kategoriList.length===0 ? `<div class="muted">Belum ada kategori. Tambahkan di bawah.</div>` : state.kategoriList.map(k=>`
+            <div class="kat-row">
+              <input type="color" class="kat-swatch" value="${esc(k.color)}" data-kat-color="${esc(k.kode)}" />
+              <input class="kat-input-kode" value="${esc(k.kode)}" data-kat-kode="${esc(k.kode)}" />
+              <input class="kat-input-nama" value="${esc(k.nama)}" data-kat-nama="${esc(k.kode)}" />
+              <button class="kat-del" data-kat-del="${esc(k.kode)}">🗑</button>
+            </div>
+          `).join("")}
+        </div>
+        <div style="border-top:1px dashed var(--line);padding-top:14px;margin-top:6px;">
+          <label class="field-label">Tambah Kategori Baru</label>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
+            <input id="nk_kode" placeholder="Kode" style="width:72px;font-family:var(--mono);text-transform:uppercase;" />
+            <input id="nk_nama" placeholder="Nama kategori" style="flex:1;min-width:0;" />
+            <button class="btn btn-primary" id="addKatBtn">Tambah</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+function bindKatModal(){
+  document.getElementById("katBackdrop").addEventListener("click", e=>{ if(e.target.id==="katBackdrop"){ state.katModalOpen=false; renderModal(); renderContent(); } });
+  document.getElementById("closeKatModal").addEventListener("click", ()=>{ state.katModalOpen=false; renderModal(); renderContent(); });
+  document.getElementById("addKatBtn").addEventListener("click", addKategoriFromForm);
+  document.querySelectorAll("[data-kat-color]").forEach(inp=>inp.addEventListener("change", e=>updateKategoriField(inp.dataset.katColor, "color", e.target.value)));
+  document.querySelectorAll("[data-kat-kode]").forEach(inp=>inp.addEventListener("change", e=>{ updateKategoriField(inp.dataset.katKode, "kode", e.target.value); renderModal(); }));
+  document.querySelectorAll("[data-kat-nama]").forEach(inp=>inp.addEventListener("change", e=>updateKategoriField(inp.dataset.katNama, "nama", e.target.value)));
+  document.querySelectorAll("[data-kat-del]").forEach(btn=>btn.addEventListener("click", ()=>deleteKategoriRow(btn.dataset.katDel)));
+}
+
+/* ============ BOOTSTRAP ============ */
+(async function init(){
+  await loadData();
+  render();
 })();
 </script>
 </body>

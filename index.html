@@ -1,0 +1,1405 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Antrian Forum Wali Santri</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
+<style>
+  :root{
+    --bg:#F3F0E6;
+    --ink:#20281F;
+    --ink-soft:#5B6157;
+    --primary:#123726;
+    --primary-light:#245C42;
+    --primary-deep:#0B2A1B;
+    --gold:#A67C2E;
+    --gold-soft:#E0C685;
+    --card:#FFFFFF;
+    --sand:#ECE3C9;
+    --line:#D8C68A;
+    --danger:#8F3A2E;
+    --ok:#3C7350;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(circle at 14px 14px, rgba(166,124,46,0.10) 1px, transparent 1.6px) 0 0/28px 28px,
+      var(--bg);
+    color:var(--ink);
+    font-family:'Plus Jakarta Sans', sans-serif;
+    min-height:100vh;
+  }
+  .display-font{ font-family:'Amiri', serif; }
+  .mono{ font-family:'JetBrains Mono', monospace; }
+
+  .mode-banner{
+    background:#7A2E22;
+    color:#fff;
+    text-align:center;
+    font-size:13px;
+    font-weight:700;
+    padding:10px 16px;
+    line-height:1.4;
+    position:sticky;
+    top:0;
+    z-index:60;
+  }
+  header.top{
+    background:linear-gradient(160deg, var(--primary) 0%, var(--primary-deep) 100%);
+    color:#fff;
+    padding:22px 20px 0;
+    position:relative;
+    overflow:hidden;
+  }
+  header.top::after{
+    content:"";
+    display:block;
+    height:16px;
+    margin-top:18px;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='26' height='26'%3E%3Cpath d='M13 1 L25 13 L13 25 L1 13 Z' fill='none' stroke='%23C9A227' stroke-width='1.3'/%3E%3C/svg%3E");
+    background-repeat:repeat-x;
+    background-size:26px 26px;
+    background-position:center;
+    opacity:0.9;
+  }
+  .brand{
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+    flex-wrap:wrap;
+    max-width:640px;
+    margin:0 auto;
+  }
+  .brand h1{
+    font-family:'Amiri', serif;
+    font-weight:700;
+    font-size:24px;
+    margin:0;
+  }
+  .brand span{
+    color:var(--gold-soft);
+    font-size:13px;
+    letter-spacing:.03em;
+  }
+  nav.tabs{
+    max-width:640px;
+    margin:16px auto 0;
+    display:flex;
+    gap:4px;
+  }
+  nav.tabs button{
+    flex:1;
+    background:rgba(255,255,255,0.08);
+    border:none;
+    color:rgba(255,255,255,0.75);
+    padding:10px 8px;
+    font-family:inherit;
+    font-size:13px;
+    font-weight:600;
+    border-radius:10px 10px 0 0;
+    cursor:pointer;
+  }
+  nav.tabs button.active{
+    background:var(--bg);
+    color:var(--primary);
+  }
+
+  main{
+    max-width:640px;
+    margin:0 auto;
+    padding:24px 20px 60px;
+  }
+  section[hidden]{ display:none !important; }
+
+  .card{
+    background:var(--card);
+    border-radius:16px;
+    padding:22px;
+    box-shadow:0 1px 3px rgba(18,55,38,0.08), 0 6px 16px rgba(18,55,38,0.06);
+    position:relative;
+    border-top:3px solid var(--sand);
+  }
+  .card + .card{ margin-top:16px; }
+
+  label{
+    display:block;
+    font-size:13px;
+    font-weight:600;
+    color:var(--ink-soft);
+    margin:16px 0 6px;
+  }
+  label:first-of-type{ margin-top:0; }
+  input{
+    width:100%;
+    padding:12px 14px;
+    border-radius:10px;
+    border:1.5px solid #DED2A8;
+    background:#FAFBF8;
+    font-family:inherit;
+    font-size:15px;
+    color:var(--ink);
+  }
+  input:focus{
+    outline:none;
+    border-color:var(--primary-light);
+    background:#fff;
+  }
+  .hint{
+    font-size:12.5px;
+    color:var(--ink-soft);
+    margin-top:6px;
+  }
+  .hint.warn{ color:var(--danger); font-weight:600; }
+  .hint.ok{ color:var(--ok); font-weight:600; }
+
+  button.primary{
+    margin-top:22px;
+    width:100%;
+    background:linear-gradient(135deg, var(--primary-light), var(--primary) 70%);
+    color:#fff;
+    border:1px solid var(--primary-deep);
+    padding:14px;
+    border-radius:10px;
+    font-family:inherit;
+    font-size:15px;
+    font-weight:700;
+    cursor:pointer;
+    box-shadow:0 4px 12px rgba(18,55,38,0.22);
+  }
+  button.primary:disabled{ background:#A9B6AC; border-color:#A9B6AC; box-shadow:none; cursor:not-allowed; }
+  button.primary:active:not(:disabled){ background:var(--primary-light); }
+  button.primary:focus-visible, button:focus-visible, input:focus-visible{
+    outline:3px solid var(--gold);
+    outline-offset:1px;
+  }
+
+  .csel{
+    position:relative;
+    width:100%;
+  }
+  .csel-btn{
+    width:100%;
+    text-align:left;
+    padding:12px 38px 12px 14px;
+    border-radius:10px;
+    border:1.5px solid #DED2A8;
+    background:#FAFBF8;
+    font-family:inherit;
+    font-size:15px;
+    color:var(--ink);
+    cursor:pointer;
+    position:relative;
+    -webkit-tap-highlight-color: rgba(31,77,58,0.15);
+  }
+  .csel-btn.placeholder{ color:#8B958E; }
+  .csel-btn.csel-empty{ background:#EFE9D4; color:#9AA39C; cursor:not-allowed; }
+  .csel-btn::after{
+    content:"";
+    position:absolute;
+    right:14px;
+    top:50%;
+    width:9px;
+    height:9px;
+    border-right:2px solid var(--ink-soft);
+    border-bottom:2px solid var(--ink-soft);
+    transform:translateY(-65%) rotate(45deg);
+    pointer-events:none;
+  }
+  .csel-btn:focus-visible{
+    outline:3px solid var(--gold);
+    outline-offset:1px;
+  }
+  .csel-list{
+    position:absolute;
+    left:0; right:0;
+    top:calc(100% + 6px);
+    background:#fff;
+    border:1.5px solid #DED2A8;
+    border-radius:10px;
+    box-shadow:0 10px 24px rgba(28,43,34,0.18);
+    max-height:260px;
+    overflow-y:auto;
+    z-index:40;
+    padding:6px;
+  }
+  .csel-opt{
+    padding:11px 12px;
+    border-radius:8px;
+    font-size:14.5px;
+    cursor:pointer;
+  }
+  .csel-opt:active{ background:#EEF2EA; }
+  .csel-opt.sel{ background:var(--sand); font-weight:700; color:var(--primary); }
+  .csel-opt.csel-disabled{ color:#B7BFB4; cursor:not-allowed; }
+
+  .schedule{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+  .schedule .row{
+    display:flex;
+    justify-content:space-between;
+    font-size:13.5px;
+    padding:6px 0;
+    border-bottom:1px dashed #E5E9DF;
+  }
+  .schedule .row.break{
+    color:var(--ink-soft);
+    font-style:italic;
+    font-size:12.5px;
+    border-bottom:none;
+  }
+  .schedule .row:last-child{ border-bottom:none; }
+
+  .practice-notice{
+    background:#7A2E22;
+    color:#fff;
+    font-size:13px;
+    font-weight:700;
+    text-align:center;
+    padding:12px 16px;
+    border-radius:12px;
+    margin-bottom:14px;
+    line-height:1.5;
+  }
+  .arch{
+    background:linear-gradient(165deg, var(--primary-light) 0%, var(--primary) 55%, var(--primary-deep) 100%);
+    border-radius:200px 200px 16px 16px;
+    padding:46px 24px 28px;
+    text-align:center;
+    color:#fff;
+    position:relative;
+    border:1px solid var(--gold);
+    box-shadow:0 10px 28px rgba(11,42,27,0.28);
+  }
+  .arch::before{
+    content:"";
+    position:absolute;
+    inset:8px;
+    border:1px solid rgba(224,198,133,0.45);
+    border-radius:200px 200px 10px 10px;
+    pointer-events:none;
+  }
+  .arch .eyebrow{
+    font-size:12px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--gold-soft);
+    font-weight:700;
+  }
+  .arch .num{
+    font-family:'Amiri', serif;
+    font-weight:700;
+    font-size:76px;
+    line-height:1;
+    margin:10px 0 6px;
+    text-shadow:0 2px 10px rgba(0,0,0,0.2);
+  }
+  .arch .sub{ font-size:14px; color:rgba(255,255,255,0.88); }
+
+  .info-row{
+    display:flex;
+    justify-content:space-between;
+    gap:12px;
+    padding:10px 0;
+    border-bottom:1px solid #EEF0E4;
+    font-size:14px;
+  }
+  .info-row:last-child{ border-bottom:none; }
+  .info-row .k{ color:var(--ink-soft); flex-shrink:0; }
+  .info-row .v{ font-weight:600; text-align:right; }
+
+  .board-current{
+    text-align:center;
+    padding:18px 0 8px;
+  }
+  .board-current .label{
+    font-size:13px;
+    font-weight:700;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--gold);
+  }
+  .board-current .bignum{
+    font-family:'Amiri', serif;
+    font-weight:700;
+    font-size:92px;
+    line-height:1;
+    color:var(--primary);
+    margin:10px auto;
+    width:180px;
+    height:180px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:var(--sand);
+    border:1px solid var(--line);
+    border-radius:50% 50% 12% 12% / 60% 60% 8% 8%;
+    box-shadow:inset 0 0 0 6px #fff;
+  }
+  .board-current .name{
+    font-size:16px;
+    color:var(--ink-soft);
+    margin-top:10px;
+  }
+  .board-current .termin-tag{
+    display:inline-block;
+    margin-top:8px;
+    background:var(--primary);
+    color:#fff;
+    font-size:12px;
+    font-weight:700;
+    padding:4px 12px;
+    border-radius:999px;
+    letter-spacing:.03em;
+  }
+  .waiting-list h3{
+    font-size:13px;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    color:var(--ink-soft);
+    margin:0 0 10px;
+  }
+  .waiting-item{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:10px 0;
+    border-bottom:1px solid #EEF0E4;
+  }
+  .waiting-item:last-child{ border-bottom:none; }
+  .badge{
+    width:38px; height:38px;
+    border-radius:9px;
+    background:var(--sand);
+    border:1px solid var(--line);
+    color:var(--primary);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:'JetBrains Mono', monospace;
+    font-weight:700;
+    font-size:14px;
+    flex-shrink:0;
+  }
+  .waiting-item .meta{ flex:1; }
+  .waiting-item .meta .n{ font-weight:600; font-size:14.5px; }
+  .waiting-item .meta .k{ font-size:12.5px; color:var(--ink-soft); }
+  .empty{
+    text-align:center;
+    color:var(--ink-soft);
+    font-size:14px;
+    padding:20px 0;
+  }
+  .field-row{ display:flex; gap:10px; }
+  .field-row > div{ flex:1; }
+  .field-row label{ margin-top:0; }
+
+  .pin-box{ text-align:center; padding:30px 22px; }
+  .pin-box input{ text-align:center; letter-spacing:.4em; font-size:20px; }
+  .admin-stats{
+    display:flex;
+    gap:10px;
+    margin-bottom:16px;
+  }
+  .stat{
+    flex:1;
+    background:var(--card);
+    border-radius:12px;
+    padding:14px;
+    text-align:center;
+    border-top:3px solid var(--gold-soft);
+    box-shadow:0 1px 3px rgba(18,55,38,0.06);
+  }
+  .stat .n{ font-family:'JetBrains Mono',monospace; font-weight:700; font-size:20px; color:var(--primary); }
+  .stat .l{ font-size:10.5px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.04em; }
+
+  .call-next{
+    width:100%;
+    background:linear-gradient(135deg, #C29A42, var(--gold) 70%);
+    color:#fff;
+    border:1px solid #8E6A22;
+    padding:16px;
+    border-radius:10px;
+    font-family:inherit;
+    font-weight:700;
+    font-size:15px;
+    cursor:pointer;
+    box-shadow:0 4px 12px rgba(166,124,46,0.28);
+  }
+  .call-next:disabled{ background:#DCDCD4; border-color:#C7C7BC; color:#8A8A80; box-shadow:none; cursor:not-allowed; opacity:0.75; }
+  .call-next-hint{ text-align:center; font-size:12.5px; color:var(--ink-soft); margin-top:10px; }
+
+  .entry-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:12px 0;
+    border-bottom:1px solid #EFE9D4;
+    flex-wrap:wrap;
+  }
+  .entry-row:last-child{ border-bottom:none; }
+  .entry-row .meta{ flex:1; min-width:140px; }
+  .entry-row .meta .n{ font-weight:600; font-size:14.5px; }
+  .entry-row .meta .k{ font-size:12px; color:var(--ink-soft); }
+  .status-pill{
+    font-size:11px;
+    font-weight:700;
+    padding:4px 9px;
+    border-radius:999px;
+    text-transform:uppercase;
+    letter-spacing:.04em;
+    flex-shrink:0;
+  }
+  .st-menunggu{ background:#EFEAD8; color:#8A6D1F; }
+  .st-dilayani{ background:#DDEFE3; color:var(--ok); }
+  .st-selesai{ background:#E4E9E1; color:var(--ink-soft); }
+  .st-dilewati{ background:#F5DEDA; color:var(--danger); }
+  .entry-actions{ display:flex; gap:6px; }
+  .entry-actions button{
+    border:none;
+    background:#F0F2EC;
+    color:var(--ink);
+    padding:6px 9px;
+    border-radius:7px;
+    font-size:11px;
+    font-weight:700;
+    cursor:pointer;
+  }
+  .entry-actions button.btn-hapus{
+    background:#F5E4DF;
+    color:var(--danger);
+  }
+  .reset-btn{
+    width:100%;
+    margin-top:18px;
+    background:none;
+    border:1.5px solid #DED2A8;
+    color:var(--danger);
+    padding:10px;
+    border-radius:10px;
+    font-family:inherit;
+    font-weight:700;
+    font-size:13px;
+    cursor:pointer;
+  }
+  .reset-btn-all{
+    background:var(--danger);
+    border-color:var(--danger);
+    color:#fff;
+  }
+  .toast{
+    position:fixed;
+    left:50%; bottom:24px;
+    transform:translateX(-50%);
+    background:var(--ink);
+    color:#fff;
+    padding:11px 18px;
+    border-radius:10px;
+    font-size:13.5px;
+    font-weight:600;
+    box-shadow:0 6px 18px rgba(0,0,0,0.2);
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .25s ease;
+    z-index:80;
+    max-width:85vw;
+    text-align:center;
+  }
+  .toast.show{ opacity:1; }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ transition:none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div id="modeBanner" class="mode-banner" hidden>
+  &#9888;&#65039; MODE LATIHAN &mdash; Ini bukan pendaftaran resmi, data akan dihapus sebelum pendaftaran sesungguhnya dibuka.
+</div>
+
+<header class="top">
+  <div class="brand">
+    <h1 class="display-font">Antrian Wali Santri</h1>
+    <span id="dateLabel"></span>
+  </div>
+  <nav class="tabs">
+    <button data-view="form" class="active">Daftar Antrian</button>
+    <button data-view="papan">Papan Antrian</button>
+    <button data-view="admin">Panel Admin</button>
+  </nav>
+</header>
+
+<main>
+
+  <section id="view-form">
+    <div id="formCardWrap" class="card">
+      <label for="f-nama-wali">Nama Wali Santri</label>
+      <input id="f-nama-wali" type="text" placeholder="Contoh: Bapak Ahmad Fauzi">
+
+      <label for="f-nama-santri">Nama Santri</label>
+      <input id="f-nama-santri" type="text" placeholder="Contoh: Muhammad Rizki">
+
+      <label for="f-sekolah">Sekolah</label>
+      <div id="f-sekolah" class="csel"></div>
+
+      <label for="f-kelas">Kelas</label>
+      <div id="f-kelas" class="csel"></div>
+      <div class="hint" id="kelasHint"></div>
+
+      <label for="f-termin">Termin / Jam Kedatangan</label>
+      <div id="f-termin" class="csel"></div>
+
+      <label for="f-hp">Nomor HP/WA (opsional)</label>
+      <input id="f-hp" type="tel" placeholder="08xxxxxxxxxx">
+
+      <button class="primary" id="btnSubmit">Ambil Nomor Antrian</button>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h3 style="margin:0 0 4px;font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft);">Jadwal</h3>
+      <p style="margin:0 0 10px;font-size:12.5px;color:var(--ink-soft);">Jam kedatangan tiap kelas menyesuaikan jumlah santri.</p>
+      <div class="schedule" id="scheduleRef"></div>
+    </div>
+
+    <div id="confirmWrap" hidden>
+      <div id="practiceNotice" class="practice-notice" hidden>Ini baru LATIHAN &mdash; belum tersimpan sebagai pendaftaran resmi. Pendaftaran resmi mulai Senin, 10 Agustus 2026 pukul 16.00.</div>
+      <div class="arch">
+        <div class="eyebrow" id="confEyebrow">Nomor Antrian Anda</div>
+        <div class="num mono" id="confNum">000</div>
+        <div class="sub" id="confKelasLabel">-</div>
+      </div>
+      <div class="card" style="margin-top:14px;">
+        <div class="info-row"><span class="k">Wali Santri</span><span class="v" id="confWali">-</span></div>
+        <div class="info-row"><span class="k">Nama Santri</span><span class="v" id="confSantri">-</span></div>
+        <div class="info-row"><span class="k">Sekolah</span><span class="v" id="confSekolah">-</span></div>
+        <div class="info-row"><span class="k">Kelas</span><span class="v" id="confKelas">-</span></div>
+        <div class="info-row"><span class="k">Jam</span><span class="v" id="confTermin">-</span></div>
+      </div>
+      <button class="primary" id="btnNewForm">Daftar Antrian Lain</button>
+    </div>
+  </section>
+
+  <section id="view-papan" hidden>
+    <div class="card">
+      <div class="field-row">
+        <div>
+          <label for="papan-sekolah">Sekolah</label>
+          <div id="papan-sekolah" class="csel"></div>
+        </div>
+        <div>
+          <label for="papan-kelas">Kelas</label>
+          <div id="papan-kelas" class="csel"></div>
+        </div>
+      </div>
+      <div class="board-current">
+        <div class="label">Sedang Dilayani</div>
+        <div class="bignum mono" id="boardCurrent">&mdash;</div>
+        <div class="name" id="boardCurrentName">Menunggu panggilan pertama</div>
+        <div id="boardTerminTag"></div>
+      </div>
+    </div>
+    <div class="card waiting-list">
+      <h3>Menunggu Giliran</h3>
+      <div id="waitingList"><div class="empty">Belum ada antrian menunggu.</div></div>
+    </div>
+  </section>
+
+  <section id="view-admin" hidden>
+    <div id="pinGate" class="card pin-box">
+      <p style="margin:0 0 4px;font-weight:600;">Masukkan PIN Admin</p>
+      <p style="margin:0 0 16px;font-size:13px;color:var(--ink-soft);">Khusus panitia/wali kelas.</p>
+      <input id="pinInput" type="password" inputmode="numeric" maxlength="6" placeholder="****">
+      <button class="primary" id="btnPinSubmit">Masuk</button>
+    </div>
+
+    <div id="adminPanel" hidden>
+      <div class="card mode-card">
+        <h3 style="margin:0 0 10px;font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft);">Status Pendaftaran</h3>
+        <div id="modeStatusText" style="font-size:14px;font-weight:700;"></div>
+      </div>
+
+      <div class="card">
+        <div class="field-row">
+          <div>
+            <label for="admin-sekolah">Sekolah</label>
+            <div id="admin-sekolah" class="csel"></div>
+          </div>
+          <div>
+            <label for="admin-kelas">Kelas</label>
+            <div id="admin-kelas" class="csel"></div>
+          </div>
+        </div>
+        <label for="admin-termin">Termin Aktif</label>
+        <div id="admin-termin" class="csel"></div>
+      </div>
+
+      <div class="admin-stats">
+        <div class="stat"><div class="n" id="statMenunggu">0</div><div class="l">Menunggu (termin ini)</div></div>
+        <div class="stat"><div class="n" id="statTerdaftar">0</div><div class="l">Terdaftar / Kuota</div></div>
+        <div class="stat"><div class="n" id="statSelesai">0</div><div class="l">Selesai</div></div>
+      </div>
+
+      <div class="card">
+        <button class="call-next" id="btnCallNext">Panggil Nomor Berikutnya &rarr;</button>
+        <div class="call-next-hint" id="callNextHint"></div>
+      </div>
+
+      <div class="card" style="margin-top:16px;">
+        <h3 style="margin:0 0 4px;font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft);">Daftar Antrian Kelas Ini</h3>
+        <div id="adminList"><div class="empty">Belum ada pendaftar untuk kelas ini.</div></div>
+      </div>
+
+      <button class="reset-btn" id="btnReset">Reset Antrian Kelas Ini</button>
+      <button class="reset-btn reset-btn-all" id="btnResetAll">Reset SEMUA Sekolah &amp; Kelas</button>
+    </div>
+  </section>
+
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  // ====== KONFIGURASI FIREBASE ======
+  const firebaseConfig = {
+    apiKey: "AIzaSyA44b_ruY8nLz_Egt_Opj8l2mCa03rop_0",
+    authDomain: "arisan-walimah-ummah.firebaseapp.com",
+    databaseURL: "https://arisan-walimah-ummah-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "arisan-walimah-ummah",
+    storageBucket: "arisan-walimah-ummah.firebasestorage.app",
+    messagingSenderId: "808217881031",
+    appId: "1:808217881031:web:a240faa30509e0e37a91e2",
+    measurementId: "G-5SRH6YXL4Z"
+  };
+  let db = null;
+  let firebaseOk = false;
+  try{
+    if(typeof firebase === 'undefined') throw new Error('SDK Firebase tidak termuat');
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.database();
+    firebaseOk = true;
+  }catch(e){
+    console.error('Firebase gagal dimuat, pakai penyimpanan lokal sementara:', e);
+    firebaseOk = false;
+  }
+  // ===================================
+
+  const TERMIN_LIST = [
+    {key:1, label:'Termin 1', start:'07.30', end:'08.15'},
+    {key:2, label:'Termin 2', start:'08.30', end:'09.15'},
+    {key:3, label:'Termin 3', start:'09.45', end:'10.30'},
+    {key:4, label:'Termin 4', start:'10.45', end:'11.30'},
+    {key:5, label:'Termin 5', start:'12.15', end:'13.00'},
+  ];
+
+  const SEKOLAH_LIST = [
+    {key:'banat-kalibagor', label:'MI Banat Kalibagor', kelas:[
+      {key:'I',  label:'Kelas I',  santri:8},
+      {key:'II', label:'Kelas II', santri:13},
+      {key:'III',label:'Kelas III',santri:18},
+      {key:'IV', label:'Kelas IV', santri:13},
+      {key:'V',  label:'Kelas V',  santri:12},
+      {key:'VI', label:'Kelas VI', santri:8, startIdx:2},
+    ]},
+    {key:'banin-kalibagor', label:'MI Banin Kalibagor', kelas:[
+      {key:'I',  label:'Kelas I',  santri:18},
+      {key:'II', label:'Kelas II', santri:15},
+      {key:'III',label:'Kelas III',santri:10},
+      {key:'IV', label:'Kelas IV', santri:12},
+      {key:'V',  label:'Kelas V',  santri:11},
+      {key:'VI', label:'Kelas VI', santri:10},
+    ]},
+    {key:'banat-purwokerto', label:'MI Banat Purwokerto', kelas:[
+      {key:'I',  label:'Kelas I',  santri:6},
+      {key:'II', label:'Kelas II', santri:19},
+      {key:'III',label:'Kelas III',santri:21},
+      {key:'IV', label:'Kelas IV', santri:10},
+      {key:'V',  label:'Kelas V',  santri:17},
+      {key:'VI', label:'Kelas VI', santri:17},
+    ]},
+    {key:'banin-purwokerto', label:'MI Banin Purwokerto', kelas:[
+      {key:'IA', label:'Kelas IA', santri:12},
+      {key:'IB', label:'Kelas IB', santri:12},
+      {key:'II', label:'Kelas II', santri:19},
+      {key:'III',label:'Kelas III',santri:10},
+      {key:'IV', label:'Kelas IV', santri:8},
+      {key:'V',  label:'Kelas V',  santri:16},
+      {key:'VI', label:'Kelas VI', santri:17},
+    ]},
+  ];
+
+  const ADMIN_PIN = '1212';
+  const RESET_PIN = '3434';
+  function askResetPin(actionLabel){
+    const p = prompt(`Masukkan PIN untuk ${actionLabel}:`);
+    if(p === null) return false;
+    if(p !== RESET_PIN){ toast('PIN salah.'); return false; }
+    return true;
+  }
+
+  const sekolahByKey = s => SEKOLAH_LIST.find(x=>x.key===s);
+  const kelasByKey = (s,k) => { const sk = sekolahByKey(s); return sk ? sk.kelas.find(x=>x.key===k) : null; };
+  const terminByKey = t => TERMIN_LIST.find(x=>x.key===Number(t));
+
+  function kelasCapacity(sekolahKey, kelasKey){
+    const k = kelasByKey(sekolahKey, kelasKey);
+    if(!k) return 3;
+    const startIdx = k.startIdx || 0;
+    const available = TERMIN_LIST.length - startIdx;
+    return Math.max(3, Math.ceil(k.santri / available));
+  }
+  function terminsNeeded(sekolahKey, kelasKey){
+    const k = kelasByKey(sekolahKey, kelasKey);
+    if(!k) return [];
+    const startIdx = k.startIdx || 0;
+    const available = TERMIN_LIST.slice(startIdx);
+    const cap = kelasCapacity(sekolahKey, kelasKey);
+    const n = Math.ceil(k.santri / cap);
+    return available.slice(0, n);
+  }
+  function countForTermin(data, sekolahKey, kelasKey, terminKey){
+    return data.entries.filter(e=>e.sekolah===sekolahKey && e.kelas===kelasKey && e.termin===terminKey).length;
+  }
+  function counterKey(sekolahKey, kelasKey){ return sekolahKey+'|'+kelasKey; }
+
+  const practiceCounters = {};
+  function nextPracticeNumber(sekolahKey, kelasKey){
+    const ck = counterKey(sekolahKey, kelasKey);
+    practiceCounters[ck] = (practiceCounters[ck] || 0) + 1;
+    return practiceCounters[ck];
+  }
+
+  // Mengunci tanggal acuan database ke Senin, 10 Agustus 2026 agar data tidak tereset/terlewat setiap pergantian hari
+  const dateKey = () => {
+    return '2026-08-10';
+  };
+
+  const dateLabel = document.getElementById('dateLabel');
+  const HARI_ID = ['Ahad','Senin','Selasa','Rabu','Kamis',"Jum'at",'Sabtu'];
+  const BULAN_ID = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  (function(){
+    const now = new Date();
+    dateLabel.textContent = `${HARI_ID[now.getDay()]}, ${now.getDate()} ${BULAN_ID[now.getMonth()]} ${now.getFullYear()}`;
+  })();
+
+  function toast(msg){
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'), 2400);
+  }
+
+  let warnedOffline = false;
+  function warnOfflineOnce(){
+    if(warnedOffline) return;
+    warnedOffline = true;
+    toast('Firebase tidak tersambung. Data disimpan sementara di perangkat ini saja.');
+  }
+
+  function normalizeQueueData(val){
+    return {
+      counters: (val && val.counters) ? val.counters : {},
+      entries: (val && Array.isArray(val.entries)) ? val.entries : [],
+    };
+  }
+  async function loadQueue(){
+    if(firebaseOk){
+      try{
+        const snap = await db.ref('queue/' + dateKey()).once('value');
+        const val = snap.val();
+        return normalizeQueueData(val);
+      }catch(e){
+        console.error('Gagal memuat data dari Firebase', e);
+        warnOfflineOnce();
+      }
+    } else {
+      warnOfflineOnce();
+    }
+    try{
+      const raw = localStorage.getItem('queue_local_' + dateKey());
+      if(raw) return normalizeQueueData(JSON.parse(raw));
+    }catch(e){}
+    return {counters:{}, entries:[]};
+  }
+  async function saveQueue(data){
+    if(firebaseOk){
+      try{
+        await db.ref('queue/' + dateKey()).set(data);
+        return;
+      }catch(e){
+        console.error('Gagal menyimpan data ke Firebase', e);
+        warnOfflineOnce();
+      }
+    } else {
+      warnOfflineOnce();
+    }
+    try{
+      localStorage.setItem('queue_local_' + dateKey(), JSON.stringify(data));
+    }catch(e){
+      console.error('Gagal menyimpan data lokal', e);
+      toast('Gagal menyimpan data, coba lagi.');
+    }
+  }
+
+  const RESMI_CUTOFF = new Date(2026, 7, 10, 16, 0, 0).getTime();
+  function isResmiTimeNow(){
+    return Date.now() >= RESMI_CUTOFF;
+  }
+  async function getCurrentMode(){
+    return isResmiTimeNow() ? 'resmi' : 'latihan';
+  }
+  async function refreshModeBanner(){
+    const mode = await getCurrentMode();
+    const banner = document.getElementById('modeBanner');
+    banner.hidden = (mode !== 'latihan');
+    const statusText = document.getElementById('modeStatusText');
+    if(statusText){
+      const cutoffStr = 'Senin, 10 Agustus 2026 pukul 16.00';
+      statusText.textContent = mode === 'latihan'
+        ? `Sedang MODE LATIHAN \u2014 isian TIDAK tersimpan. Otomatis jadi Resmi mulai ${cutoffStr}.`
+        : 'Sedang MODE RESMI \u2014 isian TERSIMPAN sungguhan.';
+      statusText.style.color = mode === 'latihan' ? '#7A2E22' : 'var(--ok)';
+    }
+    return mode;
+  }
+
+  function ensureCustomSelect(el){
+    if(el._csInit) return;
+    el._csInit = true;
+    el.classList.add('csel');
+    el._value = '';
+    el._options = [];
+    el.innerHTML = `<button type="button" class="csel-btn placeholder"></button><div class="csel-list" hidden></div>`;
+    const btn = el.querySelector('.csel-btn');
+    const list = el.querySelector('.csel-list');
+    Object.defineProperty(el, 'value', {
+      get(){ return el._value; },
+      set(v){
+        el._value = v;
+        const opt = el._options.find(o=>String(o.value)===String(v));
+        btn.textContent = opt ? opt.label : (el._placeholder || '');
+        btn.classList.toggle('placeholder', !opt);
+        list.querySelectorAll('.csel-opt').forEach(d=> d.classList.toggle('sel', String(d.dataset.value)===String(v)));
+      }
+    });
+    btn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      if(!el._options || el._options.length === 0){
+        toast(el._placeholder || 'Pilih dahulu');
+        return;
+      }
+      document.querySelectorAll('.csel-list').forEach(l=>{ if(l!==list) l.hidden = true; });
+      list.hidden = !list.hidden;
+    });
+    document.addEventListener('click', ()=>{ list.hidden = true; });
+    list.addEventListener('click', (e)=> e.stopPropagation());
+  }
+
+  function csSetOptions(el, options, placeholder){
+    ensureCustomSelect(el);
+    el._options = options;
+    el._placeholder = placeholder || '';
+    const btn = el.querySelector('.csel-btn');
+    const list = el.querySelector('.csel-list');
+    btn.classList.toggle('csel-empty', options.length === 0);
+    list.innerHTML = options.map(o=>`<div class="csel-opt ${o.disabled?'csel-disabled':''}" data-value="${escapeHtml(String(o.value))}">${o.label}</div>`).join('');
+    list.querySelectorAll('.csel-opt').forEach(d=>{
+      d.addEventListener('click', ()=>{
+        if(d.classList.contains('csel-disabled')) return;
+        el.value = d.dataset.value;
+        list.hidden = true;
+        el.dispatchEvent(new Event('change'));
+      });
+    });
+    const stillValid = el._value && options.some(o=>String(o.value)===String(el._value) && !o.disabled);
+    if(stillValid){
+      el.value = el._value;
+    } else {
+      el._value = '';
+      btn.textContent = placeholder || '';
+      btn.classList.add('placeholder');
+      list.querySelectorAll('.csel-opt').forEach(d=>d.classList.remove('sel'));
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', ()=>{
+    document.querySelectorAll('label[for]').forEach(lbl=>{
+      const target = document.getElementById(lbl.htmlFor);
+      if(target && target.classList.contains('csel')){
+        lbl.addEventListener('click', ()=>{
+          const btn = target.querySelector('.csel-btn');
+          if(btn) btn.click();
+        });
+      }
+    });
+  });
+
+  const sekolahOptions = SEKOLAH_LIST.map(s=>({value:s.key, label:s.label}));
+  ['f-sekolah','papan-sekolah','admin-sekolah'].forEach(id=>{
+    csSetOptions(document.getElementById(id), sekolahOptions, 'Pilih sekolah');
+  });
+
+  function kelasOptionsFor(sekolahKey){
+    const sk = sekolahByKey(sekolahKey);
+    if(!sk) return [];
+    return sk.kelas.map(k=>({value:k.key, label:k.label}));
+  }
+
+  async function renderTerminOptions(selEl, sekolahKey, kelasKey, keepValue, disableFull){
+    if(disableFull === undefined) disableFull = true;
+    if(!sekolahKey || !kelasKey){
+      csSetOptions(selEl, [], 'Pilih kelas dahulu');
+      return;
+    }
+    const cap = kelasCapacity(sekolahKey, kelasKey);
+    const data = await loadQueue();
+    const list = terminsNeeded(sekolahKey, kelasKey);
+    const prev = keepValue !== undefined ? keepValue : selEl.value;
+    const options = list.map(t=>{
+      const c = countForTermin(data, sekolahKey, kelasKey, t.key);
+      const full = c >= cap;
+      return {value:t.key, label:`${t.start}-${t.end} \u2014 ${c}/${cap}${full?' PENUH':''}`, disabled: disableFull && full};
+    });
+    csSetOptions(selEl, options, 'Pilih jam');
+    if(prev && options.some(o=>String(o.value)===String(prev) && !o.disabled)) selEl.value = prev;
+  }
+
+  (function renderSchedule(){
+    const rows = [];
+    rows.push({type:'row', t:TERMIN_LIST[0]});
+    rows.push({type:'break', label:'Jeda 15 menit'});
+    rows.push({type:'row', t:TERMIN_LIST[1]});
+    rows.push({type:'break', label:'Istirahat'});
+    rows.push({type:'row', t:TERMIN_LIST[2]});
+    rows.push({type:'break', label:'Jeda 15 menit'});
+    rows.push({type:'row', t:TERMIN_LIST[3]});
+    rows.push({type:'break', label:'Istirahat / Dzuhur'});
+    rows.push({type:'row', t:TERMIN_LIST[4]});
+    document.getElementById('scheduleRef').innerHTML = rows.map(r=>{
+      if(r.type==='row'){
+        return `<div class="row mono"><span>${r.t.start} - ${r.t.end}</span></div>`;
+      }
+      return `<div class="row break">${r.label}</div>`;
+    }).join('');
+  })();
+
+  const tabButtons = document.querySelectorAll('nav.tabs button');
+  const views = {
+    form: document.getElementById('view-form'),
+    papan: document.getElementById('view-papan'),
+    admin: document.getElementById('view-admin'),
+  };
+  let pollTimer = null;
+
+  function setView(name){
+    Object.keys(views).forEach(k=>{ views[k].hidden = (k !== name); });
+    tabButtons.forEach(b=> b.classList.toggle('active', b.dataset.view === name));
+    if(pollTimer){ clearInterval(pollTimer); pollTimer = null; }
+    if(name === 'papan'){
+      refreshPapan();
+      pollTimer = setInterval(refreshPapan, 4000);
+    } else if(name === 'admin'){
+      if(sessionStorage.getItem('adminOk') === '1'){
+        showAdminPanel();
+      }
+    }
+    location.hash = name;
+  }
+  tabButtons.forEach(b=> b.addEventListener('click', ()=> setView(b.dataset.view)));
+  const initial = location.hash.replace('#','');
+  setView(['form','papan','admin'].includes(initial) ? initial : 'form');
+  refreshModeBanner();
+  setInterval(refreshModeBanner, 6000);
+
+  const els = {
+    wali: document.getElementById('f-nama-wali'),
+    santri: document.getElementById('f-nama-santri'),
+    sekolah: document.getElementById('f-sekolah'),
+    kelas: document.getElementById('f-kelas'),
+    termin: document.getElementById('f-termin'),
+    hp: document.getElementById('f-hp'),
+  };
+
+  async function updateKelasHint(){
+    const hint = document.getElementById('kelasHint');
+    if(!els.sekolah.value || !els.kelas.value){ hint.textContent=''; hint.className='hint'; return; }
+    const k = kelasByKey(els.sekolah.value, els.kelas.value);
+    const data = await loadQueue();
+    const terdaftar = data.entries.filter(e=>e.sekolah===els.sekolah.value && e.kelas===k.key && e.status!=='dilewati').length;
+    const sisa = k.santri - terdaftar;
+    if(sisa <= 0){
+      hint.textContent = `Kuota ${k.label} sudah penuh (${terdaftar}/${k.santri} santri).`;
+      hint.className = 'hint warn';
+    } else {
+      hint.textContent = `${k.label}: ${terdaftar}/${k.santri} santri terdaftar. Sisa kuota: ${sisa}.`;
+      hint.className = 'hint ok';
+    }
+  }
+
+  els.sekolah.addEventListener('change', ()=>{
+    csSetOptions(els.kelas, kelasOptionsFor(els.sekolah.value), 'Pilih kelas');
+    csSetOptions(els.termin, [], 'Pilih kelas dahulu');
+    document.getElementById('kelasHint').textContent = '';
+  });
+  els.kelas.addEventListener('change', ()=>{
+    updateKelasHint();
+    renderTerminOptions(els.termin, els.sekolah.value, els.kelas.value);
+  });
+  csSetOptions(els.kelas, [], 'Pilih sekolah dahulu');
+  csSetOptions(els.termin, [], 'Pilih kelas dahulu');
+
+  document.getElementById('btnSubmit').addEventListener('click', async ()=>{
+    if(!els.wali.value.trim() || !els.santri.value.trim() || !els.sekolah.value || !els.kelas.value || !els.termin.value){
+      toast('Mohon lengkapi nama wali, nama santri, sekolah, kelas, dan jam.');
+      return;
+    }
+    const btn = document.getElementById('btnSubmit');
+    btn.disabled = true;
+    btn.textContent = 'Menyimpan...';
+
+    const sekolahKey = els.sekolah.value;
+    const k = kelasByKey(sekolahKey, els.kelas.value);
+    const terminKey = Number(els.termin.value);
+    const sk = sekolahByKey(sekolahKey);
+    const t = terminByKey(terminKey);
+    const mode = await getCurrentMode();
+    const practiceNotice = document.getElementById('practiceNotice');
+
+    if(mode === 'latihan'){
+      const practiceNo = nextPracticeNumber(sekolahKey, k.key);
+      practiceNotice.hidden = false;
+      document.getElementById('confEyebrow').textContent = 'Nomor Simulasi (Latihan)';
+      document.getElementById('confNum').textContent = String(practiceNo).padStart(2,'0');
+      document.getElementById('confKelasLabel').textContent = sk.label + ' \u00b7 ' + k.label + ' \u00b7 LATIHAN';
+      document.getElementById('confWali').textContent = els.wali.value.trim();
+      document.getElementById('confSantri').textContent = els.santri.value.trim();
+      document.getElementById('confSekolah').textContent = sk.label;
+      document.getElementById('confKelas').textContent = k.label;
+      document.getElementById('confTermin').textContent = t.start + ' - ' + t.end;
+
+      document.getElementById('formCardWrap').hidden = true;
+      document.getElementById('confirmWrap').hidden = false;
+
+      btn.disabled = false;
+      btn.textContent = 'Ambil Nomor Antrian';
+      return;
+    }
+
+    practiceNotice.hidden = true;
+    document.getElementById('confEyebrow').textContent = 'Nomor Antrian Anda';
+
+    const data = await loadQueue();
+    const terdaftar = data.entries.filter(e=>e.sekolah===sekolahKey && e.kelas===k.key && e.status!=='dilewati').length;
+    if(terdaftar >= k.santri){
+      toast(`Kuota ${k.label} sudah penuh.`);
+      btn.disabled = false;
+      btn.textContent = 'Ambil Nomor Antrian';
+      return;
+    }
+    const cap = kelasCapacity(sekolahKey, k.key);
+    const countThisTermin = countForTermin(data, sekolahKey, k.key, terminKey);
+    if(countThisTermin >= cap){
+      toast(`Termin ini untuk ${k.label} sudah penuh (maks ${cap} wali santri). Pilih jam lain.`);
+      await renderTerminOptions(els.termin, sekolahKey, k.key, '');
+      btn.disabled = false;
+      btn.textContent = 'Ambil Nomor Antrian';
+      return;
+    }
+
+    const ck = counterKey(sekolahKey, k.key);
+    if(!data.counters[ck]) data.counters[ck] = 0;
+    data.counters[ck] += 1;
+    const entry = {
+      no: data.counters[ck],
+      sekolah: sekolahKey,
+      kelas: k.key,
+      termin: terminKey,
+      wali: els.wali.value.trim(),
+      santri: els.santri.value.trim(),
+      hp: els.hp.value.trim(),
+      status: 'menunggu',
+      time: new Date().toISOString(),
+    };
+    data.entries.push(entry);
+    await saveQueue(data);
+
+    document.getElementById('confNum').textContent = String(entry.no).padStart(2,'0');
+    document.getElementById('confKelasLabel').textContent = sk.label + ' \u00b7 ' + k.label;
+    document.getElementById('confWali').textContent = entry.wali;
+    document.getElementById('confSantri').textContent = entry.santri;
+    document.getElementById('confSekolah').textContent = sk.label;
+    document.getElementById('confKelas').textContent = k.label;
+    document.getElementById('confTermin').textContent = t.start + ' - ' + t.end;
+
+    document.getElementById('formCardWrap').hidden = true;
+    document.getElementById('confirmWrap').hidden = false;
+
+    btn.disabled = false;
+    btn.textContent = 'Ambil Nomor Antrian';
+  });
+
+  document.getElementById('btnNewForm').addEventListener('click', ()=>{
+    els.wali.value=''; els.santri.value=''; els.hp.value='';
+    els.sekolah.value=''; els.sekolah.querySelector('.csel-btn').textContent = 'Pilih sekolah';
+    els.sekolah.querySelector('.csel-btn').classList.add('placeholder');
+    csSetOptions(els.kelas, [], 'Pilih sekolah dahulu');
+    csSetOptions(els.termin, [], 'Pilih kelas dahulu');
+    document.getElementById('kelasHint').textContent='';
+    document.getElementById('formCardWrap').hidden = false;
+    document.getElementById('confirmWrap').hidden = true;
+  });
+
+  const papanSekolahSel = document.getElementById('papan-sekolah');
+  const papanKelasSel = document.getElementById('papan-kelas');
+  papanSekolahSel.addEventListener('change', ()=>{
+    csSetOptions(papanKelasSel, kelasOptionsFor(papanSekolahSel.value), 'Pilih kelas');
+    refreshPapan();
+  });
+  papanKelasSel.addEventListener('change', refreshPapan);
+
+  async function refreshPapan(){
+    if(!papanSekolahSel.value){
+      papanSekolahSel.value = SEKOLAH_LIST[0].key;
+      csSetOptions(papanKelasSel, kelasOptionsFor(papanSekolahSel.value), 'Pilih kelas');
+    }
+    if(!papanKelasSel.value){
+      const opts = kelasOptionsFor(papanSekolahSel.value);
+      if(opts.length){ papanKelasSel.value = opts[0].value; }
+    }
+    const sekolahKey = papanSekolahSel.value;
+    const kelasKey = papanKelasSel.value;
+    if(!sekolahKey || !kelasKey) return;
+
+    const data = await loadQueue();
+    const entries = data.entries.filter(e=>e.sekolah===sekolahKey && e.kelas===kelasKey);
+    const current = entries.find(e=>e.status==='dilayani');
+
+    document.getElementById('boardCurrent').textContent = current ? String(current.no).padStart(2,'0') : '\u2014';
+    document.getElementById('boardCurrentName').textContent = current ? current.santri : 'Menunggu panggilan pertama';
+    document.getElementById('boardTerminTag').innerHTML = current ? `<span class="termin-tag">${terminByKey(current.termin).start}-${terminByKey(current.termin).end}</span>` : '';
+
+    const waiting = entries.filter(e=>e.status==='menunggu').sort((a,b)=> a.termin-b.termin || a.no-b.no);
+    const heading = document.querySelector('#view-papan .waiting-list h3');
+    if(heading) heading.textContent = waiting.length ? `Menunggu Giliran (${waiting.length})` : 'Menunggu Giliran';
+    const list = document.getElementById('waitingList');
+    if(waiting.length===0){
+      list.innerHTML = '<div class="empty">Belum ada antrian menunggu.</div>';
+    } else {
+      list.innerHTML = waiting.map(e=>`
+        <div class="waiting-item">
+          <div class="badge mono">${String(e.no).padStart(2,'0')}</div>
+          <div class="meta">
+            <div class="n">${escapeHtml(e.santri)}</div>
+            <div class="k">${terminByKey(e.termin).start}-${terminByKey(e.termin).end}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+  }
+
+  document.getElementById('btnPinSubmit').addEventListener('click', ()=>{
+    const val = document.getElementById('pinInput').value;
+    if(val === ADMIN_PIN){
+      sessionStorage.setItem('adminOk','1');
+      showAdminPanel();
+    } else {
+      toast('PIN salah.');
+    }
+  });
+  document.getElementById('pinInput').addEventListener('keydown', (e)=>{
+    if(e.key==='Enter') document.getElementById('btnPinSubmit').click();
+  });
+
+  const adminSekolahSel = document.getElementById('admin-sekolah');
+  const adminKelasSel = document.getElementById('admin-kelas');
+  const adminTerminSel = document.getElementById('admin-termin');
+
+  adminSekolahSel.addEventListener('change', async ()=>{
+    const opts = kelasOptionsFor(adminSekolahSel.value);
+    csSetOptions(adminKelasSel, opts, 'Pilih kelas');
+    if(opts.length) adminKelasSel.value = opts[0].value;
+    await renderTerminOptions(adminTerminSel, adminSekolahSel.value, adminKelasSel.value, currentTerminGuess(), false);
+    refreshAdmin();
+  });
+  adminKelasSel.addEventListener('change', async ()=>{
+    await renderTerminOptions(adminTerminSel, adminSekolahSel.value, adminKelasSel.value, currentTerminGuess(), false);
+    refreshAdmin();
+  });
+  adminTerminSel.addEventListener('change', refreshAdmin);
+
+  function currentTerminGuess(){
+    const now = new Date();
+    const mins = now.getHours()*60 + now.getMinutes();
+    const toMin = (s)=>{ const [h,m]=s.split('.').map(Number); return h*60+m; };
+    for(const t of TERMIN_LIST){
+      if(mins <= toMin(t.end)) return t.key;
+    }
+    return TERMIN_LIST[TERMIN_LIST.length-1].key;
+  }
+
+  let adminPollTimer = null;
+  async function showAdminPanel(){
+    document.getElementById('pinGate').hidden = true;
+    document.getElementById('adminPanel').hidden = false;
+    refreshModeBanner();
+    if(!adminSekolahSel.value){
+      adminSekolahSel.value = SEKOLAH_LIST[0].key;
+      csSetOptions(adminKelasSel, kelasOptionsFor(adminSekolahSel.value), 'Pilih kelas');
+    }
+    if(!adminKelasSel.value){
+      const opts = kelasOptionsFor(adminSekolahSel.value);
+      if(opts.length) adminKelasSel.value = opts[0].value;
+    }
+    await renderTerminOptions(adminTerminSel, adminSekolahSel.value, adminKelasSel.value, currentTerminGuess(), false);
+    refreshAdmin();
+    if(adminPollTimer) clearInterval(adminPollTimer);
+    adminPollTimer = setInterval(refreshAdmin, 5000);
+  }
+
+  async function refreshAdmin(){
+    const sekolahKey = adminSekolahSel.value;
+    const kelasKey = adminKelasSel.value;
+    if(!sekolahKey || !kelasKey) return;
+    const terminKey = Number(adminTerminSel.value);
+    const k = kelasByKey(sekolahKey, kelasKey);
+    const data = await loadQueue();
+    const entries = data.entries.filter(e=>e.sekolah===sekolahKey && e.kelas===kelasKey);
+
+    const menungguTermin = entries.filter(e=>e.status==='menunggu' && e.termin===terminKey).length;
+    const terdaftar = entries.filter(e=>e.status!=='dilewati').length;
+    const selesai = entries.filter(e=>e.status==='selesai').length;
+
+    document.getElementById('statMenunggu').textContent = menungguTermin;
+    document.getElementById('statTerdaftar').textContent = terdaftar + '/' + k.santri;
+    document.getElementById('statSelesai').textContent = selesai;
+
+    const btnCall = document.getElementById('btnCallNext');
+    btnCall.disabled = menungguTermin === 0;
+    document.getElementById('callNextHint').textContent = menungguTermin === 0
+      ? 'Belum ada wali santri yang menunggu di termin ini.'
+      : '';
+
+    const list = document.getElementById('adminList');
+    if(entries.length===0){
+      list.innerHTML = '<div class="empty">Belum ada pendaftar untuk kelas ini.</div>';
+    } else {
+      const sorted = [...entries].sort((a,b)=> a.termin-b.termin || a.no-b.no);
+      list.innerHTML = sorted.map(e=>`
+        <div class="entry-row">
+          <div class="badge mono">${String(e.no).padStart(2,'0')}</div>
+          <div class="meta">
+            <div class="n">${escapeHtml(e.santri)} <span style="font-weight:400;color:var(--ink-soft);">/ ${escapeHtml(e.wali)}</span></div>
+            <div class="k">${terminByKey(e.termin).start}-${terminByKey(e.termin).end}${e.hp ? ' \u00b7 '+escapeHtml(e.hp) : ''}</div>
+          </div>
+          <span class="status-pill st-${e.status}">${statusLabel(e.status)}</span>
+          <div class="entry-actions">
+            ${e.status==='menunggu' ? `<button data-act="lewati" data-no="${e.no}">Lewati</button>` : ''}
+            ${e.status==='dilayani' ? `<button data-act="selesai" data-no="${e.no}">Selesai</button>` : ''}
+            <button data-act="hapus" data-no="${e.no}" class="btn-hapus">Hapus</button>
+          </div>
+        </div>
+      `).join('');
+      list.querySelectorAll('button[data-act]').forEach(btn=>{
+        btn.addEventListener('click', async ()=>{
+          const no = Number(btn.dataset.no);
+          const act = btn.dataset.act;
+          if(act === 'hapus'){
+            const d0 = await loadQueue();
+            const entry0 = d0.entries.find(x=>x.sekolah===sekolahKey && x.kelas===kelasKey && x.no===no);
+            if(!entry0) return;
+            const ok = confirm(`Hapus data antrian No. ${String(no).padStart(2,'0')} a.n. ${entry0.santri} (${entry0.wali})?\n\nData yang dihapus tidak bisa dikembalikan.`);
+            if(!ok) return;
+            if(!askResetPin('menghapus data antrian')) return;
+            d0.entries = d0.entries.filter(x=>!(x.sekolah===sekolahKey && x.kelas===kelasKey && x.no===no));
+            await saveQueue(d0);
+            toast(`Data No. ${String(no).padStart(2,'0')} telah dihapus.`);
+            refreshAdmin();
+            return;
+          }
+          const d = await loadQueue();
+          const entry = d.entries.find(x=>x.sekolah===sekolahKey && x.kelas===kelasKey && x.no===no);
+          if(!entry) return;
+          if(act==='lewati') entry.status='dilewati';
+          if(act==='selesai') entry.status='selesai';
+          await saveQueue(d);
+          refreshAdmin();
+        });
+      });
+    }
+  }
+
+  document.getElementById('btnCallNext').addEventListener('click', async ()=>{
+    const sekolahKey = adminSekolahSel.value;
+    const kelasKey = adminKelasSel.value;
+    const terminKey = Number(adminTerminSel.value);
+    const data = await loadQueue();
+    const entries = data.entries.filter(e=>e.sekolah===sekolahKey && e.kelas===kelasKey);
+
+    const next = entries.filter(e=>e.status==='menunggu' && e.termin===terminKey).sort((a,b)=>a.no-b.no)[0];
+    if(!next){
+      toast('Tidak ada antrian menunggu di termin ini.');
+      return;
+    }
+    const prevCurrent = entries.find(e=>e.status==='dilayani');
+    if(prevCurrent) prevCurrent.status = 'selesai';
+    next.status = 'dilayani';
+    await saveQueue(data);
+    toast('Memanggil nomor '+String(next.no).padStart(2,'0')+' \u2014 '+next.santri);
+    refreshAdmin();
+  });
+
+  document.getElementById('btnReset').addEventListener('click', async ()=>{
+    const sekolahKey = adminSekolahSel.value;
+    const kelasKey = adminKelasSel.value;
+    const k = kelasByKey(sekolahKey, kelasKey);
+    if(!confirm(`Reset seluruh antrian ${k.label} hari ini? Data yang sudah masuk akan dihapus.`)) return;
+    if(!askResetPin('reset antrian kelas ini')) return;
+    const data = await loadQueue();
+    data.entries = data.entries.filter(e=>!(e.sekolah===sekolahKey && e.kelas===kelasKey));
+    data.counters[counterKey(sekolahKey,kelasKey)] = 0;
+    await saveQueue(data);
+    toast(`Antrian ${k.label} telah direset.`);
+    refreshAdmin();
+  });
+
+  document.getElementById('btnResetAll').addEventListener('click', async ()=>{
+    const totalSekolah = SEKOLAH_LIST.length;
+    const totalKelas = SEKOLAH_LIST.reduce((n,s)=>n+s.kelas.length, 0);
+    const ok1 = confirm(`RESET SEMUA?\n\nIni akan menghapus SELURUH data antrian untuk ${totalSekolah} sekolah (${totalKelas} kelas). Nomor akan mulai dari 1 lagi untuk semua kelas.\n\nLanjutkan?`);
+    if(!ok1) return;
+    if(!askResetPin('reset SEMUA data')) return;
+    const ok2 = confirm('Konfirmasi sekali lagi: semua data antrian (semua sekolah & kelas) akan dihapus permanen. Yakin?');
+    if(!ok2) return;
+    await saveQueue({counters:{}, entries:[]});
+    toast('Semua antrian telah direset.');
+    refreshAdmin();
+  });
+
+  function statusLabel(s){
+    return {menunggu:'Menunggu', dilayani:'Dilayani', selesai:'Selesai', dilewati:'Dilewati'}[s] || s;
+  }
+  function escapeHtml(str){
+    return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  document.querySelectorAll('label[for]').forEach(lbl=>{
+    const target = document.getElementById(lbl.htmlFor);
+    if(target && target.classList.contains('csel')){
+      lbl.addEventListener('click', ()=>{
+        const btn = target.querySelector('.csel-btn');
+        if(btn) btn.click();
+      });
+    }
+  });
+})();
+</script>
+</body>
+</html>

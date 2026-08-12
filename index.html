@@ -187,12 +187,35 @@
 <body>
 <div id="root"></div>
 <div id="printArea"></div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
 /* ============ TOKENS & HELPERS ============ */
 const KAT_PALETTE = ["#C9A227","#A63D5C","#7A4A73","#C1653C","#3F5B7A","#8C6239","#4E7A5E","#6B5CA5"];
+
+/* Lazy-load QR libraries only when actually needed (Scan / Cetak Label / Kartu),
+   so a slow or blocked CDN never prevents the main app from rendering. */
+const _scriptCache = {};
+function loadScript(src){
+  if(_scriptCache[src]) return _scriptCache[src];
+  _scriptCache[src] = new Promise((resolve, reject)=>{
+    const s = document.createElement("script");
+    s.src = src; s.async = true;
+    s.onload = ()=>resolve(true);
+    s.onerror = ()=>reject(new Error("Gagal memuat "+src));
+    document.body.appendChild(s);
+  });
+  return _scriptCache[src];
+}
+async function ensureJsQR(){
+  if(typeof jsQR === "function") return true;
+  try{ await loadScript("https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.js"); return true; }
+  catch(e){ showToast("Gagal memuat pustaka scan (cek koneksi internet)","rose"); return false; }
+}
+async function ensureQRCode(){
+  if(typeof QRCode === "function") return true;
+  try{ await loadScript("https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"); return true; }
+  catch(e){ showToast("Gagal memuat pustaka QR (cek koneksi internet)","rose"); return false; }
+}
+
 const uid = () => Math.random().toString(36).slice(2,10);
 const pad4 = (n) => String(n).padStart(4,"0");
 const todayDate = new Date();
@@ -1370,13 +1393,4 @@ function anggotaModalHTML(){
   const m=state.anggotaModal, d=m.data;
   return `<div class="modal-backdrop" id="agBackdrop"><div class="modal"><div class="modal-header"><h3 class="modal-title">${m.mode==='add'?'Tambah Anggota':'Edit Anggota'}</h3><button class="close-x" id="closeAgModal">✕</button></div>
     <div class="field-row"><div class="field"><label class="field-label">NIS</label><input id="ag_nis" value="${esc(d.nis)}"/></div><div class="field"><label class="field-label">Kelas</label><select id="ag_kelas">${["1","2","3","4","5","6"].map(k=>`<option value="${k}" ${d.kelas===k?'selected':''}>Kelas ${k}</option>`).join("")}</select></div></div>
-    <div class="field"><label class="field-label">Nama Lengkap</label><input id="ag_nama" value="${esc(d.nama)}"/></div>
-    <div class="field-row"><div class="field"><label class="field-label">L/P</label><select id="ag_lp"><option value="L" ${d.lp==='L'?'selected':''}>Laki-laki</option><option value="P" ${d.lp==='P'?'selected':''}>Perempuan</option></select></div>
-      <div class="field"><label class="field-label">Tanggal Daftar</label><input type="date" id="ag_tgl" value="${esc(d.tglDaftar)}"/></div></div>
-    <div class="field"><label class="field-label">Alamat (opsional)</label><input id="ag_alamat" value="${esc(d.alamat||'')}"/></div>
-    <button class="btn btn-primary btn-block" id="saveAgBtn" style="margin-top:16px;">Simpan</button>
-  </div></div>`;
-}
-function bindAnggotaModal(){
-  document.getElementById("agBackdrop").addEventListener("click", e=>{ if(e.target.id==="agBackdrop"){ state.anggotaModal=null; renderModal(); } });
-  document.getElementById("closeAgModal").addEventListener("click", ()=>{ st
+    <div class="field"><label class="field-label">Nama Lengkap</label><inpu

@@ -1,810 +1,494 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Maktabah Marhalah Ula Al-Faruq — Kalibagor</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap');
-
-  :root{
-    --ink:#241B2E; --ink-soft:#6B6178;
-    --plum:#4A2545; --plum-deep:#2E1730;
-    --gold:#C9A227; --gold-soft:#E4CE87;
-    --rose:#A63D5C; --rose-soft:#F1DCE1;
-    --ivory:#FAF6EF; --ivory-deep:#F1E9DA;
-    --card:#FFFFFF; --line:#E6DCC8;
-    --display: 'Fraunces', Georgia, serif;
-    --body: 'Inter', -apple-system, 'Segoe UI', sans-serif;
-    --mono: 'JetBrains Mono', 'SFMono-Regular', Consolas, monospace;
-  }
-  *{ box-sizing:border-box; }
-  body{ margin:0; background:var(--ivory); color:var(--ink); font-family:var(--body); }
-  ::selection{ background:var(--gold-soft); }
-  input:focus, select:focus, textarea:focus{ outline:2px solid var(--gold); outline-offset:1px; }
-  button{ font-family:var(--body); }
-  button:focus-visible{ outline:2px solid var(--gold); outline-offset:2px; }
-  .max{ max-width:1100px; margin:0 auto; padding:0 24px; }
-
-  /* header */
-  header.top{ background:linear-gradient(135deg, var(--plum-deep), var(--plum)); color:var(--ivory); border-bottom:3px solid var(--gold); }
-  .brand-row{ display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-wrap:wrap; padding:32px 0 22px; }
-  .eyebrow{ font-family:var(--mono); font-size:11px; letter-spacing:.22em; color:var(--gold-soft); text-transform:uppercase; margin-bottom:8px; }
-  h1.brand{ font-family:var(--display); font-size:clamp(26px,3.6vw,38px); font-weight:600; margin:0; line-height:1.15; }
-  .brand-sub{ margin:6px 0 0; color:var(--gold-soft); font-size:13.5px; }
-
-  .tabs{ display:flex; gap:8px; overflow-x:auto; }
-  .tab-btn{ display:flex; align-items:center; gap:8px; font-size:13.5px; font-weight:700; white-space:nowrap; padding:10px 16px; cursor:pointer; border:none; border-radius:8px 8px 0 0; background:rgba(255,255,255,.08); color:var(--ivory); }
-  .tab-btn.active{ background:var(--ivory); color:var(--plum); transform:translateY(1px); }
-  .tab-icon{ font-size:14px; }
-
-  main{ padding:28px 0 60px; }
-
-  /* stat cards */
-  .stat-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:16px; margin-bottom:22px; }
-  .stat-card{ background:var(--card); border:1px solid var(--line); border-radius:10px; padding:18px 20px; position:relative; overflow:hidden; }
-  .stat-blob{ position:absolute; top:-18px; right:-18px; width:70px; height:70px; border-radius:50%; opacity:.10; }
-  .stat-icon{ width:34px; height:34px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:16px; color:#fff; margin-bottom:8px; }
-  .stat-value{ font-family:var(--display); font-size:30px; font-weight:600; line-height:1; }
-  .stat-label{ font-size:12px; color:var(--ink-soft); margin-top:4px; font-weight:500; }
-
-  .alert-overdue{ display:flex; align-items:center; gap:8px; background:var(--rose-soft); border:1px solid var(--rose); border-radius:8px; padding:10px 14px; color:var(--rose); font-size:13px; font-weight:600; margin-bottom:22px; }
-
-  .dash-grid{ display:grid; grid-template-columns:1.3fr 1fr; gap:20px; }
-  @media (max-width:760px){ .dash-grid{ grid-template-columns:1fr; } }
-  .panel{ background:var(--card); border:1px solid var(--line); border-radius:10px; padding:20px; }
-  .panel-title{ font-family:var(--display); font-size:17px; margin:0 0 14px; }
-  .muted{ color:var(--ink-soft); font-size:13px; padding:14px 0; }
-
-  .chart-bars{ display:flex; align-items:flex-end; gap:14px; height:200px; padding-top:10px; }
-  .chart-col{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%; }
-  .chart-val{ font-family:var(--mono); font-size:11px; color:var(--ink-soft); margin-bottom:4px; }
-  .chart-bar{ width:100%; max-width:40px; border-radius:6px 6px 0 0; background:var(--plum); }
-  .chart-lbl{ font-size:11.5px; color:var(--ink-soft); margin-top:8px; font-weight:600; }
-
-  .top-list{ display:flex; flex-direction:column; gap:12px; }
-  .top-item{ display:flex; align-items:center; gap:12px; }
-  .top-rank{ font-family:var(--display); font-size:15px; color:var(--gold); font-weight:700; width:20px; }
-  .top-title{ flex:1; font-size:13px; font-weight:600; }
-  .top-count{ font-family:var(--mono); font-size:12px; color:var(--ink-soft); }
-
-  .activity-item{ display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--line); font-size:13px; }
-  .activity-item:last-child{ border-bottom:none; }
-  .activity-time{ margin-left:auto; font-size:12px; color:var(--ink-soft); white-space:nowrap; }
-
-  /* toolbar */
-  .toolbar{ display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-bottom:20px; }
-  .search-box{ display:flex; align-items:center; gap:8px; padding:9px 12px; border:1px solid var(--line); border-radius:7px; background:var(--card); flex:1 1 220px; }
-  .search-box input{ border:none; outline:none; background:transparent; font-size:14px; width:100%; font-family:var(--body); }
-  select, .field input, .field textarea{ padding:9px 10px; border-radius:7px; border:1px solid var(--line); font-size:13px; font-family:var(--body); background:var(--card); }
-
-  .btn{ display:inline-flex; align-items:center; gap:6px; padding:9px 14px; border-radius:7px; font-weight:700; font-size:13px; cursor:pointer; border:none; }
-  .btn-primary{ background:var(--plum); color:#fff; }
-  .btn-outline{ background:#fff; color:var(--plum); border:1px solid var(--plum); }
-  .btn-gold{ background:var(--gold); color:var(--plum-deep); }
-  .btn:disabled{ background:#D9D2C9 !important; color:#fff !important; cursor:not-allowed; border:none !important; }
-  .btn-block{ width:100%; padding:11px; border-radius:7px; font-size:14px; }
-
-  /* book grid */
-  .book-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:16px; }
-  .book-card{ background:var(--card); border:1px solid var(--line); border-radius:9px; padding:16px; display:flex; flex-direction:column; gap:9px; }
-  .row-between{ display:flex; align-items:center; justify-content:space-between; }
-  .kode-chip{ font-family:var(--mono); font-size:11.5px; font-weight:600; letter-spacing:.03em; padding:3px 8px; border-radius:5px; color:#fff; white-space:nowrap; }
-  .due-stub{ display:inline-flex; align-items:center; gap:5px; border-radius:3px 3px 8px 8px; padding:3px 9px 3px 7px; font-family:var(--mono); font-size:10.5px; font-weight:700; letter-spacing:.05em; text-transform:uppercase; background:#fff; }
-  .due-dot{ width:5px; height:5px; border-radius:50%; display:inline-block; }
-  .kat-label{ font-size:10.5px; letter-spacing:.05em; text-transform:uppercase; font-weight:700; }
-  .book-title{ font-family:var(--display); font-size:16.5px; font-weight:600; margin:0; line-height:1.3; }
-  .book-meta{ font-size:12.5px; color:var(--ink-soft); margin:0; }
-  .book-meta.small{ font-size:11.5px; }
-  .book-loan-note{ font-size:11.5px; color:var(--rose); margin:0; font-weight:600; }
-  .book-actions{ display:flex; gap:8px; margin-top:2px; }
-  .icon-btn{ padding:7px 9px; border-radius:6px; border:1px solid var(--line); background:#fff; cursor:pointer; }
-
-  /* loan lists */
-  .loan-row{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; background:var(--card); border:1px solid var(--line); border-radius:9px; padding:13px 16px; margin-bottom:12px; }
-  .loan-row.late{ background:var(--rose-soft); border-color:var(--rose); }
-  .loan-left{ display:flex; align-items:center; gap:12px; }
-  .loan-title{ font-family:var(--display); font-weight:600; font-size:15px; }
-  .loan-sub{ font-size:12.5px; color:var(--ink-soft); }
-  .status-tag{ display:flex; align-items:center; gap:5px; font-size:12px; font-weight:700; }
-
-  .history-panel{ background:var(--card); border:1px solid var(--line); border-radius:9px; overflow:hidden; }
-  .history-row{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; padding:12px 16px; border-bottom:1px solid var(--line); }
-  .history-row:last-child{ border-bottom:none; }
-
-  /* modal */
-  .modal-backdrop{ position:fixed; inset:0; background:rgba(36,27,46,.6); display:flex; align-items:center; justify-content:center; padding:16px; z-index:50; }
-  .modal{ background:var(--card); border-radius:10px; padding:22px; width:100%; max-width:440px; max-height:88vh; overflow-y:auto; }
-  .modal-header{ display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
-  .modal-title{ font-family:var(--display); font-size:18px; margin:0; }
-  .close-x{ background:none; border:none; cursor:pointer; font-size:18px; color:var(--ink-soft); line-height:1; }
-  .field{ margin-top:12px; }
-  .field:first-child{ margin-top:0; }
-  .field-label{ font-size:11.5px; font-weight:700; color:var(--ink-soft); display:block; margin-bottom:4px; }
-  .field input, .field select{ width:100%; }
-  .field-row{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-  .radio-group{ display:flex; gap:8px; margin-top:4px; }
-  .radio-btn{ flex:1; padding:8px 0; border-radius:6px; border:1.5px solid var(--line); background:#fff; color:var(--ink); font-size:12.5px; font-weight:700; cursor:pointer; }
-  .radio-btn.active{ border-color:var(--plum); background:var(--plum); color:#fff; }
-  .hint{ font-size:11px; color:var(--ink-soft); margin:6px 0 0; }
-  .link-btn{ margin-top:4px; background:none; border:none; padding:0; color:var(--plum); font-size:11px; font-weight:700; cursor:pointer; text-decoration:underline; }
-
-  .kat-row{ display:flex; align-items:center; gap:8px; border:1px solid var(--line); border-radius:7px; padding:8px 10px; margin-bottom:8px; }
-  .kat-swatch{ width:26px; height:26px; border:none; border-radius:5px; padding:0; cursor:pointer; flex-shrink:0; }
-  .kat-input-kode{ width:64px; padding:6px 7px; border-radius:5px; border:1px solid var(--line); font-size:12.5px; font-family:var(--mono); text-transform:uppercase; }
-  .kat-input-nama{ flex:1; min-width:0; padding:6px 7px; border-radius:5px; border:1px solid var(--line); font-size:13px; }
-  .kat-del{ background:none; border:none; cursor:pointer; flex-shrink:0; color:var(--rose); font-size:15px; }
-
-  .toast{ position:fixed; bottom:24px; left:50%; transform:translateX(-50%); color:#fff; padding:10px 18px; border-radius:7px; font-size:13px; font-weight:700; box-shadow:0 8px 22px rgba(0,0,0,.25); z-index:60; }
-
-  footer{ text-align:center; padding:20px 0 32px; color:var(--ink-soft); font-size:12px; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIPERPUS DIGITAL - Full Featured</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background-color: #f8f9fa; }
+        .sidebar { min-height: 100vh; background: #212529; color: white; }
+        .sidebar .nav-link { color: #adb5bd; cursor: pointer; }
+        .sidebar .nav-link.active, .sidebar .nav-link:hover { color: white; background: #343a40; }
+        .card-stat { border: none; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+    </style>
 </head>
 <body>
-<div id="root"></div>
 
-<script>
-/* ============ TOKENS ============ */
-const KAT_PALETTE = ["#C9A227","#A63D5C","#7A4A73","#C1653C","#3F5B7A","#8C6239","#4E7A5E","#6B5CA5"];
+    <div class="container-fluid">
+        <div class="row">
+            <nav class="col-md-3 col-lg-2 d-md-block sidebar collapse p-3">
+                <h4 class="text-white text-center py-3"><i class="fa-solid fa-book-open-reader"></i> SIPERPUS</h4>
+                <hr class="text-secondary">
+                <ul class="nav flex-column gap-1">
+                    <li class="nav-item"><a class="nav-link active" onclick="switchTab('dashboard')"><i class="fa-solid fa-chart-line me-2"></i> Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link" onclick="switchTab('buku')"><i class="fa-solid fa-books me-2"></i> Master Buku</a></li>
+                    <li class="nav-item"><a class="nav-link" onclick="switchTab('anggota')"><i class="fa-solid fa-users me-2"></i> Data Anggota</a></li>
+                    <li class="nav-item"><a class="nav-link" onclick="switchTab('transaksi')"><i class="fa-solid fa-right-left me-2"></i> Transaksi Pinjam</a></li>
+                    <li class="nav-item"><a class="nav-link" onclick="switchTab('laporan')"><i class="fa-solid fa-file-lines me-2"></i> Statistik & Laporan</a></li>
+                </ul>
+            </nav>
 
-/* ============ HELPERS ============ */
-const uid = () => Math.random().toString(36).slice(2,10);
-const pad4 = (n) => String(n).padStart(4,"0");
-const todayDate = new Date();
-const addDays = (d,n) => { const x = new Date(d); x.setDate(x.getDate()+n); return x; };
-const iso = (d) => new Date(d).toISOString().slice(0,10);
-const fmt = (d) => d ? new Date(d).toLocaleDateString("id-ID",{day:"numeric",month:"short",year:"numeric"}) : "-";
-const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+                
+                <div id="tab-dashboard" class="content-tab">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2>📊 Dashboard Utama</h2>
+                        <span class="badge bg-success p-2">GitHub Static App Active</span>
+                    </div>
 
-function suggestKode(kategori, books){
-  const nums = books.map(b=>b.kode||"").filter(k=>k.toUpperCase().startsWith(kategori))
-    .map(k=>parseInt(k.slice(kategori.length),10)).filter(n=>!isNaN(n));
-  const next = nums.length ? Math.max(...nums)+1 : 1;
-  return `${kategori}${pad4(next)}`;
-}
+                    <div class="alert alert-warning shadow-sm mb-4" role="alert">
+                        <h5 class="alert-heading fw-bold"><i class="fa-solid fa-bell me-2"></i> Pusat Notifikasi Pintar</h5>
+                        <hr>
+                        <ul id="list-notif" class="mb-0 ps-3">
+                            <li>Memuat notifikasi sistem...</li>
+                        </ul>
+                    </div>
 
-/* ============ SEED DATA ============ */
-function seedKategoriList(){
-  return [ { kode:"A", nama:"Aqidah & Ibadah", color:"#C9A227" } ];
-}
-function seedBooks(){
-  return [
-    { id:"s1", kode:"A0001", kategori:"A", judul:"Indahnya Kehidupan Surga Versi Anak 1", penyusun:"Abu Ishaq Musa", penerbit:"At Tuqa", tahunTerbit:"1443H/2022M", sumber:"Beli", tanggalDiterima:"2022-03-01", keterangan:"" },
-    { id:"s2", kode:"A0002", kategori:"A", judul:"Indahnya Kehidupan Surga Versi Anak 2", penyusun:"Abu Ishaq Musa", penerbit:"At Tuqa", tahunTerbit:"1443H/2022M", sumber:"Beli", tanggalDiterima:"2022-03-01", keterangan:"" },
-    { id:"s3", kode:"A0011", kategori:"A", judul:"Indahnya Kehidupan Surga (Pengantar)", penyusun:"Fathul Mujib (Pengantar)", penerbit:"At Tuqa", tahunTerbit:"1443H/2021M", sumber:"Beli", tanggalDiterima:"2022-03-01", keterangan:"" },
-    { id:"s4", kode:"A0019", kategori:"A", judul:"Pend. Sejarah Islam 4 MI", penyusun:"Fathul Mujib", penerbit:"At Tuqa", tahunTerbit:"1440H/2019M", sumber:"Beli", tanggalDiterima:"2021-09-05", keterangan:"" },
-    { id:"s5", kode:"A0026", kategori:"A", judul:"Ayo Menghafal Al Qur'an", penyusun:"Fathul Mujib", penerbit:"Pena Hikmah", tahunTerbit:"1442H/2020M", sumber:"Beli", tanggalDiterima:"2021-09-05", keterangan:"" },
-    { id:"s6", kode:"A0028", kategori:"A", judul:"Kisah Hebat Para Ulama", penyusun:"Ust. Abu Umar as-Sidawi", penerbit:"At Tuqa", tahunTerbit:"1442H/2021M", sumber:"Infak", tanggalDiterima:"2021-09-05", keterangan:"Wakaf" },
-    { id:"s7", kode:"A0029", kategori:"A", judul:"Khalifah Harun Ar-Rasyid", penyusun:"Al-Ust. Abu Hanan Harts", penerbit:"At Tuqa", tahunTerbit:"1441H/2019M", sumber:"Beli", tanggalDiterima:"2022-04-06", keterangan:"" },
-    { id:"s8", kode:"A0030", kategori:"A", judul:"10 Mukjizat Nabi Muhammad", penyusun:"Al. Ust. Abu Amr as-Sidawi", penerbit:"At Tuqa", tahunTerbit:"1440H/2019M", sumber:"Beli", tanggalDiterima:"2022-04-06", keterangan:"" },
-    { id:"s9", kode:"A0031", kategori:"A", judul:"Keajaiban Hewan, Pohon, dan Batu dalam Al Qur'an dan Hadits", penyusun:"Ummu Abdil Aziz Asma", penerbit:"At Tuqa", tahunTerbit:"1441H/2019M", sumber:"Beli", tanggalDiterima:"2022-04-06", keterangan:"" },
-  ];
-}
-function seedLoans(){
-  return [
-    { id:uid(), kodeBuku:"A0001", judulBuku:"Indahnya Kehidupan Surga Versi Anak 1", nama:"Muhammad Rizki", kelas:"1", tanggalPinjam:iso(addDays(todayDate,-4)), tanggalKembali:null, status:"dipinjam" },
-    { id:uid(), kodeBuku:"A0002", judulBuku:"Indahnya Kehidupan Surga Versi Anak 2", nama:"Fatimah Azzahra", kelas:"2", tanggalPinjam:iso(addDays(todayDate,-2)), tanggalKembali:null, status:"dipinjam" },
-    { id:uid(), kodeBuku:"A0011", judulBuku:"Indahnya Kehidupan Surga (Pengantar)", nama:"Yusuf Ibrahim", kelas:"3", tanggalPinjam:iso(addDays(todayDate,-6)), tanggalKembali:null, status:"dipinjam" },
-    { id:uid(), kodeBuku:"A0019", judulBuku:"Pend. Sejarah Islam 4 MI", nama:"Zahra Amelia", kelas:"4", tanggalPinjam:iso(addDays(todayDate,-1)), tanggalKembali:null, status:"dipinjam" },
-    { id:uid(), kodeBuku:"A0026", judulBuku:"Ayo Menghafal Al Qur'an", nama:"Afifah N. H", kelas:"5", tanggalPinjam:iso(addDays(todayDate,-9)), tanggalKembali:null, status:"dipinjam" },
-    { id:uid(), kodeBuku:"A0028", judulBuku:"Kisah Hebat Para Ulama", nama:"Abdullah Malik", kelas:"6", tanggalPinjam:iso(addDays(todayDate,-3)), tanggalKembali:null, status:"dipinjam" },
-    { id:uid(), kodeBuku:"A0029", judulBuku:"Khalifah Harun Ar-Rasyid", nama:"Nabiya", kelas:"5", tanggalPinjam:iso(addDays(todayDate,-20)), tanggalKembali:iso(addDays(todayDate,-13)), status:"dikembalikan" },
-    { id:uid(), kodeBuku:"A0030", judulBuku:"10 Mukjizat Nabi Muhammad", nama:"Khonsa", kelas:"2", tanggalPinjam:iso(addDays(todayDate,-16)), tanggalKembali:iso(addDays(todayDate,-9)), status:"dikembalikan" },
-  ];
-}
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <div class="card card-stat bg-primary text-white p-3">
+                                <h6>Total Judul Buku</h6>
+                                <h3 id="m-judul" class="fw-bold mb-0">0</h3>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card card-stat bg-success text-white p-3">
+                                <h6>Total Eksemplar Fisik</h6>
+                                <h3 id="m-eksemplar" class="fw-bold mb-0">0</h3>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card card-stat bg-dark text-white p-3">
+                                <h6>Total Anggota</h6>
+                                <h3 id="m-anggota" class="fw-bold mb-0">0</h3>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card card-stat bg-warning text-dark p-3">
+                                <h6>Buku Sedang Dipinjam</h6>
+                                <h3 id="m-pinjam" class="fw-bold mb-0">0</h3>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card card-stat bg-danger text-white p-3">
+                                <h6>Buku Terlambat</h6>
+                                <h3 id="m-terlambat" class="fw-bold mb-0">0</h3>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card card-stat bg-info text-dark p-3">
+                                <h6>Peminjaman Hari Ini</h6>
+                                <h3 id="m-hariini" class="fw-bold mb-0">0</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-/* ============ STATE ============ */
-let state = {
-  books: seedBooks(),
-  loans: seedLoans(),
-  kategoriList: seedKategoriList(),
-  loaded: false,
-  tab: "dashboard",
-  search: "",
-  katFilter: "Semua",
-  statusFilter: "Semua",
-  bookModal: null,      // { mode:'add'|'edit', data:{...} }
-  loanTarget: null,     // book object
-  katModalOpen: false,
-};
+                <div id="tab-buku" class="content-tab d-none">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2>📚 Master Data Buku</h2>
+                        <button class="btn btn-primary" onclick="bukaModalBuku()"><i class="fa-solid fa-plus me-1"></i> Tambah Buku</button>
+                    </div>
+                    <div class="card shadow-sm p-3">
+                        <div class="table-responsive">
+                            <table class="table table-striped align-middle">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Kode Buku</th>
+                                        <th>Judul Buku</th>
+                                        <th>Kategori</th>
+                                        <th>Stok</th>
+                                        <th>Aksi (Edit/Hapus/Salin)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabel-buku-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
 
-const TABS = [
-  { key:"dashboard", label:"Dashboard", icon:"◧" },
-  { key:"katalog", label:"Katalog Buku", icon:"▤" },
-  { key:"aktif", label:"Peminjaman Aktif", icon:"◔" },
-  { key:"riwayat", label:"Riwayat", icon:"↺" },
-];
+                <div id="tab-anggota" class="content-tab d-none">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2>👥 Master Data Anggota</h2>
+                        <button class="btn btn-primary" onclick="bukaModalAnggota()"><i class="fa-solid fa-user-plus me-1"></i> Tambah Anggota</button>
+                    </div>
+                    <div class="card shadow-sm p-3">
+                        <div class="table-responsive">
+                            <table class="table table-striped align-middle">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>No</th>
+                                        <th>NIS/NIP</th>
+                                        <th>Nama Lengkap</th>
+                                        <th>Kelas</th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabel-anggota-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
 
-/* ============ PERSISTENCE ============ */
-let saveTimer = null;
-function scheduleSave(){
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(async () => {
-    try{
-      await window.storage.set("maktabah-alfaruq-v3", JSON.stringify({
-        books: state.books, loans: state.loans, kategoriList: state.kategoriList
-      }), true);
-    }catch(e){ console.error("Gagal menyimpan", e); }
-  }, 300);
-}
+                <div id="tab-transaksi" class="content-tab d-none">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2>🔄 Transaksi Peminjaman & Pengembalian</h2>
+                        <button class="btn btn-success" onclick="bukaModalTransaksi()"><i class="fa-solid fa-right-left me-1"></i> Input Peminjaman Baru</button>
+                    </div>
+                    <div class="card shadow-sm p-3">
+                        <div class="table-responsive">
+                            <table class="table table-bordered align-middle">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Kode Transaksi</th>
+                                        <th>Peminjam</th>
+                                        <th>Tgl Pinjam</th>
+                                        <th>Jatuh Tempo</th>
+                                        <th>Status</th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabel-transaksi-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
 
-async function loadData(){
-  try{
-    const res = await window.storage.get("maktabah-alfaruq-v3", true);
-    if(res && res.value){
-      const parsed = JSON.parse(res.value);
-      if(parsed.books) state.books = parsed.books;
-      if(parsed.loans) state.loans = parsed.loans;
-      if(parsed.kategoriList) state.kategoriList = parsed.kategoriList;
-    }
-  }catch(e){ /* belum ada data tersimpan — pakai contoh */ }
-  state.loaded = true;
-}
+                <div id="tab-laporan" class="content-tab d-none">
+                    <h2 class="mb-4">📊 Laporan & Leaderboard Literasi</h2>
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="card shadow-sm p-3">
+                                <h5 class="text-primary"><i class="fa-solid fa-trophy me-2"></i> Siswa Paling Aktif Membaca</h5>
+                                <hr>
+                                <ol class="mb-0" id="top-siswa">
+                                    <li>Ahmad Fauzi (XI IPA 1) - 12 Buku</li>
+                                    <li>Siti Aminah (X IPS 2) - 9 Buku</li>
+                                </ol>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card shadow-sm p-3">
+                                <h5 class="text-success"><i class="fa-solid fa-fire me-2"></i> Buku Paling Sering Dipinjam</h5>
+                                <hr>
+                                <ul class="list-unstyled mb-0" id="top-buku">
+                                    <li>📖 Laskar Pelangi (Dipinjam 25 kali)</li>
+                                    <li>📖 Bumi Manusia (Dipinjam 18 kali)</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-/* ============ DERIVED HELPERS ============ */
-const katByKode = (kode) => state.kategoriList.find(k=>k.kode===kode) || { kode, nama:"Tanpa kategori", color:"#6B6178" };
-const isDipinjam = (kode) => state.loans.some(l=>l.kodeBuku===kode && l.status==="dipinjam");
-const bookByKode = (kode) => state.books.find(b=>b.kode===kode);
-const activeLoans = () => state.loans.filter(l=>l.status==="dipinjam").sort((a,b)=>new Date(a.tanggalPinjam)-new Date(b.tanggalPinjam));
-const historyLoans = () => state.loans.filter(l=>l.status==="dikembalikan").sort((a,b)=>new Date(b.tanggalKembali)-new Date(a.tanggalKembali));
-const isOverdue = (l) => new Date(l.tanggalPinjam) < addDays(todayDate,-7);
-
-/* ============ TOAST ============ */
-let toastTimer = null;
-function showToast(msg, tone){
-  const root = document.getElementById("toastRoot");
-  root.innerHTML = `<div class="toast" style="background:${tone==='rose' ? 'var(--rose)' : 'var(--plum)'}">${esc(msg)}</div>`;
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(()=>{ root.innerHTML = ""; }, 2600);
-}
-
-/* ============ ROOT RENDER ============ */
-function render(){
-  const root = document.getElementById("root");
-  root.innerHTML = `
-    <header class="top">
-      <div class="max">
-        <div class="brand-row">
-          <div>
-            <div class="eyebrow">Buku Induk Digital &nbsp;·&nbsp; Est. Kalibagor</div>
-            <h1 class="brand">Maktabah Marhalah Ula Al-Faruq</h1>
-            <p class="brand-sub">Kalibagor, Banyumas — Jawa Tengah</p>
-          </div>
+            </main>
         </div>
-        <div class="tabs">
-          ${TABS.map(t=>`
-            <button class="tab-btn ${state.tab===t.key?'active':''}" data-tab="${t.key}">
-              <span class="tab-icon">${t.icon}</span> ${t.label}${t.key==='aktif' ? ` (${activeLoans().length})` : ''}
-            </button>
-          `).join("")}
-        </div>
-      </div>
-    </header>
-    <main><div class="max" id="content"></div></main>
-    <footer>Data disimpan bersama (shared) untuk semua pengguna halaman ini · Buku Induk Maktabah Marhalah Ula Al-Faruq, Kalibagor</footer>
-    <div id="modalRoot"></div>
-    <div id="toastRoot"></div>
-  `;
-  document.querySelectorAll(".tab-btn").forEach(b=>b.addEventListener("click", ()=>{ state.tab = b.dataset.tab; render(); }));
-  renderContent();
-  renderModal();
-}
-
-function renderContent(){
-  const el = document.getElementById("content");
-  if(state.tab==="dashboard") el.innerHTML = dashboardHTML();
-  if(state.tab==="katalog"){ el.innerHTML = katalogShellHTML(); bindKatalogToolbar(); renderKatalogGrid(); }
-  if(state.tab==="aktif") el.innerHTML = aktifHTML();
-  if(state.tab==="riwayat") el.innerHTML = riwayatHTML();
-  bindContentActions();
-}
-
-/* ============ DASHBOARD ============ */
-function dashboardHTML(){
-  const al = activeLoans();
-  const overdueCount = al.filter(isOverdue).length;
-  const returnedThisMonth = state.loans.filter(l=>l.tanggalKembali && new Date(l.tanggalKembali).getMonth()===todayDate.getMonth() && new Date(l.tanggalKembali).getFullYear()===todayDate.getFullYear()).length;
-  const anggotaAktif = new Set(al.map(l=>l.nama)).size;
-
-  const perKelasMap = {};
-  state.loans.forEach(l=>{ perKelasMap[l.kelas] = (perKelasMap[l.kelas]||0)+1; });
-  const perKelas = Object.entries(perKelasMap).map(([kelas,jumlah])=>({kelas,jumlah})).sort((a,b)=>a.kelas.localeCompare(b.kelas));
-  const maxJumlah = Math.max(1, ...perKelas.map(p=>p.jumlah));
-
-  const topMap = {};
-  state.loans.forEach(l=>{ topMap[l.judulBuku] = (topMap[l.judulBuku]||0)+1; });
-  const topBuku = Object.entries(topMap).map(([judul,jumlah])=>({judul,jumlah})).sort((a,b)=>b.jumlah-a.jumlah).slice(0,5);
-
-  const events = [];
-  state.loans.forEach(l=>{
-    events.push({type:"pinjam", nama:l.nama, judul:l.judulBuku, tanggal:l.tanggalPinjam});
-    if(l.tanggalKembali) events.push({type:"kembali", nama:l.nama, judul:l.judulBuku, tanggal:l.tanggalKembali});
-  });
-  events.sort((a,b)=>new Date(b.tanggal)-new Date(a.tanggal));
-  const recent = events.slice(0,6);
-
-  return `
-    <div class="stat-grid">
-      ${statCard("Total Koleksi", state.books.length, "var(--plum)", "▤")}
-      ${statCard("Sedang Dipinjam", al.length, "var(--rose)", "◔")}
-      ${statCard("Dikembalikan Bulan Ini", returnedThisMonth, "var(--gold)", "✓")}
-      ${statCard("Peminjam Aktif", anggotaAktif, "#3F5B7A", "☺")}
     </div>
-    ${overdueCount>0 ? `<div class="alert-overdue">⚠ ${overdueCount} peminjaman sudah lebih dari 7 hari — cek tab Peminjaman Aktif.</div>` : ""}
-    <div class="dash-grid">
-      <div class="panel">
-        <h3 class="panel-title">Peminjaman per Kelas</h3>
-        ${perKelas.length===0 ? `<div class="muted">Belum ada data peminjaman.</div>` : `
-          <div class="chart-bars">
-            ${perKelas.map(p=>`
-              <div class="chart-col">
-                <div class="chart-val">${p.jumlah}</div>
-                <div class="chart-bar" style="height:${Math.max(8,(p.jumlah/maxJumlah)*160)}px"></div>
-                <div class="chart-lbl">Kls ${esc(p.kelas)}</div>
-              </div>
-            `).join("")}
-          </div>
-        `}
-      </div>
-      <div class="panel">
-        <h3 class="panel-title">Buku Terpopuler</h3>
-        ${topBuku.length===0 ? `<div class="muted">Belum ada data.</div>` : `
-          <div class="top-list">
-            ${topBuku.map((b,i)=>`
-              <div class="top-item">
-                <div class="top-rank">${i+1}</div>
-                <div class="top-title">${esc(b.judul)}</div>
-                <div class="top-count">${b.jumlah}×</div>
-              </div>
-            `).join("")}
-          </div>
-        `}
-      </div>
-    </div>
-    <div class="panel" style="margin-top:20px;">
-      <h3 class="panel-title">Aktivitas Terbaru</h3>
-      ${recent.length===0 ? `<div class="muted">Belum ada aktivitas.</div>` : recent.map(e=>`
-        <div class="activity-item">
-          <span>${e.type==='pinjam' ? '📖' : '↺'}</span>
-          <span><b>${esc(e.nama)}</b> ${e.type==='pinjam'?'meminjam':'mengembalikan'} <i>${esc(e.judul)}</i></span>
-          <span class="activity-time">${fmt(e.tanggal)}</span>
-        </div>
-      `).join("")}
-    </div>
-  `;
-}
-function statCard(label, value, color, icon){
-  return `
-    <div class="stat-card">
-      <div class="stat-blob" style="background:${color}"></div>
-      <div class="stat-icon" style="background:${color}">${icon}</div>
-      <div class="stat-value">${value}</div>
-      <div class="stat-label">${label}</div>
-    </div>
-  `;
-}
 
-/* ============ KATALOG ============ */
-function katalogShellHTML(){
-  return `
-    <div class="toolbar">
-      <div class="search-box">
-        <span>🔍</span>
-        <input id="searchInput" type="text" placeholder="Cari judul, penyusun, atau kode buku..." value="${esc(state.search)}" />
-      </div>
-      <select id="katFilterSelect">
-        <option value="Semua" ${state.katFilter==='Semua'?'selected':''}>Semua Kategori</option>
-        ${state.kategoriList.map(k=>`<option value="${esc(k.kode)}" ${state.katFilter===k.kode?'selected':''}>${esc(k.kode)} — ${esc(k.nama)}</option>`).join("")}
-      </select>
-      <select id="statusFilterSelect">
-        <option value="Semua" ${state.statusFilter==='Semua'?'selected':''}>Semua Status</option>
-        <option value="tersedia" ${state.statusFilter==='tersedia'?'selected':''}>Tersedia</option>
-        <option value="dipinjam" ${state.statusFilter==='dipinjam'?'selected':''}>Dipinjam</option>
-      </select>
-      <button class="btn btn-outline" id="btnKelolaKategori">🏷 Kelola Kategori</button>
-      <button class="btn btn-primary" id="btnTambahBuku">+ Tambah Buku</button>
-    </div>
-    <div id="katalogGrid"></div>
-  `;
-}
-function bindKatalogToolbar(){
-  document.getElementById("searchInput").addEventListener("input", e=>{ state.search=e.target.value; renderKatalogGrid(); });
-  document.getElementById("katFilterSelect").addEventListener("change", e=>{ state.katFilter=e.target.value; renderKatalogGrid(); });
-  document.getElementById("statusFilterSelect").addEventListener("change", e=>{ state.statusFilter=e.target.value; renderKatalogGrid(); });
-  document.getElementById("btnKelolaKategori").addEventListener("click", ()=>{ state.katModalOpen=true; renderModal(); });
-  document.getElementById("btnTambahBuku").addEventListener("click", openAddBook);
-}
-function renderKatalogGrid(){
-  const grid = document.getElementById("katalogGrid");
-  const q = state.search.toLowerCase();
-  const list = state.books
-    .map(b=>({...b, status: isDipinjam(b.kode)?"dipinjam":"tersedia"}))
-    .filter(b=>{
-      const matchQ = b.judul.toLowerCase().includes(q) || b.penyusun.toLowerCase().includes(q) || b.kode.toLowerCase().includes(q);
-      const matchKat = state.katFilter==="Semua" || b.kategori===state.katFilter;
-      const matchStatus = state.statusFilter==="Semua" || b.status===state.statusFilter;
-      return matchQ && matchKat && matchStatus;
-    })
-    .sort((a,b)=>a.kode.localeCompare(b.kode));
-
-  if(list.length===0){ grid.innerHTML = `<div class="muted" style="text-align:center;padding:60px 0;">Tidak ada buku yang cocok.</div>`; return; }
-
-  grid.innerHTML = `<div class="book-grid">
-    ${list.map(b=>{
-      const kat = katByKode(b.kategori);
-      const loanRec = activeLoans().find(l=>l.kodeBuku===b.kode);
-      const late = loanRec ? isOverdue(loanRec) : false;
-      const stubLabel = b.status==='dipinjam' ? (late?'Terlambat':'Dipinjam') : 'Tersedia';
-      const stubColor = b.status==='dipinjam' ? 'var(--rose)' : 'var(--plum)';
-      return `
-        <div class="book-card">
-          <div class="row-between">
-            <span class="kode-chip" style="background:${kat.color}">${esc(b.kode)}</span>
-            <span class="due-stub" style="border:1.5px solid ${stubColor};color:${stubColor};${b.status==='dipinjam'&&late?'background:var(--rose-soft);':''}">
-              <span class="due-dot" style="background:${stubColor}"></span>${stubLabel}
-            </span>
-          </div>
-          <div class="kat-label" style="color:${kat.color}">${esc(kat.nama)}</div>
-          <h3 class="book-title">${esc(b.judul)}</h3>
-          <p class="book-meta">${esc(b.penyusun)} · ${esc(b.penerbit)}</p>
-          <p class="book-meta small">Terbit ${esc(b.tahunTerbit)} · ${esc(b.sumber)}${b.keterangan?` · ${esc(b.keterangan)}`:''}</p>
-          ${loanRec ? `<p class="book-loan-note">Dipinjam ${esc(loanRec.nama)} (Kls ${esc(loanRec.kelas)}) sejak ${fmt(loanRec.tanggalPinjam)}</p>` : ""}
-          <div class="book-actions">
-            <button class="btn btn-primary" style="flex:1;justify-content:center;" data-loan="${esc(b.id)}" ${b.status==='dipinjam'?'disabled':''}>📖 Pinjamkan</button>
-            <button class="icon-btn" data-edit="${esc(b.id)}">✎</button>
-            <button class="icon-btn" data-del="${esc(b.id)}">🗑</button>
-          </div>
-        </div>
-      `;
-    }).join("")}
-  </div>`;
-
-  grid.querySelectorAll("[data-loan]").forEach(btn=>btn.addEventListener("click", ()=>openLoanModal(btn.dataset.loan)));
-  grid.querySelectorAll("[data-edit]").forEach(btn=>btn.addEventListener("click", ()=>openEditBook(btn.dataset.edit)));
-  grid.querySelectorAll("[data-del]").forEach(btn=>btn.addEventListener("click", ()=>deleteBook(btn.dataset.del)));
-}
-
-/* ============ PEMINJAMAN AKTIF ============ */
-function aktifHTML(){
-  const al = activeLoans();
-  if(al.length===0) return `<h2 style="font-family:var(--display);font-size:21px;">Peminjaman Aktif</h2><div class="muted" style="text-align:center;padding:60px 0;">Tidak ada buku yang sedang dipinjam.</div>`;
-  return `
-    <h2 style="font-family:var(--display);font-size:21px;margin-bottom:16px;">Peminjaman Aktif</h2>
-    ${al.map(l=>{
-      const late = isOverdue(l);
-      const book = bookByKode(l.kodeBuku);
-      const kat = book ? katByKode(book.kategori) : {color:"#6B6178"};
-      return `
-        <div class="loan-row ${late?'late':''}">
-          <div class="loan-left">
-            <span class="kode-chip" style="background:${kat.color}">${esc(l.kodeBuku)}</span>
-            <div>
-              <div class="loan-title">${esc(l.judulBuku)}</div>
-              <div class="loan-sub">${esc(l.nama)} · Kelas ${esc(l.kelas)} · dipinjam ${fmt(l.tanggalPinjam)}</div>
+    <div class="modal fade" id="modalBuku" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="modalBukuTitle">Tambah Data Buku</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formBuku">
+                        <input type="hidden" id="bukuIndex">
+                        <div class="mb-3">
+                            <label class="form-label">Kode Buku</label>
+                            <input type="text" class="form-control" id="bukuKode" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Judul Buku</label>
+                            <input type="text" class="form-control" id="bukuJudul" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Kategori</label>
+                            <input type="text" class="form-control" id="bukuKategori" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Stok Eksemplar</label>
+                            <input type="number" class="form-control" id="bukuStok" min="1" value="1" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Simpan Data</button>
+                    </form>
+                </div>
             </div>
-          </div>
-          <div class="loan-left">
-            <span class="status-tag" style="color:${late?'var(--rose)':'var(--plum)'}">${late?'⚠ Terlambat':'◔ Berjalan'}</span>
-            <button class="btn btn-gold" data-return="${esc(l.id)}">↺ Kembalikan</button>
-          </div>
         </div>
-      `;
-    }).join("")}
-  `;
-}
-
-/* ============ RIWAYAT ============ */
-function riwayatHTML(){
-  const hl = historyLoans();
-  if(hl.length===0) return `<h2 style="font-family:var(--display);font-size:21px;">Riwayat Pengembalian</h2><div class="muted" style="text-align:center;padding:60px 0;">Belum ada riwayat.</div>`;
-  return `
-    <h2 style="font-family:var(--display);font-size:21px;margin-bottom:16px;">Riwayat Pengembalian</h2>
-    <div class="history-panel">
-      ${hl.map(l=>{
-        const book = bookByKode(l.kodeBuku);
-        const kat = book ? katByKode(book.kategori) : {color:"#6B6178"};
-        return `
-          <div class="history-row">
-            <span class="kode-chip" style="background:${kat.color}">${esc(l.kodeBuku)}</span>
-            <div style="flex:1;min-width:160px;">
-              <div style="font-weight:600;font-size:13.5px;">${esc(l.judulBuku)}</div>
-              <div style="font-size:12px;color:var(--ink-soft);">${esc(l.nama)} · Kelas ${esc(l.kelas)}</div>
-            </div>
-            <div style="font-size:12px;color:var(--ink-soft);">✓ ${fmt(l.tanggalPinjam)} → ${fmt(l.tanggalKembali)}</div>
-          </div>
-        `;
-      }).join("")}
     </div>
-  `;
-}
 
-function bindContentActions(){
-  document.querySelectorAll("[data-return]").forEach(btn=>btn.addEventListener("click", ()=>returnLoan(btn.dataset.return)));
-}
-
-/* ============ BOOK ADD/EDIT ============ */
-function openAddBook(){
-  if(state.kategoriList.length===0){ showToast("Tambahkan kategori dulu lewat 'Kelola Kategori'", "rose"); state.katModalOpen=true; renderModal(); return; }
-  const kat = state.kategoriList[0].kode;
-  state.bookModal = { mode:"add", data:{ kategori:kat, kode:suggestKode(kat, state.books), judul:"", penyusun:"", penerbit:"", tahunTerbit:"", sumber:"Beli", tanggalDiterima: iso(todayDate), keterangan:"" } };
-  renderModal();
-}
-function openEditBook(id){
-  const b = state.books.find(x=>x.id===id);
-  if(!b) return;
-  state.bookModal = { mode:"edit", data:{...b} };
-  renderModal();
-}
-function deleteBook(id){
-  const b = state.books.find(x=>x.id===id);
-  if(!b) return;
-  if(isDipinjam(b.kode)){ showToast("Tidak bisa dihapus — buku sedang dipinjam", "rose"); return; }
-  if(confirm(`Hapus "${b.judul}" (${b.kode}) dari katalog?`)){
-    state.books = state.books.filter(x=>x.id!==id);
-    scheduleSave();
-    showToast("Buku dihapus dari katalog", "rose");
-    renderContent();
-  }
-}
-function saveBookFromForm(){
-  const m = state.bookModal;
-  const data = {
-    ...m.data,
-    kategori: document.getElementById("f_kategori").value,
-    kode: document.getElementById("f_kode").value.trim().toUpperCase(),
-    judul: document.getElementById("f_judul").value.trim(),
-    penyusun: document.getElementById("f_penyusun").value.trim(),
-    penerbit: document.getElementById("f_penerbit").value.trim(),
-    tahunTerbit: document.getElementById("f_tahun").value.trim(),
-    sumber: m.data.sumber,
-    tanggalDiterima: document.getElementById("f_tanggal").value,
-    keterangan: document.getElementById("f_ket").value.trim(),
-  };
-  if(!data.judul){ showToast("Judul buku tidak boleh kosong", "rose"); return; }
-  if(!data.kode){ showToast("Kode buku tidak boleh kosong", "rose"); return; }
-  const dupe = state.books.some(b=>b.kode===data.kode && b.id!==data.id);
-  if(dupe){ showToast(`Kode ${data.kode} sudah dipakai buku lain`, "rose"); return; }
-
-  if(m.mode==="add"){
-    state.books.push({...data, id:uid()});
-    showToast(`Buku "${data.judul}" (${data.kode}) ditambahkan ke katalog`, "plum");
-  }else{
-    const old = state.books.find(b=>b.id===data.id);
-    const oldKode = old.kode;
-    state.books = state.books.map(b=> b.id===data.id ? data : b);
-    if(oldKode !== data.kode){
-      state.loans = state.loans.map(l=> l.kodeBuku===oldKode ? {...l, kodeBuku:data.kode} : l);
-    }
-    showToast(`Data buku "${data.judul}" diperbarui`, "plum");
-  }
-  scheduleSave();
-  state.bookModal = null;
-  renderModal();
-  renderContent();
-}
-
-/* ============ PEMINJAMAN ============ */
-function openLoanModal(bookId){
-  const b = state.books.find(x=>x.id===bookId);
-  if(!b) return;
-  state.loanTarget = b;
-  renderModal();
-}
-function confirmLoanFromForm(){
-  const nama = document.getElementById("l_nama").value.trim();
-  const kelas = document.getElementById("l_kelas").value;
-  if(!nama){ showToast("Nama siswa tidak boleh kosong", "rose"); return; }
-  const b = state.loanTarget;
-  state.loans.unshift({ id:uid(), kodeBuku:b.kode, judulBuku:b.judul, nama, kelas, tanggalPinjam: iso(todayDate), tanggalKembali:null, status:"dipinjam" });
-  showToast(`"${b.judul}" dipinjamkan ke ${nama}`, "plum");
-  scheduleSave();
-  state.loanTarget = null;
-  renderModal();
-  renderContent();
-}
-function returnLoan(id){
-  const l = state.loans.find(x=>x.id===id);
-  if(!l) return;
-  state.loans = state.loans.map(x=> x.id===id ? {...x, status:"dikembalikan", tanggalKembali: iso(todayDate)} : x);
-  scheduleSave();
-  showToast(`"${l.judulBuku}" dikembalikan oleh ${l.nama}`, "rose");
-  renderContent();
-}
-
-/* ============ KATEGORI MANAGEMENT ============ */
-function addKategoriFromForm(){
-  const kode = document.getElementById("nk_kode").value.trim().toUpperCase();
-  const nama = document.getElementById("nk_nama").value.trim();
-  if(!kode || !nama) return;
-  if(state.kategoriList.some(k=>k.kode===kode)){ showToast(`Kode kategori "${kode}" sudah ada`, "rose"); return; }
-  state.kategoriList.push({ kode, nama, color: KAT_PALETTE[state.kategoriList.length % KAT_PALETTE.length] });
-  scheduleSave();
-  renderModal();
-}
-function updateKategoriField(oldKode, field, value){
-  if(field==="kode"){
-    const nk = value.trim().toUpperCase();
-    if(!nk) return;
-    if(state.kategoriList.some(k=>k.kode===nk && k.kode!==oldKode)){ showToast(`Kode kategori "${nk}" sudah dipakai`, "rose"); renderModal(); return; }
-    state.kategoriList = state.kategoriList.map(k=> k.kode===oldKode ? {...k, kode:nk} : k);
-    state.books = state.books.map(b=> b.kategori===oldKode ? {...b, kategori:nk} : b);
-    if(state.katFilter===oldKode) state.katFilter = nk;
-  }else{
-    state.kategoriList = state.kategoriList.map(k=> k.kode===oldKode ? {...k, [field]:value} : k);
-  }
-  scheduleSave();
-}
-function deleteKategoriRow(kode){
-  if(state.books.some(b=>b.kategori===kode)){ showToast("Pindahkan dulu buku dari kategori ini sebelum menghapusnya", "rose"); return; }
-  if(confirm(`Hapus kategori "${kode}"?`)){
-    state.kategoriList = state.kategoriList.filter(k=>k.kode!==kode);
-    if(state.katFilter===kode) state.katFilter="Semua";
-    scheduleSave();
-    renderModal();
-  }
-}
-
-/* ============ MODAL RENDER ============ */
-function renderModal(){
-  const root = document.getElementById("modalRoot");
-  if(state.bookModal){ root.innerHTML = bookModalHTML(); bindBookModal(); return; }
-  if(state.loanTarget){ root.innerHTML = loanModalHTML(); bindLoanModal(); return; }
-  if(state.katModalOpen){ root.innerHTML = katModalHTML(); bindKatModal(); return; }
-  root.innerHTML = "";
-}
-
-function bookModalHTML(){
-  const m = state.bookModal;
-  const d = m.data;
-  return `
-    <div class="modal-backdrop" id="bookBackdrop">
-      <div class="modal" id="bookModalBox">
-        <div class="modal-header">
-          <h3 class="modal-title">${m.mode==='add'?'Tambah Buku':'Edit Buku'}</h3>
-          <button class="close-x" id="closeBookModal">✕</button>
-        </div>
-        <div class="field-row">
-          <div class="field">
-            <label class="field-label">Kategori</label>
-            <select id="f_kategori">
-              ${state.kategoriList.map(k=>`<option value="${esc(k.kode)}" ${d.kategori===k.kode?'selected':''}>${esc(k.kode)} — ${esc(k.nama)}</option>`).join("")}
-            </select>
-            <button type="button" class="link-btn" id="openKatFromBook">+ kategori baru</button>
-          </div>
-          <div class="field">
-            <label class="field-label">Kode Buku</label>
-            <div style="display:flex;gap:6px;">
-              <input id="f_kode" value="${esc(d.kode)}" placeholder="cth. A0001" style="flex:1;min-width:0;font-family:var(--mono);text-transform:uppercase;" />
-              <button type="button" class="icon-btn" id="suggestKodeBtn" title="Sarankan kode berikutnya">↻</button>
+    <div class="modal fade" id="modalAnggota" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title">Tambah Data Anggota</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formAnggota">
+                        <input type="hidden" id="anggotaIndex">
+                        <div class="mb-3">
+                            <label class="form-label">NIS / NIP</label>
+                            <input type="text" class="form-control" id="anggotaNis" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Nama Lengkap</label>
+                            <input type="text" class="form-control" id="anggotaNama" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Kelas</label>
+                            <input type="text" class="form-control" id="anggotaKelas" required>
+                        </div>
+                        <button type="submit" class="btn btn-dark w-100">Simpan Anggota</button>
+                    </form>
+                </div>
             </div>
-          </div>
         </div>
-        <p class="hint">Kode boleh diisi bebas sesuai buku induk asli — tombol ↻ hanya saran, bukan keharusan.</p>
+    </div>
 
-        <div class="field"><label class="field-label">Judul Buku</label><input id="f_judul" value="${esc(d.judul)}" /></div>
-        <div class="field"><label class="field-label">Penyusun / Pengarang</label><input id="f_penyusun" value="${esc(d.penyusun)}" /></div>
-        <div class="field"><label class="field-label">Penerbit</label><input id="f_penerbit" value="${esc(d.penerbit)}" /></div>
-        <div class="field"><label class="field-label">Tahun Terbit (cth. 1443H/2022M)</label><input id="f_tahun" value="${esc(d.tahunTerbit)}" /></div>
-
-        <div class="field-row" style="margin-top:12px;">
-          <div class="field" style="margin-top:0;">
-            <label class="field-label">Sumber Buku</label>
-            <div class="radio-group">
-              <button type="button" class="radio-btn ${d.sumber==='Beli'?'active':''}" data-sumber="Beli">Beli</button>
-              <button type="button" class="radio-btn ${d.sumber==='Infak'?'active':''}" data-sumber="Infak">Infak</button>
+    <div class="modal fade" id="modalTransaksi" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title">Input Peminjaman Baru</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formTransaksi">
+                        <div class="mb-3">
+                            <label class="form-label">Kode Transaksi</label>
+                            <input type="text" class="form-control" id="trKode" value="TRX-003" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Nama Peminjam</label>
+                            <input type="text" class="form-control" id="trPeminjam" placeholder="Contoh: Budi Santoso" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Tanggal Jatuh Tempo</label>
+                            <input type="date" class="form-control" id="trTempo" required>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100">Simpan Transaksi</button>
+                    </form>
+                </div>
             </div>
-          </div>
-          <div class="field" style="margin-top:0;">
-            <label class="field-label">Tanggal Diterima</label>
-            <input type="date" id="f_tanggal" value="${esc(d.tanggalDiterima)}" />
-          </div>
         </div>
-
-        <div class="field"><label class="field-label">Keterangan (opsional)</label><input id="f_ket" value="${esc(d.keterangan)}" placeholder="cth. Wakaf dari..." /></div>
-
-        <button class="btn btn-primary btn-block" id="saveBookBtn" style="margin-top:18px;">${m.mode==='add'?'Simpan ke Katalog':'Simpan Perubahan'}</button>
-      </div>
     </div>
-  `;
-}
-function bindBookModal(){
-  document.getElementById("bookBackdrop").addEventListener("click", e=>{ if(e.target.id==="bookBackdrop"){ state.bookModal=null; renderModal(); } });
-  document.getElementById("closeBookModal").addEventListener("click", ()=>{ state.bookModal=null; renderModal(); });
-  document.getElementById("openKatFromBook").addEventListener("click", ()=>{ state.katModalOpen=true; renderModal(); });
-  document.getElementById("f_kategori").addEventListener("change", e=>{
-    const kodeInput = document.getElementById("f_kode");
-    if(kodeInput.value.trim()===""){ kodeInput.value = suggestKode(e.target.value, state.books); }
-  });
-  document.getElementById("suggestKodeBtn").addEventListener("click", ()=>{
-    const kat = document.getElementById("f_kategori").value;
-    document.getElementById("f_kode").value = suggestKode(kat, state.books);
-  });
-  document.querySelectorAll("[data-sumber]").forEach(btn=>{
-    btn.addEventListener("click", ()=>{
-      state.bookModal.data.sumber = btn.dataset.sumber;
-      document.querySelectorAll("[data-sumber]").forEach(b=>b.classList.toggle("active", b.dataset.sumber===btn.dataset.sumber));
-    });
-  });
-  document.getElementById("saveBookBtn").addEventListener("click", saveBookFromForm);
-}
 
-function loanModalHTML(){
-  const b = state.loanTarget;
-  const kat = katByKode(b.kategori);
-  return `
-    <div class="modal-backdrop" id="loanBackdrop">
-      <div class="modal" style="max-width:380px;">
-        <div class="modal-header" style="align-items:flex-start;">
-          <div>
-            <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--gold);font-weight:700;">Formulir Peminjaman</div>
-            <h3 class="modal-title" style="margin-top:3px;">${esc(b.judul)}</h3>
-            <span class="kode-chip" style="background:${kat.color}">${esc(b.kode)}</span>
-          </div>
-          <button class="close-x" id="closeLoanModal">✕</button>
-        </div>
-        <div class="field" style="margin-top:14px;"><label class="field-label">Nama Siswa</label><input id="l_nama" placeholder="cth. Ahmad Fauzan" autofocus /></div>
-        <div class="field"><label class="field-label">Kelas</label>
-          <select id="l_kelas">${["1","2","3","4","5","6"].map(k=>`<option value="${k}">Kelas ${k}</option>`).join("")}</select>
-        </div>
-        <div class="hint" style="margin:10px 0 16px;">Tanggal pinjam: ${fmt(todayDate)}</div>
-        <button class="btn btn-primary btn-block" id="confirmLoanBtn">Konfirmasi Peminjaman</button>
-      </div>
-    </div>
-  `;
-}
-function bindLoanModal(){
-  document.getElementById("loanBackdrop").addEventListener("click", e=>{ if(e.target.id==="loanBackdrop"){ state.loanTarget=null; renderModal(); } });
-  document.getElementById("closeLoanModal").addEventListener("click", ()=>{ state.loanTarget=null; renderModal(); });
-  document.getElementById("confirmLoanBtn").addEventListener("click", confirmLoanFromForm);
-  document.getElementById("l_nama").focus();
-}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // --- LOCAL STORAGE DATA AWAL ---
+        let dbBuku = JSON.parse(localStorage.getItem('sip_buku')) || [
+            { id: 1, kode: 'BK-001', judul: 'Laskar Pelangi', kategori: 'Novel', stok: 5 },
+            { id: 2, kode: 'BK-002', judul: 'Bumi Manusia', kategori: 'Sejarah', stok: 3 }
+        ];
 
-function katModalHTML(){
-  return `
-    <div class="modal-backdrop" id="katBackdrop">
-      <div class="modal" style="max-width:460px;">
-        <div class="modal-header" style="margin-bottom:2px;">
-          <h3 class="modal-title">Kelola Kategori</h3>
-          <button class="close-x" id="closeKatModal">✕</button>
-        </div>
-        <p class="hint" style="margin:2px 0 14px;">Kode dan nama kategori sepenuhnya bebas — sesuaikan dengan sistem klasifikasi maktabah kalian sendiri.</p>
-        <div>
-          ${state.kategoriList.length===0 ? `<div class="muted">Belum ada kategori. Tambahkan di bawah.</div>` : state.kategoriList.map(k=>`
-            <div class="kat-row">
-              <input type="color" class="kat-swatch" value="${esc(k.color)}" data-kat-color="${esc(k.kode)}" />
-              <input class="kat-input-kode" value="${esc(k.kode)}" data-kat-kode="${esc(k.kode)}" />
-              <input class="kat-input-nama" value="${esc(k.nama)}" data-kat-nama="${esc(k.kode)}" />
-              <button class="kat-del" data-kat-del="${esc(k.kode)}">🗑</button>
-            </div>
-          `).join("")}
-        </div>
-        <div style="border-top:1px dashed var(--line);padding-top:14px;margin-top:6px;">
-          <label class="field-label">Tambah Kategori Baru</label>
-          <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
-            <input id="nk_kode" placeholder="Kode" style="width:72px;font-family:var(--mono);text-transform:uppercase;" />
-            <input id="nk_nama" placeholder="Nama kategori" style="flex:1;min-width:0;" />
-            <button class="btn btn-primary" id="addKatBtn">Tambah</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
-}
-function bindKatModal(){
-  document.getElementById("katBackdrop").addEventListener("click", e=>{ if(e.target.id==="katBackdrop"){ state.katModalOpen=false; renderModal(); renderContent(); } });
-  document.getElementById("closeKatModal").addEventListener("click", ()=>{ state.katModalOpen=false; renderModal(); renderContent(); });
-  document.getElementById("addKatBtn").addEventListener("click", addKategoriFromForm);
-  document.querySelectorAll("[data-kat-color]").forEach(inp=>inp.addEventListener("change", e=>updateKategoriField(inp.dataset.katColor, "color", e.target.value)));
-  document.querySelectorAll("[data-kat-kode]").forEach(inp=>inp.addEventListener("change", e=>{ updateKategoriField(inp.dataset.katKode, "kode", e.target.value); renderModal(); }));
-  document.querySelectorAll("[data-kat-nama]").forEach(inp=>inp.addEventListener("change", e=>updateKategoriField(inp.dataset.katNama, "nama", e.target.value)));
-  document.querySelectorAll("[data-kat-del]").forEach(btn=>btn.addEventListener("click", ()=>deleteKategoriRow(btn.dataset.katDel)));
-}
+        let dbAnggota = JSON.parse(localStorage.getItem('sip_anggota')) || [
+            { id: 1, nis: '1001', nama: 'Ahmad Fauzi', kelas: 'XI IPA 1' },
+            { id: 2, nis: '1002', nama: 'Siti Aminah', kelas: 'X IPS 2' }
+        ];
 
-/* ============ BOOTSTRAP ============ */
-(async function init(){
-  await loadData();
-  render();
-})();
-</script>
+        let dbTransaksi = JSON.parse(localStorage.getItem('sip_trx')) || [
+            { id: 1, kode: 'TRX-001', peminjam: 'Ahmad Fauzi', tgl: '2026-06-01', tempo: '2026-06-08', status: 'Dipinjam' },
+            { id: 2, kode: 'TRX-002', peminjam: 'Siti Aminah', tgl: '2026-05-15', tempo: '2026-05-22', status: 'Terlambat' }
+        ];
+
+        function simpanStorage() {
+            localStorage.setItem('sip_buku', JSON.stringify(dbBuku));
+            localStorage.setItem('sip_anggota', JSON.stringify(dbAnggota));
+            localStorage.setItem('sip_trx', JSON.stringify(dbTransaksi));
+            renderAll();
+        }
+
+        // Navigasi Tab
+        function switchTab(tabId) {
+            document.querySelectorAll('.content-tab').forEach(el => el.classList.add('d-none'));
+            document.querySelectorAll('.sidebar .nav-link').forEach(el => el.classList.remove('active'));
+            document.getElementById('tab-' + tabId).classList.remove('d-none');
+            event.currentTarget.classList.add('active');
+        }
+
+        // Render Semua Data & Metrik
+        function renderAll() {
+            // Render Buku
+            let htmlBuku = '';
+            let totalEks = 0;
+            dbBuku.forEach((item, index) => {
+                totalEks += parseInt(item.stok);
+                htmlBuku += `<tr>
+                    <td>${index + 1}</td>
+                    <td>${item.kode}</td>
+                    <td>${item.judul}</td>
+                    <td>${item.kategori}</td>
+                    <td><span class="badge bg-info text-dark">${item.stok}</span></td>
+                    <td>
+                        <button class="btn btn-warning btn-sm" onclick="editBuku(${index})"><i class="fa-solid fa-pen"></i></button>
+                        <button class="btn btn-secondary btn-sm" onclick="salinBuku(${index})"><i class="fa-solid fa-copy"></i></button>
+                        <button class="btn btn-danger btn-sm" onclick="hapusBuku(${index})"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                </tr>`;
+            });
+            document.getElementById('tabel-buku-body').innerHTML = htmlBuku || '<tr><td colspan="6" class="text-center">Belum ada data buku</td></tr>';
+
+            // Render Anggota
+            let htmlAnggota = '';
+            dbAnggota.forEach((item, index) => {
+                htmlAnggota += `<tr>
+                    <td>${index + 1}</td>
+                    <td>${item.nis}</td>
+                    <td>${item.nama}</td>
+                    <td>${item.kelas}</td>
+                    <td>
+                        <button class="btn btn-danger btn-sm" onclick="hapusAnggota(${index})"><i class="fa-solid fa-trash"></i> Hapus</button>
+                    </td>
+                </tr>`;
+            });
+            document.getElementById('tabel-anggota-body').innerHTML = htmlAnggota || '<tr><td colspan="5" class="text-center">Belum ada data anggota</td></tr>';
+
+            // Render Transaksi
+            let htmlTrx = '';
+            let jmlPinjam = 0;
+            let jmlTerlambat = 0;
+            dbTransaksi.forEach((item) => {
+                if(item.status === 'Dipinjam') jmlPinjam++;
+                if(item.status === 'Terlambat') jmlTerlambat++;
+                htmlTrx += `<tr>
+                    <td>${item.kode}</td>
+                    <td>${item.peminjam}</td>
+                    <td>${item.tgl}</td>
+                    <td>${item.tempo}</td>
+                    <td><span class="badge ${item.status === 'Dipinjam' ? 'bg-warning text-dark' : 'bg-danger'}">${item.status}</span></td>
+                    <td><button class="btn btn-success btn-sm" onclick="selesaiTrx('${item.kode}')">Kembalikan</button></td>
+                </tr>`;
+            });
+            document.getElementById('tabel-transaksi-body').innerHTML = htmlTrx || '<tr><td colspan="6" class="text-center">Belum ada transaksi</td></tr>';
+
+            // Update Dashboard Metrics
+            document.getElementById('m-judul').innerText = dbBuku.length;
+            document.getElementById('m-eksemplar').innerText = totalEks;
+            document.getElementById('m-anggota').innerText = dbAnggota.length;
+            document.getElementById('m-pinjam').innerText = jmlPinjam;
+            document.getElementById('m-terlambat').innerText = jmlTerlambat;
+            document.getElementById('m-hariini').innerText = 1; // Contoh stat harian
+
+            // Update Notifikasi Pintar
+            document.getElementById('list-notif').innerHTML = `
+                <li>⚠️ Ada ${jmlTerlambat} siswa terlambat mengembalikan buku.</li>
+                <li>🔔 2 buku harus dikembalikan hari ini sesuai jadwal tenggat.</li>
+                <li>❌ Status inventaris terpantau aman (0 buku hilang/rusak).</li>
+            `;
+        }
+
+        // --- MANAJEMEN BUKU (CRUD + SALIN) ---
+        const modalBuku = new bootstrap.Modal(document.getElementById('modalBuku'));
+        const modalAnggota = new bootstrap.Modal(document.getElementById('modalAnggota'));
+        const modalTransaksi = new bootstrap.Modal(document.getElementById('modalTransaksi'));
+
+        function bukaModalBuku() {
+            document.getElementById('formBuku').reset();
+            document.getElementById('bukuIndex').value = '';
+            document.getElementById('modalBukuTitle').innerText = 'Tambah Data Buku';
+            modalBuku.show();
+        }
+
+        function editBuku(index) {
+            let b = dbBuku[index];
+            document.getElementById('bukuIndex').value = index;
+            document.getElementById('bukuKode').value = b.kode;
+            document.getElementById('bukuJudul').value = b.judul;
+            document.getElementById('bukuKategori').value = b.kategori;
+            document.getElementById('bukuStok').value = b.stok;
+            document.getElementById('modalBukuTitle').innerText = 'Edit Data Buku';
+            modalBuku.show();
+        }
+
+        function salinBuku(index) {
+            let b = dbBuku[index];
+            dbBuku.push({ id: Date.now(), kode: b.kode + '-COPY', judul: b.judul + ' (Salinan)', kategori: b.kategori, stok: b.stok });
+            simpanStorage();
+        }
+
+        function hapusBuku(index) {
+            if(confirm('Yakin ingin menghapus buku ini?')) {
+                dbBuku.splice(index, 1);
+                simpanStorage();
+            }
+        }
+
+        document.getElementById('formBuku').addEventListener('submit', function(e) {
+            e.preventDefault();
+            let idx = document.getElementById('bukuIndex').value;
+            let data = {
+                id: idx === '' ? Date.now() : dbBuku[idx].id,
+                kode: document.getElementById('bukuKode').value,
+                judul: document.getElementById('bukuJudul').value,
+                kategori: document.getElementById('bukuKategori').value,
+                stok: document.getElementById('bukuStok').value
+            };
+            if(idx === '') {
+                dbBuku.push(data);
+            } else {
+                dbBuku[idx] = data;
+            }
+            modalBuku.hide();
+            simpanStorage();
+        });
+
+        // --- MANAJEMEN ANGGOTA ---
+        function bukaModalAnggota() {
+            document.getElementById('formAnggota').reset();
+            modalAnggota.show();
+        }
+
+        document.getElementById('formAnggota').addEventListener('submit', function(e) {
+            e.preventDefault();
+            dbAnggota.push({
+                id: Date.now(),
+                nis: document.getElementById('anggotaNis').value,
+                nama: document.getElementById('anggotaNama').value,
+                kelas: document.getElementById('anggotaKelas').value
+            });
+            modalAnggota.hide();
+            simpanStorage();
+        });
+
+        function hapusAnggota(index) {
+            if(confirm('Hapus anggota ini?')) {
+                dbAnggota.splice(index, 1);
+                simpanStorage();
+            }
+        }
+
+        // --- TRANSAKSI ---
+        function bukaModalTransaksi() {
+            document.getElementById('trTempo').valueAsDate = new Date();
+            modalTransaksi.show();
+        }
+
+        document.getElementById('formTransaksi').addEventListener('submit', function(e) {
+            e.preventDefault();
+            dbTransaksi.push({
+                id: Date.now(),
+                kode: document.getElementById('trKode').value,
+                peminjam: document.getElementById('trPeminjam').value,
+                tgl: new Date().toISOString().split('T')[0],
+                tempo: document.getElementById('trTempo').value,
+                status: 'Dipinjam'
+            });
+            modalTransaksi.hide();
+            simpanStorage();
+        });
+
+        function selesaiTrx(kode) {
+            dbTransaksi = dbTransaksi.filter(item => item.kode !== kode);
+            alert('Buku berhasil dikembalikan!');
+            simpanStorage();
+        }
+
+        // Jalankan saat pertama dimuat
+        renderAll();
+    </script>
 </body>
 </html>

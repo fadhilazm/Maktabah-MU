@@ -1393,4 +1393,241 @@ function anggotaModalHTML(){
   const m=state.anggotaModal, d=m.data;
   return `<div class="modal-backdrop" id="agBackdrop"><div class="modal"><div class="modal-header"><h3 class="modal-title">${m.mode==='add'?'Tambah Anggota':'Edit Anggota'}</h3><button class="close-x" id="closeAgModal">✕</button></div>
     <div class="field-row"><div class="field"><label class="field-label">NIS</label><input id="ag_nis" value="${esc(d.nis)}"/></div><div class="field"><label class="field-label">Kelas</label><select id="ag_kelas">${["1","2","3","4","5","6"].map(k=>`<option value="${k}" ${d.kelas===k?'selected':''}>Kelas ${k}</option>`).join("")}</select></div></div>
-    <div class="field"><label class="field-label">Nama Lengkap</label><inpu
+    <div class="field"><label class="field-label">Nama Lengkap</label><input id="ag_nama" value="${esc(d.nama)}"/></div>
+    <div class="field-row"><div class="field"><label class="field-label">L/P</label><select id="ag_lp"><option value="L" ${d.lp==='L'?'selected':''}>Laki-laki</option><option value="P" ${d.lp==='P'?'selected':''}>Perempuan</option></select></div>
+      <div class="field"><label class="field-label">Tanggal Daftar</label><input type="date" id="ag_tgl" value="${esc(d.tglDaftar)}"/></div></div>
+    <div class="field"><label class="field-label">Alamat (opsional)</label><input id="ag_alamat" value="${esc(d.alamat||'')}"/></div>
+    <button class="btn btn-primary btn-block" id="saveAgBtn" style="margin-top:16px;">Simpan</button>
+  </div></div>`;
+}
+function bindAnggotaModal(){
+  document.getElementById("agBackdrop").addEventListener("click", e=>{ if(e.target.id==="agBackdrop"){ state.anggotaModal=null; renderModal(); } });
+  document.getElementById("closeAgModal").addEventListener("click", ()=>{ state.anggotaModal=null; renderModal(); });
+  document.getElementById("saveAgBtn").addEventListener("click", saveAnggotaFromForm);
+}
+
+/* ---- Kontrib modal ---- */
+function kontribModalHTML(){
+  const m=state.kontribModal, d=m.data;
+  return `<div class="modal-backdrop" id="ktBackdrop"><div class="modal" style="max-width:360px;"><div class="modal-header"><h3 class="modal-title">${m.mode==='add'?'Tambah':'Edit'} Data</h3><button class="close-x" id="closeKtModal">✕</button></div>
+    <div class="field"><label class="field-label">Jenis</label><select id="kt_jenis"><option value="Pengarang" ${d.jenis==='Pengarang'?'selected':''}>Pengarang</option><option value="Penerbit" ${d.jenis==='Penerbit'?'selected':''}>Penerbit</option></select></div>
+    <div class="field"><label class="field-label">Nama</label><input id="kt_nama" value="${esc(d.nama)}"/></div>
+    <button class="btn btn-primary btn-block" id="saveKtBtn" style="margin-top:16px;">Simpan</button>
+  </div></div>`;
+}
+function bindKontribModal(){
+  document.getElementById("ktBackdrop").addEventListener("click", e=>{ if(e.target.id==="ktBackdrop"){ state.kontribModal=null; renderModal(); } });
+  document.getElementById("closeKtModal").addEventListener("click", ()=>{ state.kontribModal=null; renderModal(); });
+  document.getElementById("saveKtBtn").addEventListener("click", saveKontribFromForm);
+}
+
+/* ---- Rak modal ---- */
+function rakModalHTML(){
+  const m=state.rakModal, d=m.data;
+  return `<div class="modal-backdrop" id="rkBackdrop"><div class="modal" style="max-width:360px;"><div class="modal-header"><h3 class="modal-title">${m.mode==='add'?'Tambah':'Edit'} Rak</h3><button class="close-x" id="closeRkModal">✕</button></div>
+    <div class="field"><label class="field-label">Kode Rak</label><input id="rk_kode" value="${esc(d.kode)}" style="font-family:var(--mono);text-transform:uppercase;"/></div>
+    <div class="field"><label class="field-label">Nama Lokasi</label><input id="rk_nama" value="${esc(d.nama)}" placeholder="cth. Rak Sudut Aqidah"/></div>
+    <button class="btn btn-primary btn-block" id="saveRkBtn" style="margin-top:16px;">Simpan</button>
+  </div></div>`;
+}
+function bindRakModal(){
+  document.getElementById("rkBackdrop").addEventListener("click", e=>{ if(e.target.id==="rkBackdrop"){ state.rakModal=null; renderModal(); } });
+  document.getElementById("closeRkModal").addEventListener("click", ()=>{ state.rakModal=null; renderModal(); });
+  document.getElementById("saveRkBtn").addEventListener("click", saveRakFromForm);
+}
+
+/* ---- Kategori quick modal ---- */
+function katModalHTML(){
+  return `<div class="modal-backdrop" id="katBackdrop"><div class="modal" style="max-width:460px;">
+    <div class="modal-header" style="margin-bottom:2px;"><h3 class="modal-title">Kelola Kategori</h3><button class="close-x" id="closeKatModal">✕</button></div>
+    ${kategoriBodyHTML()}
+  </div></div>`;
+}
+function closeKatModalRestoring(){
+  state.katModalOpen=false;
+  if(state._pendingBookModal){ state.bookModal=state._pendingBookModal; state._pendingBookModal=null; }
+  renderModal(); renderContent();
+}
+function bindKatModal(){
+  document.getElementById("katBackdrop").addEventListener("click", e=>{ if(e.target.id==="katBackdrop") closeKatModalRestoring(); });
+  document.getElementById("closeKatModal").addEventListener("click", closeKatModalRestoring);
+  bindKategoriBody(()=>renderModal());
+}
+
+/* ---- PIN modal ---- */
+function pinModalHTML(){
+  return `<div class="modal-backdrop" id="pinBackdrop"><div class="modal" style="max-width:320px;text-align:center;">
+    <div class="modal-header"><h3 class="modal-title">Masuk Mode Admin</h3><button class="close-x" id="closePinModal">✕</button></div>
+    <div class="pin-box"><input id="pinInput" type="password" placeholder="PIN" maxlength="8"/></div>
+    <button class="btn btn-primary btn-block" id="pinSubmitBtn" style="margin-top:14px;">Masuk</button>
+  </div></div>`;
+}
+function bindPinModal(){
+  document.getElementById("pinBackdrop").addEventListener("click", e=>{ if(e.target.id==="pinBackdrop"){ state.pinPrompt=null; renderModal(); } });
+  document.getElementById("closePinModal").addEventListener("click", ()=>{ state.pinPrompt=null; renderModal(); });
+  document.getElementById("pinSubmitBtn").addEventListener("click", checkPin);
+  document.getElementById("pinInput").focus();
+}
+
+/* ============ SCAN QR ============ */
+let scanStream=null, scanRAF=null;
+function scanModalHTML(){
+  return `<div class="modal-backdrop" id="scanBackdrop"><div class="modal" style="max-width:380px;">
+    <div class="modal-header"><h3 class="modal-title">Scan Kode Buku</h3><button class="close-x" id="closeScanModal">✕</button></div>
+    <div class="scan-video-wrap"><video id="scanVideo" playsinline muted></video><div class="scan-frame"></div></div>
+    <p class="scan-hint">Arahkan kamera ke QR pada buku...</p>
+  </div></div>`;
+}
+function bindScanModal(){
+  document.getElementById("scanBackdrop").addEventListener("click", e=>{ if(e.target.id==="scanBackdrop") stopScan(); });
+  document.getElementById("closeScanModal").addEventListener("click", stopScan);
+  startScan();
+}
+async function startScan(){
+  const ok = await ensureJsQR();
+  if(!ok){ stopScan(); return; }
+  try{
+    scanStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}});
+    const video=document.getElementById("scanVideo"); if(!video) return;
+    video.srcObject=scanStream; await video.play(); scanLoop();
+  }catch(e){ showToast("Tidak bisa akses kamera — pastikan izin kamera & halaman dibuka lewat HTTPS","rose"); stopScan(); }
+}
+function scanLoop(){
+  const video=document.getElementById("scanVideo"); if(!video) return;
+  if(video.readyState!==video.HAVE_ENOUGH_DATA){ scanRAF=requestAnimationFrame(scanLoop); return; }
+  const canvas=document.createElement("canvas"); canvas.width=video.videoWidth; canvas.height=video.videoHeight;
+  const ctx=canvas.getContext("2d"); ctx.drawImage(video,0,0,canvas.width,canvas.height);
+  const imageData=ctx.getImageData(0,0,canvas.width,canvas.height);
+  const code = typeof jsQR==="function" ? jsQR(imageData.data, imageData.width, imageData.height) : null;
+  if(code && code.data){ handleScanResult(code.data.trim()); return; }
+  scanRAF=requestAnimationFrame(scanLoop);
+}
+function stopScan(){
+  cancelAnimationFrame(scanRAF); scanRAF=null;
+  if(scanStream){ scanStream.getTracks().forEach(t=>t.stop()); scanStream=null; }
+  state.scanOpen=false; renderModal();
+}
+function handleScanResult(text){
+  stopScan();
+  const kode=text.toUpperCase();
+  const book=state.books.find(b=>b.kode===kode);
+  if(!book){ showToast(`Kode "${kode}" tidak ditemukan`,"rose"); return; }
+  if(isDipinjam(book.kode)){
+    const loan=activeLoans().find(l=>l.kodeBuku===book.kode);
+    if(loan && confirm(`"${book.judul}" dipinjam ${loan.nama}. Kembalikan sekarang?`)) returnLoan(loan.id);
+  }else{ openLoanModal(book.id); }
+}
+
+/* ============ CETAK: LABEL QR ============ */
+function printLabels(){ printLabelsAsync(); }
+async function printLabelsAsync(){
+  const ok = await ensureQRCode(); if(!ok) return;
+  const list=[...state.books].sort((a,b)=>a.kode.localeCompare(b.kode));
+  if(list.length===0){ showToast("Belum ada buku untuk dicetak","rose"); return; }
+  const area=document.getElementById("printArea");
+  area.innerHTML = `<div class="label-grid">${list.map(b=>`<div class="label-card"><div class="qr" id="qr_${esc(b.id)}"></div><div class="label-kode">${esc(b.kode)}</div><div class="label-judul">${esc(b.judul)}</div><div class="label-brand">${esc(state.settings.namaMaktabah)} · Kalibagor</div></div>`).join("")}</div>`;
+  list.forEach(b=>{ new QRCode(document.getElementById("qr_"+b.id), {text:b.kode, width:64, height:64, correctLevel:QRCode.CorrectLevel.M}); });
+  setTimeout(()=>window.print(), 150);
+}
+
+/* ============ CETAK: KARTU ANGGOTA ============ */
+function kartuAnggotaCardHTML(a){
+  return `<div class="id-card"><div class="id-card-head">${esc(state.settings.namaMaktabah)}</div>
+    <div class="id-card-row"><b>Nama:</b> ${esc(a.nama)}</div><div class="id-card-row"><b>NIS:</b> ${esc(a.nis)}</div>
+    <div class="id-card-row"><b>Kelas:</b> ${esc(a.kelas)}</div><div class="id-card-row"><b>Terdaftar:</b> ${fmt(a.tglDaftar)}</div>
+    <div class="id-card-qr" id="qr_ag_${esc(a.id)}"></div></div>`;
+}
+function printKartuAnggota(id){ printKartuAnggotaAsync(id); }
+async function printKartuAnggotaAsync(id){
+  const ok = await ensureQRCode(); if(!ok) return;
+  const a=anggotaById(id); if(!a){ showToast("Anggota tidak ditemukan","rose"); return; }
+  const area=document.getElementById("printArea");
+  area.innerHTML = `<div class="id-card-grid">${kartuAnggotaCardHTML(a)}</div>`;
+  new QRCode(document.getElementById("qr_ag_"+a.id), {text:a.nis||a.id, width:64, height:64, correctLevel:QRCode.CorrectLevel.M});
+  setTimeout(()=>window.print(), 150);
+}
+function printSemuaKartuAnggota(){ printSemuaKartuAnggotaAsync(); }
+async function printSemuaKartuAnggotaAsync(){
+  const ok = await ensureQRCode(); if(!ok) return;
+  if(state.anggota.length===0){ showToast("Belum ada anggota","rose"); return; }
+  const area=document.getElementById("printArea");
+  area.innerHTML = `<div class="id-card-grid">${state.anggota.map(kartuAnggotaCardHTML).join("")}</div>`;
+  state.anggota.forEach(a=>{ new QRCode(document.getElementById("qr_ag_"+a.id), {text:a.nis||a.id, width:64, height:64, correctLevel:QRCode.CorrectLevel.M}); });
+  setTimeout(()=>window.print(), 150);
+}
+
+/* ============ CETAK: KARTU BUKU ============ */
+function printKartuBuku(bookId){ printKartuBukuAsync(bookId); }
+async function printKartuBukuAsync(bookId){
+  const ok = await ensureQRCode(); if(!ok) return;
+  const b=state.books.find(x=>x.id===bookId); if(!b){ showToast("Buku tidak ditemukan","rose"); return; }
+  const kat=katByKode(b.kategori);
+  const area=document.getElementById("printArea");
+  area.innerHTML = `<div class="id-card-grid"><div class="id-card">
+    <div class="id-card-head">${esc(state.settings.namaMaktabah)}</div>
+    <div class="id-card-row"><b>Kode:</b> ${esc(b.kode)}</div><div class="id-card-row"><b>Judul:</b> ${esc(b.judul)}</div>
+    <div class="id-card-row"><b>Penyusun:</b> ${esc(b.penyusun)}</div><div class="id-card-row"><b>Penerbit:</b> ${esc(b.penerbit)} (${esc(b.tahunTerbit)})</div>
+    <div class="id-card-row"><b>Kategori:</b> ${esc(kat.nama)}</div>
+    <div class="id-card-qr" id="qr_bk_${esc(b.id)}"></div>
+  </div></div>`;
+  new QRCode(document.getElementById("qr_bk_"+b.id), {text:b.kode, width:64, height:64, correctLevel:QRCode.CorrectLevel.M});
+  setTimeout(()=>window.print(), 150);
+}
+
+/* ============ CETAK: KATALOG ============ */
+function printKatalog(){
+  const list=[...state.books].sort((a,b)=>a.kode.localeCompare(b.kode));
+  const area=document.getElementById("printArea");
+  area.innerHTML = `<h2 style="font-family:var(--display);">${esc(state.settings.namaMaktabah)} — Katalog Buku</h2>
+    <table class="print-table"><thead><tr><th>Kode</th><th>Judul</th><th>Penyusun</th><th>Penerbit</th><th>Kategori</th><th>Rak</th></tr></thead><tbody>
+    ${list.map(b=>`<tr><td>${esc(b.kode)}</td><td>${esc(b.judul)}</td><td>${esc(b.penyusun)}</td><td>${esc(b.penerbit)}</td><td>${esc(katByKode(b.kategori).nama)}</td><td>${esc((state.rakList.find(r=>r.kode===b.rak)||{}).nama||'-')}</td></tr>`).join("")}
+    </tbody></table>`;
+  setTimeout(()=>window.print(), 150);
+}
+
+/* ============ CETAK: BUKTI TRANSAKSI ============ */
+function printBukti(loanId){
+  const l=state.loans.find(x=>x.id===loanId); if(!l){ showToast("Transaksi tidak ditemukan","rose"); return; }
+  const area=document.getElementById("printArea");
+  area.innerHTML = `<div class="receipt">
+    <h3>${esc(state.settings.namaMaktabah)}</h3>
+    <p style="text-align:center;font-size:11px;color:#666;">Bukti Peminjaman / Pengembalian</p>
+    <div class="line"><span>Kode Buku</span><span>${esc(l.kodeBuku)}</span></div>
+    <div class="line"><span>Judul</span><span>${esc(l.judulBuku)}</span></div>
+    <div class="line"><span>Peminjam</span><span>${esc(l.nama)} (Kls ${esc(l.kelas)})</span></div>
+    <div class="line"><span>Tgl Pinjam</span><span>${fmt(l.tanggalPinjam)}</span></div>
+    <div class="line"><span>Jatuh Tempo</span><span>${fmt(l.tanggalJatuhTempo)}</span></div>
+    <div class="line"><span>Tgl Kembali</span><span>${l.tanggalKembali?fmt(l.tanggalKembali):'—'}</span></div>
+    <div class="line"><span>Status</span><span>${esc(l.status)}</span></div>
+    <div class="line"><span>Denda</span><span>${rupiah(dendaLoan(l))}</span></div>
+    <p style="text-align:center;font-size:10px;color:#999;margin-top:10px;">Dicetak ${fmt(todayDate)}</p>
+  </div>`;
+  setTimeout(()=>window.print(), 150);
+}
+
+/* ============ BOOTSTRAP ============ */
+function showFatalError(err){
+  const root = document.getElementById("root");
+  if(root){
+    root.innerHTML = `<div style="max-width:520px;margin:60px auto;padding:24px;font-family:sans-serif;">
+      <h2 style="color:#A63D5C;font-family:Georgia,serif;">Terjadi kesalahan saat memuat halaman</h2>
+      <p style="color:#6B6178;">Silakan tangkap layar pesan di bawah ini dan kirimkan supaya bisa diperbaiki:</p>
+      <pre style="background:#F1E9DA;border:1px solid #E6DCC8;border-radius:8px;padding:14px;white-space:pre-wrap;word-break:break-word;font-size:12px;color:#241B2E;">${esc(String(err && (err.stack||err.message||err)))}</pre>
+      <button onclick="location.reload()" style="margin-top:14px;padding:10px 16px;border:none;border-radius:7px;background:#4A2545;color:#fff;font-weight:700;cursor:pointer;">Muat Ulang</button>
+    </div>`;
+  }
+}
+window.addEventListener("error", (e)=>{ showFatalError(e.error||e.message); });
+window.addEventListener("unhandledrejection", (e)=>{ showFatalError(e.reason); });
+
+(async function init(){
+  try{
+    await loadData();
+    render();
+  }catch(err){
+    showFatalError(err);
+  }
+})();
+</script>
+</body>
+</html>

@@ -205,15 +205,33 @@ function loadScript(src){
   });
   return _scriptCache[src];
 }
+async function loadScriptWithFallback(urls){
+  let lastErr;
+  for(const url of urls){
+    try{ await loadScript(url); return true; }
+    catch(e){ lastErr = e; }
+  }
+  throw lastErr;
+}
 async function ensureJsQR(){
   if(typeof jsQR === "function") return true;
-  try{ await loadScript("https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.js"); return true; }
-  catch(e){ showToast("Gagal memuat pustaka scan (cek koneksi internet)","rose"); return false; }
+  try{
+    await loadScriptWithFallback([
+      "https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js",
+      "https://unpkg.com/jsqr@1.4.0/dist/jsQR.js",
+    ]);
+    return true;
+  }catch(e){ showToast("Gagal memuat pustaka scan (cek koneksi internet)","rose"); return false; }
 }
 async function ensureQRCode(){
   if(typeof QRCode === "function") return true;
-  try{ await loadScript("https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"); return true; }
-  catch(e){ showToast("Gagal memuat pustaka QR (cek koneksi internet)","rose"); return false; }
+  try{
+    await loadScriptWithFallback([
+      "https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js",
+      "https://unpkg.com/qrcodejs@1.0.0/qrcode.min.js",
+    ]);
+    return true;
+  }catch(e){ showToast("Gagal memuat pustaka QR (cek koneksi internet)","rose"); return false; }
 }
 
 const uid = () => Math.random().toString(36).slice(2,10);

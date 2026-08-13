@@ -485,16 +485,7 @@ const SETTINGS_PATH = "maktabahAlFaruq/private/settings";
 const PUBLIC_PATH = "maktabahAlFaruq/public";
 const USERS_PATH = "maktabahAlFaruq/users";
 let auth=null, currentUser=null, currentRole="petugas", authListenerReady=false;
-const firebaseConfig = {
-  apiKey: "AIzaSyA44b_ruY8nLz_Egt_Opj8l2mCa03rop_0",
-  authDomain: "arisan-walimah-ummah.firebaseapp.com",
-  databaseURL: "https://arisan-walimah-ummah-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "arisan-walimah-ummah",
-  storageBucket: "arisan-walimah-ummah.firebasestorage.app",
-  messagingSenderId: "808217881031",
-  appId: "1:808217881031:web:a240faa30509e0e37a91e2",
-  measurementId: "G-5SRH6YXL4Z"
-};
+
 let db=null, firebaseReady=false, firebaseHydrated=false, saveTimer=null;
 try{
   if(typeof firebase === "undefined") throw new Error("Firebase SDK tidak termuat");

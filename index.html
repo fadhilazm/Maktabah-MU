@@ -349,6 +349,18 @@ const iso = (d) => new Date(d).toISOString().slice(0,10);
 const fmt = (d) => d ? new Date(d).toLocaleDateString("id-ID",{day:"numeric",month:"short",year:"numeric"}) : "-";
 const rupiah = (n) => "Rp " + Math.max(0,n).toLocaleString("id-ID");
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const ICONS = {
+  globe: '<path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Z"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10Z"/>',
+  logout: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>',
+  database: '<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/><path d="M3 12a9 3 0 0 0 18 0"/>',
+  cloudCheck: '<path d="M17.5 19a4.5 4.5 0 1 0-1.44-8.765 5 5 0 0 0-9.55 2.06A4 4 0 0 0 7 20h.5"/><path d="m9 15 2 2 4-4"/>',
+  alertTriangle: '<path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
+  shieldCheck: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/>',
+  user: '<circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/>',
+};
+function icon(name, size=12){
+  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:5px;">${ICONS[name]||""}</svg>`;
+}
 function suggestKode(kategori, books){
   const nums = books.map(b=>b.kode||"").filter(k=>k.toUpperCase().startsWith(kategori))
     .map(k=>parseInt(k.slice(kategori.length),10)).filter(n=>!isNaN(n));
@@ -840,10 +852,10 @@ function render(){
             <p class="brand-sub">Kalibagor, Banyumas — Jawa Tengah</p>
           </div>
           <div style="display:flex;gap:8px;align-items:center;">
-            <button class="mode-badge" id="publicSiteBtn">🌐 Publik</button>
-            <button class="mode-badge" id="logoutBtn">↪ Keluar</button>
-            <span id="firebaseStatus" class="mode-badge" style="cursor:default">🔥 Firebase</span>
-            <button class="mode-badge" id="modeBadge">${isAdmin() ? "🔓 Mode Admin" : "🔒 Mode Petugas"}</button>
+            <button class="mode-badge" id="publicSiteBtn">${icon('globe')}Publik</button>
+            <button class="mode-badge" id="logoutBtn">${icon('logout')}Keluar</button>
+            <span id="firebaseStatus" class="mode-badge" style="cursor:default">${icon('database')}Firebase</span>
+            <button class="mode-badge" id="modeBadge">${isAdmin() ? icon('shieldCheck')+'Mode Admin' : icon('user')+'Mode Petugas'}</button>
           </div>
         </div>
         <div class="group-tabs">
@@ -2253,12 +2265,12 @@ window.addEventListener("hashchange", ()=>{
   // slow, the local seeded/localStorage data remains visible and usable.
   Promise.resolve().then(()=>loadData()).then(()=>{
     const fs=document.getElementById("firebaseStatus");
-    if(fs){ fs.textContent=firebaseReady?"🔥 Tersinkron":"⚠️ Lokal"; fs.title=firebaseReady?"Firebase Realtime Database aktif":"Firebase tidak tersambung"; }
+    if(fs){ fs.innerHTML=firebaseReady?(icon('cloudCheck')+"Tersinkron"):(icon('alertTriangle')+"Lokal"); fs.title=firebaseReady?"Firebase Realtime Database aktif":"Firebase tidak tersambung"; }
     if(state.view==="public") render();
   }).catch(err=>{
     console.warn("Sinkronisasi Firebase dilewati:", err);
     const fs=document.getElementById("firebaseStatus");
-    if(fs){ fs.textContent="⚠️ Lokal"; fs.title="Firebase belum tersambung"; }
+    if(fs){ fs.innerHTML=icon('alertTriangle')+"Lokal"; fs.title="Firebase belum tersambung"; }
   });
 })();
 </script>

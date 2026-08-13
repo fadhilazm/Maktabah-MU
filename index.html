@@ -917,6 +917,9 @@ function bindContentActions(){
   document.querySelectorAll("[data-restorebook]").forEach(b=>b.addEventListener("click", ()=>restoreBook(b.dataset.restorebook)));
   document.querySelectorAll("[data-lunas]").forEach(b=>b.addEventListener("click", ()=>toggleLunas(b.dataset.lunas)));
   document.querySelectorAll("[data-newloan]").forEach(b=>b.addEventListener("click", createLoanFromForm));
+  document.querySelectorAll("[data-editloan]").forEach(b=>b.addEventListener("click", ()=>openLoanEditModal(b.dataset.editloan)));
+  document.querySelectorAll("[data-delloan]").forEach(b=>b.addEventListener("click", ()=>deleteLoan(b.dataset.delloan)));
+  const clearHistBtn = document.getElementById("btnClearHistory"); if(clearHistBtn) clearHistBtn.addEventListener("click", clearHistoryLoans);
   document.querySelectorAll("[data-printbukti]").forEach(b=>b.addEventListener("click", ()=>printBukti(b.dataset.printbukti)));
   document.querySelectorAll("[data-printkartu]").forEach(b=>b.addEventListener("click", ()=>printKartuAnggota(b.dataset.printkartu)));
   const lapExport = document.getElementById("btnExportLaporan");
@@ -1364,6 +1367,8 @@ function loanListHTML(list, showLunas){
         <button class="btn btn-outline btn-sm" data-extend="${l.id}">⏩ +${state.settings.lamaPinjamHari}h</button>
         <button class="btn btn-rose btn-sm" data-lostloan="${l.id}" data-kind="hilang">Hilang</button>
         <button class="btn btn-rose btn-sm" data-lostloan="${l.id}" data-kind="rusak">Rusak</button>
+        <button class="icon-btn" title="Edit transaksi" data-editloan="${l.id}">✎</button>
+        <button class="icon-btn" title="Hapus transaksi" data-delloan="${l.id}">🗑</button>
       </div></div>`;
   }).join("");
 }
@@ -1371,11 +1376,16 @@ function loanListHTML(list, showLunas){
 /* ============ TRANSAKSI: PENGEMBALIAN ============ */
 function pengembalianHTML(){
   const al = activeLoans();
+  const hist = historyLoans();
   return `<h3 class="panel-title">Proses Pengembalian</h3>
     ${al.length===0? `<div class="muted" style="text-align:center;padding:40px 0;">Tidak ada buku yang sedang dipinjam.</div>` : loanListHTML(al)}
-    <h3 class="panel-title" style="margin-top:24px;">Riwayat Pengembalian</h3>
-    ${historyLoans().length===0? `<div class="muted">Belum ada riwayat.</div>` : `<div class="table-wrap"><table class="data-table"><thead><tr><th>Kode</th><th>Judul</th><th>Peminjam</th><th>Pinjam</th><th>Kembali</th><th>Denda</th></tr></thead><tbody>
-      ${historyLoans().map(l=>{ const d=dendaLoan(l); return `<tr><td><span class="kode-chip" style="background:var(--plum)">${esc(l.kodeBuku)}</span></td><td>${esc(l.judulBuku)}</td><td>${esc(l.nama)} (Kls ${esc(l.kelas)})</td><td>${fmt(l.tanggalPinjam)}</td><td>${fmt(l.tanggalKembali)}</td><td>${d>0?`<span class="badge ${l.dendaLunas?'badge-plum':'badge-rose'}">${rupiah(d)} ${l.dendaLunas?'Lunas':'Belum'}</span>`:'-'}</td></tr>`; }).join("")}
+    <div class="row-between" style="margin-top:24px;align-items:center;">
+      <h3 class="panel-title" style="margin:0;">Riwayat Pengembalian</h3>
+      ${hist.length>0? `<button class="btn btn-rose btn-sm" id="btnClearHistory">🗑 Hapus Riwayat</button>` : ''}
+    </div>
+    ${hist.length===0? `<div class="muted">Belum ada riwayat.</div>` : `<div class="table-wrap"><table class="data-table"><thead><tr><th>Kode</th><th>Judul</th><th>Peminjam</th><th>Pinjam</th><th>Kembali</th><th>Denda</th><th></th></tr></thead><tbody>
+      ${hist.map(l=>{ const d=dendaLoan(l); return `<tr><td><span class="kode-chip" style="background:var(--plum)">${esc(l.kodeBuku)}</span></td><td>${esc(l.judulBuku)}</td><td>${esc(l.nama)} (Kls ${esc(l.kelas)})</td><td>${fmt(l.tanggalPinjam)}</td><td>${fmt(l.tanggalKembali)}</td><td>${d>0?`<span class="badge ${l.dendaLunas?'badge-plum':'badge-rose'}">${rupiah(d)} ${l.dendaLunas?'Lunas':'Belum'}</span>`:'-'}</td>
+      <td style="display:flex;gap:6px;"><button class="icon-btn" title="Edit transaksi" data-editloan="${l.id}">✎</button><button class="icon-btn" title="Hapus transaksi" data-delloan="${l.id}">🗑</button></td></tr>`; }).join("")}
     </tbody></table></div>`}
   `;
 }
@@ -1392,7 +1402,11 @@ function perpanjanganHTML(){
     ${al.length===0? `<div class="muted" style="text-align:center;padding:40px 0;">Tidak ada peminjaman aktif.</div>` : al.map(l=>`
       <div class="loan-row ${isOverdue(l)?'late':''}"><div class="loan-left"><span class="kode-chip" style="background:var(--plum)">${esc(l.kodeBuku)}</span>
         <div><div class="loan-title">${esc(l.judulBuku)}</div><div class="loan-sub">${esc(l.nama)} · Kelas ${esc(l.kelas)} · jatuh tempo ${fmt(l.tanggalJatuhTempo)} · sudah diperpanjang ${l.perpanjang||0}×</div></div></div>
-        <button class="btn btn-outline btn-sm" data-extend="${l.id}">⏩ Perpanjang +${state.settings.lamaPinjamHari} hari</button>
+        <div class="loan-left">
+          <button class="btn btn-outline btn-sm" data-extend="${l.id}">⏩ Perpanjang +${state.settings.lamaPinjamHari} hari</button>
+          <button class="icon-btn" title="Edit transaksi" data-editloan="${l.id}">✎</button>
+          <button class="icon-btn" title="Hapus transaksi" data-delloan="${l.id}">🗑</button>
+        </div>
       </div>`).join("")}
   `;
 }
@@ -1450,13 +1464,106 @@ function dendaHTML(){
     ${list.length===0? `<div class="muted" style="text-align:center;padding:40px 0;">Tidak ada denda.</div>` : `<div class="table-wrap"><table class="data-table"><thead><tr><th>Kode</th><th>Judul</th><th>Peminjam</th><th>Terlambat</th><th>Denda</th><th>Status</th><th></th></tr></thead><tbody>
     ${list.map(l=>`<tr><td><span class="kode-chip" style="background:var(--plum)">${esc(l.kodeBuku)}</span></td><td>${esc(l.judulBuku)}</td><td>${esc(l.nama)} (Kls ${esc(l.kelas)})</td><td>${hariTerlambat(l)} hari</td><td>${rupiah(dendaLoan(l))}</td>
       <td><span class="badge ${l.dendaLunas?'badge-plum':'badge-rose'}">${l.dendaLunas?'Lunas':'Belum Lunas'}</span></td>
-      <td><button class="btn btn-sm ${l.dendaLunas?'btn-outline':'btn-gold'}" data-lunas="${l.id}">${l.dendaLunas?'Batal Lunas':'Tandai Lunas'}</button></td></tr>`).join("")}
+      <td style="display:flex;gap:6px;"><button class="btn btn-sm ${l.dendaLunas?'btn-outline':'btn-gold'}" data-lunas="${l.id}">${l.dendaLunas?'Batal Lunas':'Tandai Lunas'}</button>
+      <button class="icon-btn" title="Edit transaksi" data-editloan="${l.id}">✎</button><button class="icon-btn" title="Hapus transaksi" data-delloan="${l.id}">🗑</button></td></tr>`).join("")}
     </tbody></table></div>`}
   `;
 }
 function toggleLunas(id){
   state.loans = state.loans.map(l=>l.id===id?{...l, dendaLunas:!l.dendaLunas}:l);
   scheduleSave(); renderContent();
+}
+
+/* ============ TRANSAKSI: EDIT & HAPUS TRANSAKSI PEMINJAMAN ============ */
+/* Dipakai untuk memperbaiki transaksi yang terlanjur disimpan, mis. salah klik
+   nama anggota atau salah klik judul buku saat "Catat Peminjaman". */
+function openLoanEditModal(loanId){
+  const l = state.loans.find(x=>x.id===loanId); if(!l) return;
+  state.loanEditModal = { data:{...l} };
+  renderModal();
+}
+function loanEditModalHTML(){
+  const d = state.loanEditModal.data;
+  const tersediaBuku = state.books.filter(b=> b.kode===d.kodeBuku || !isDipinjam(b.kode)).sort((a,b)=>a.kode.localeCompare(b.kode));
+  return `<div class="modal-backdrop" id="leBackdrop"><div class="modal">
+    <div class="modal-header"><h3 class="modal-title">Edit Transaksi Peminjaman</h3><button class="close-x" id="closeLeModal">✕</button></div>
+    <p class="hint" style="margin:0 0 14px;">Gunakan ini untuk memperbaiki transaksi yang salah pilih nama anggota atau salah pilih buku, meskipun sudah terlanjur disimpan.</p>
+    <div class="field"><label class="field-label">Anggota (Peminjam)</label>
+      <select id="le_anggota">${state.anggota.slice().sort((a,b)=>a.nama.localeCompare(b.nama)).map(a=>`<option value="${a.id}" ${a.id===d.anggotaId?'selected':''}>${esc(a.nama)} — Kelas ${esc(a.kelas)}</option>`).join("")}</select>
+    </div>
+    <div class="field"><label class="field-label">Buku</label>
+      <select id="le_buku">${tersediaBuku.map(b=>`<option value="${esc(b.kode)}" ${b.kode===d.kodeBuku?'selected':''}>${esc(b.kode)} — ${esc(b.judul)}</option>`).join("")}</select>
+      <p class="hint">Hanya menampilkan buku yang sedang tersedia, ditambah buku yang dipinjam pada transaksi ini.</p>
+    </div>
+    <div class="field-row">
+      <div class="field"><label class="field-label">Status</label>
+        <select id="le_status">
+          <option value="dipinjam" ${d.status==='dipinjam'?'selected':''}>Dipinjam (berjalan)</option>
+          <option value="dikembalikan" ${d.status==='dikembalikan'?'selected':''}>Sudah Dikembalikan</option>
+          <option value="hilang" ${d.status==='hilang'?'selected':''}>Hilang</option>
+          <option value="rusak" ${d.status==='rusak'?'selected':''}>Rusak</option>
+        </select>
+      </div>
+      <div class="field"><label class="field-label">Sudah Diperpanjang (kali)</label><input type="number" min="0" id="le_perpanjang" value="${d.perpanjang||0}"/></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label class="field-label">Tanggal Pinjam</label><input type="date" id="le_tglpinjam" value="${esc(d.tanggalPinjam)}"/></div>
+      <div class="field"><label class="field-label">Jatuh Tempo</label><input type="date" id="le_tgljatuhtempo" value="${esc(d.tanggalJatuhTempo)}"/></div>
+    </div>
+    <div class="field"><label class="field-label">Tanggal Kembali (kosongkan jika status masih Dipinjam)</label><input type="date" id="le_tglkembali" value="${esc(d.tanggalKembali||'')}"/></div>
+    <button class="btn btn-primary btn-block" id="saveLeBtn" style="margin-top:16px;">Simpan Perubahan</button>
+    <button class="btn btn-rose btn-block" id="delLeBtn" style="margin-top:8px;">🗑 Hapus Transaksi Ini</button>
+  </div></div>`;
+}
+function bindLoanEditModal(){
+  document.getElementById("leBackdrop").addEventListener("click", e=>{ if(e.target.id==="leBackdrop"){ state.loanEditModal=null; renderModal(); } });
+  document.getElementById("closeLeModal").addEventListener("click", ()=>{ state.loanEditModal=null; renderModal(); });
+  document.getElementById("saveLeBtn").addEventListener("click", saveLoanEditFromForm);
+  document.getElementById("delLeBtn").addEventListener("click", ()=>{ const id=state.loanEditModal.data.id; state.loanEditModal=null; renderModal(); deleteLoan(id); });
+}
+function saveLoanEditFromForm(){
+  if(!guardAdmin()) return;
+  const orig = state.loanEditModal.data;
+  const anggotaId = document.getElementById("le_anggota").value;
+  const kodeBuku = document.getElementById("le_buku").value;
+  const status = document.getElementById("le_status").value;
+  const perpanjang = parseInt(document.getElementById("le_perpanjang").value,10)||0;
+  const tanggalPinjam = document.getElementById("le_tglpinjam").value;
+  const tanggalJatuhTempo = document.getElementById("le_tgljatuhtempo").value;
+  const tanggalKembaliRaw = document.getElementById("le_tglkembali").value;
+  const ang = anggotaById(anggotaId); const buku = bookByKode(kodeBuku);
+  if(!ang || !buku){ showToast("Anggota dan buku wajib dipilih","rose"); return; }
+  if(!tanggalPinjam || !tanggalJatuhTempo){ showToast("Tanggal pinjam dan jatuh tempo wajib diisi","rose"); return; }
+  if(status!=="dipinjam" && !tanggalKembaliRaw){ showToast("Isi tanggal kembali untuk status ini","rose"); return; }
+  const clashing = state.loans.find(l=>l.id!==orig.id && l.kodeBuku===kodeBuku && l.status==="dipinjam" && status==="dipinjam");
+  if(clashing){ showToast(`Buku "${buku.judul}" sedang dipinjam pada transaksi lain`,"rose"); return; }
+  state.loans = state.loans.map(l=> l.id===orig.id ? {
+    ...l,
+    anggotaId: ang.id, nama: ang.nama, kelas: ang.kelas,
+    kodeBuku: buku.kode, judulBuku: buku.judul,
+    status, perpanjang,
+    tanggalPinjam, tanggalJatuhTempo,
+    tanggalKembali: status==="dipinjam" ? null : tanggalKembaliRaw,
+  } : l);
+  scheduleSave(); showToast("Transaksi peminjaman diperbarui","plum"); state.loanEditModal=null; renderModal(); renderContent();
+}
+function deleteLoan(id){
+  if(!guardAdmin()) return;
+  const l = state.loans.find(x=>x.id===id); if(!l) return;
+  if(confirm(`Hapus transaksi peminjaman "${l.judulBuku}" oleh ${l.nama}? Tindakan ini tidak bisa dibatalkan.`)){
+    state.loans = state.loans.filter(x=>x.id!==id);
+    scheduleSave(); showToast("Transaksi peminjaman dihapus","rose"); renderContent();
+  }
+}
+function clearHistoryLoans(){
+  if(!guardAdmin()) return;
+  const hist = historyLoans();
+  if(hist.length===0){ showToast("Tidak ada riwayat untuk dihapus","rose"); return; }
+  if(confirm(`Hapus semua ${hist.length} riwayat pengembalian? Catatan denda terkait juga akan hilang. Tindakan ini tidak bisa dibatalkan.`)){
+    const histIds = new Set(hist.map(l=>l.id));
+    state.loans = state.loans.filter(l=>!histIds.has(l.id));
+    scheduleSave(); showToast("Riwayat pengembalian dihapus","rose"); renderContent();
+  }
 }
 
 /* ============ LITERASI ============ */
@@ -1770,6 +1877,7 @@ function renderModal(){
   if(state.authModal){ root.innerHTML=authModalHTML(); bindAuthModal(); return; }
   if(state.bookModal){ root.innerHTML=bookModalHTML(); bindBookModal(); return; }
   if(state.loanTarget){ root.innerHTML=loanModalHTML(); bindLoanModal(); return; }
+  if(state.loanEditModal){ root.innerHTML=loanEditModalHTML(); bindLoanEditModal(); return; }
   if(state.anggotaModal){ root.innerHTML=anggotaModalHTML(); bindAnggotaModal(); return; }
   if(state.kontribModal){ root.innerHTML=kontribModalHTML(); bindKontribModal(); return; }
   if(state.rakModal){ root.innerHTML=rakModalHTML(); bindRakModal(); return; }

@@ -479,16 +479,32 @@ const DATA_PATH = "maktabahAlFaruq/private/data";
 const SETTINGS_PATH = "maktabahAlFaruq/private/settings";
 const PUBLIC_PATH = "maktabahAlFaruq/public";
 const USERS_PATH = "maktabahAlFaruq/users";
-let auth=null, currentUser=null, currentRole="petugas", authListenerReady=false;
 
-let db=null, firebaseReady=false, firebaseHydrated=false, saveTimer=null;
+let auth=null,
+    currentUser=null,
+    currentRole="petugas",
+    authListenerReady=false;
+
+let db=null,
+    firebaseReady=false,
+    firebaseHydrated=false,
+    saveTimer=null;
 try{
-  if(typeof firebase === "undefined") throw new Error("Firebase SDK tidak termuat");
-  if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-  db=firebase.database();
-  auth=firebase.auth();
-  firebaseReady=true;
-}catch(e){ console.warn("Firebase tidak tersedia; memakai penyimpanan lokal.",e); }
+  if(typeof firebase === "undefined"){
+    throw new Error("Firebase SDK tidak termuat");
+  }
+
+  if(!firebase.apps.length){
+    firebase.initializeApp(firebaseConfig);
+  }
+
+  db = firebase.database();
+  auth = firebase.auth();
+  firebaseReady = true;
+
+}catch(e){
+  console.warn("Firebase tidak tersedia; memakai penyimpanan lokal.", e);
+}
 
 function persistPayload(){
   return JSON.stringify({

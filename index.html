@@ -223,16 +223,6 @@ async function ensureJsQR(){
     return true;
   }catch(e){ showToast("Gagal memuat pustaka scan (cek koneksi internet)","rose"); return false; }
 }
-async function ensureQRCode(){
-  if(typeof QRCode === "function") return true;
-  try{
-    await loadScriptWithFallback([
-      "https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js",
-      "https://unpkg.com/qrcodejs@1.0.0/qrcode.min.js",
-    ]);
-    return true;
-  }catch(e){ showToast("Gagal memuat pustaka QR (cek koneksi internet)","rose"); return false; }
-}
 
 const uid = () => Math.random().toString(36).slice(2,10);
 const pad4 = (n) => String(n).padStart(4,"0");
@@ -1502,13 +1492,31 @@ function bindScanModal(){
   startScan();
 }
 async function startScan(){
-  const ok = await ensureJsQR();
-  if(!ok){ stopScan(); return; }
   try{
     scanStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}});
     const video=document.getElementById("scanVideo"); if(!video) return;
-    video.srcObject=scanStream; await video.play(); scanLoop();
+    video.srcObject=scanStream; await video.play();
+
+    if("BarcodeDetector" in window){
+      try{
+        const detector = new BarcodeDetector({formats:["qr_code"]});
+        scanLoopNative(detector);
+        return; // native path — no external library needed at all
+      }catch(e){ /* unsupported format list etc — fall through to jsQR */ }
+    }
+    const ok = await ensureJsQR();
+    if(!ok){ stopScan(); return; }
+    scanLoop();
   }catch(e){ showToast("Tidak bisa akses kamera — pastikan izin kamera & halaman dibuka lewat HTTPS","rose"); stopScan(); }
+}
+async function scanLoopNative(detector){
+  const video=document.getElementById("scanVideo"); if(!video) return;
+  if(video.readyState!==video.HAVE_ENOUGH_DATA){ scanRAF=requestAnimationFrame(()=>scanLoopNative(detector)); return; }
+  try{
+    const codes = await detector.detect(video);
+    if(codes && codes.length>0 && codes[0].rawValue){ handleScanResult(String(codes[0].rawValue).trim()); return; }
+  }catch(e){}
+  scanRAF=requestAnimationFrame(()=>scanLoopNative(detector));
 }
 function scanLoop(){
   const video=document.getElementById("scanVideo"); if(!video) return;
@@ -1537,15 +1545,13 @@ function handleScanResult(text){
 }
 
 /* ============ CETAK: LABEL QR ============ */
-function printLabels(){ printLabelsAsync(); }
-async function printLabelsAsync(){
-  const ok = await ensureQRCode(); if(!ok) return;
+function qrImageUrl(text, size){ return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(text)}`; }
+function printLabels(){
   const list=[...state.books].sort((a,b)=>a.kode.localeCompare(b.kode));
   if(list.length===0){ showToast("Belum ada buku untuk dicetak","rose"); return; }
   const area=document.getElementById("printArea");
-  area.innerHTML = `<div class="label-grid">${list.map(b=>`<div class="label-card"><div class="qr" id="qr_${esc(b.id)}"></div><div class="label-kode">${esc(b.kode)}</div><div class="label-judul">${esc(b.judul)}</div><div class="label-brand">${esc(state.settings.namaMaktabah)} · Kalibagor</div></div>`).join("")}</div>`;
-  list.forEach(b=>{ new QRCode(document.getElementById("qr_"+b.id), {text:b.kode, width:64, height:64, correctLevel:QRCode.CorrectLevel.M}); });
-  setTimeout(()=>window.print(), 150);
+  area.innerHTML = `<div class="label-grid">${list.map(b=>`<div class="label-card"><div class="qr"><img src="${qrImageUrl(b.kode,64)}" width="64" height="64" alt="QR ${esc(b.kode)}"/></div><div class="label-kode">${esc(b.kode)}</div><div class="label-judul">${esc(b.judul)}</div><div class="label-brand">${esc(state.settings.namaMaktabah)} · Kalibagor</div></div>`).join("")}</div>`;
+  setTimeout(()=>window.print(), 400);
 }
 
 /* ============ CETAK: KARTU ANGGOTA ============ */
@@ -1553,31 +1559,23 @@ function kartuAnggotaCardHTML(a){
   return `<div class="id-card"><div class="id-card-head">${esc(state.settings.namaMaktabah)}</div>
     <div class="id-card-row"><b>Nama:</b> ${esc(a.nama)}</div><div class="id-card-row"><b>NIS:</b> ${esc(a.nis)}</div>
     <div class="id-card-row"><b>Kelas:</b> ${esc(a.kelas)}</div><div class="id-card-row"><b>Terdaftar:</b> ${fmt(a.tglDaftar)}</div>
-    <div class="id-card-qr" id="qr_ag_${esc(a.id)}"></div></div>`;
+    <div class="id-card-qr"><img src="${qrImageUrl(a.nis||a.id,64)}" width="64" height="64" alt="QR ${esc(a.nis||a.id)}"/></div></div>`;
 }
-function printKartuAnggota(id){ printKartuAnggotaAsync(id); }
-async function printKartuAnggotaAsync(id){
-  const ok = await ensureQRCode(); if(!ok) return;
+function printKartuAnggota(id){
   const a=anggotaById(id); if(!a){ showToast("Anggota tidak ditemukan","rose"); return; }
   const area=document.getElementById("printArea");
   area.innerHTML = `<div class="id-card-grid">${kartuAnggotaCardHTML(a)}</div>`;
-  new QRCode(document.getElementById("qr_ag_"+a.id), {text:a.nis||a.id, width:64, height:64, correctLevel:QRCode.CorrectLevel.M});
-  setTimeout(()=>window.print(), 150);
+  setTimeout(()=>window.print(), 400);
 }
-function printSemuaKartuAnggota(){ printSemuaKartuAnggotaAsync(); }
-async function printSemuaKartuAnggotaAsync(){
-  const ok = await ensureQRCode(); if(!ok) return;
+function printSemuaKartuAnggota(){
   if(state.anggota.length===0){ showToast("Belum ada anggota","rose"); return; }
   const area=document.getElementById("printArea");
   area.innerHTML = `<div class="id-card-grid">${state.anggota.map(kartuAnggotaCardHTML).join("")}</div>`;
-  state.anggota.forEach(a=>{ new QRCode(document.getElementById("qr_ag_"+a.id), {text:a.nis||a.id, width:64, height:64, correctLevel:QRCode.CorrectLevel.M}); });
-  setTimeout(()=>window.print(), 150);
+  setTimeout(()=>window.print(), 400);
 }
 
 /* ============ CETAK: KARTU BUKU ============ */
-function printKartuBuku(bookId){ printKartuBukuAsync(bookId); }
-async function printKartuBukuAsync(bookId){
-  const ok = await ensureQRCode(); if(!ok) return;
+function printKartuBuku(bookId){
   const b=state.books.find(x=>x.id===bookId); if(!b){ showToast("Buku tidak ditemukan","rose"); return; }
   const kat=katByKode(b.kategori);
   const area=document.getElementById("printArea");
@@ -1586,10 +1584,9 @@ async function printKartuBukuAsync(bookId){
     <div class="id-card-row"><b>Kode:</b> ${esc(b.kode)}</div><div class="id-card-row"><b>Judul:</b> ${esc(b.judul)}</div>
     <div class="id-card-row"><b>Penyusun:</b> ${esc(b.penyusun)}</div><div class="id-card-row"><b>Penerbit:</b> ${esc(b.penerbit)} (${esc(b.tahunTerbit)})</div>
     <div class="id-card-row"><b>Kategori:</b> ${esc(kat.nama)}</div>
-    <div class="id-card-qr" id="qr_bk_${esc(b.id)}"></div>
+    <div class="id-card-qr"><img src="${qrImageUrl(b.kode,64)}" width="64" height="64" alt="QR ${esc(b.kode)}"/></div>
   </div></div>`;
-  new QRCode(document.getElementById("qr_bk_"+b.id), {text:b.kode, width:64, height:64, correctLevel:QRCode.CorrectLevel.M});
-  setTimeout(()=>window.print(), 150);
+  setTimeout(()=>window.print(), 400);
 }
 
 /* ============ CETAK: KATALOG ============ */

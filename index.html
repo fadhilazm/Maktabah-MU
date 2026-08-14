@@ -423,6 +423,7 @@ const ICONS = {
   lockKeyhole: '<rect x="4" y="10" width="16" height="11" rx="2"/><circle cx="12" cy="15" r="1"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>',
   info: '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>',
   rotateCcw: '<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/>',
+  history: '<path d="M3 12a9 9 0 1 0 9-9 9 9 0 0 0-9 9Z"/><path d="M12 7v5l3 2"/>',
   users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
   trash2: '<path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="m19 6-1 15H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/>',
   pencil: '<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
@@ -518,7 +519,7 @@ let state = {
   view:(location.hash==="#admin" ? "admin" : "public"),
   loaded:false,
   group:"dashboard", sub:null,
-  search:"", katFilter:"Semua", statusFilter:"Semua",
+  search:"", bookSearch:"", memberSearch:"", katFilter:"Semua", statusFilter:"Semua",
   bookModal:null, loanTarget:null, katModalOpen:false, scanOpen:false, scanMode:"book", scanTxnMemberId:null, scanConfirm:null, scanIgnoreValue:null, scanIgnoreUntil:0, scanWrongNoticeAt:0,
   anggotaModal:null, rakModal:null, kontribModal:null, pinPrompt:null, authModal:null,
   laporanFrom:"", laporanTo:"",
@@ -1075,9 +1076,11 @@ function render(){
   document.getElementById("modeBadge").addEventListener("click", openModeToggle);
   document.getElementById("publicSiteBtn").addEventListener("click", ()=>{ state.view="public"; location.hash=""; render(); });
   document.getElementById("logoutBtn").addEventListener("click", signOutMaktabah);
-  document.querySelectorAll("[data-group]").forEach(b=>b.addEventListener("click", ()=>{ state.group=b.dataset.group; state.sub=null; render(); }));
+  document.querySelectorAll("[data-group]").forEach(b=>b.addEventListener("click", ()=>{ state.group=b.dataset.group; state.sub=null; state.search=""; render(); }));
   document.querySelectorAll("[data-sub]").forEach(b=>b.addEventListener("click", ()=>{
-    state.sub=b.dataset.sub;
+    const nextSub=b.dataset.sub;
+    if(nextSub!==state.sub) state.search="";
+    state.sub=nextSub;
     document.querySelectorAll(".sub-btn").forEach(x=>x.classList.toggle("active", x.dataset.sub===state.sub));
     renderContent();
   }));
@@ -1290,7 +1293,7 @@ function bindDashboardExtras(){
 function anggotaHTML(){
   return `
     <div class="toolbar">
-      <div class="search-box"><span>${icon("search",15)}</span><input id="anggotaSearch" placeholder="Cari nama atau NIS..." value="${esc(state.search)}"/></div>
+      <div class="search-box"><span>${icon("search",15)}</span><input id="anggotaSearch" placeholder="Cari nama atau NIS..." value="${esc(state.memberSearch)}"/></div>
       <select id="anggotaSort" class="select" aria-label="Urutkan data anggota">
         <option value="nama">Urutkan: Nama A–Z</option>
         <option value="kelas">Urutkan: Kelas 1 → 6</option>
@@ -1318,12 +1321,12 @@ function sortAnggotaList(list){
 }
 function renderAnggotaTable(){
   const wrap = document.getElementById("anggotaTableWrap"); if(!wrap) return;
-  const q = state.search.toLowerCase();
+  const q = state.memberSearch.toLowerCase();
   const filtered = state.anggota.filter(a=>String(a.nama||"").toLowerCase().includes(q) || String(a.nis||"").toLowerCase().includes(q));
   const list = sortAnggotaList(filtered);
   wrap.innerHTML = `<div class="table-wrap"><table class="data-table"><thead><tr><th>NIS</th><th>Nama</th><th>Kelas</th><th>L/P</th><th>Terdaftar</th><th></th></tr></thead><tbody>
     ${list.map(a=>`<tr><td>${esc(a.nis)}</td><td>${esc(a.nama)}</td><td>Kelas ${esc(a.kelas)}</td><td>${esc(a.lp)}</td><td>${fmt(a.tglDaftar)}</td>
-      <td style="display:flex;gap:6px;"><button class="icon-btn" title="Riwayat peminjaman" data-historyanggota="${a.id}">${icon("history",15)}</button><button class="icon-btn" data-editanggota="${a.id}">${icon("pencil",15)}</button><button class="icon-btn" data-copyanggota="${a.id}">${icon("copy",15)}</button><button class="icon-btn" data-delanggota="${a.id}">${icon("trash2",15)}</button></td></tr>`).join("")}
+      <td style="display:flex;gap:6px;"><button class="icon-btn" title="Riwayat peminjaman anggota" aria-label="Riwayat peminjaman anggota" data-historyanggota="${a.id}">${icon("history",15)}</button><button class="icon-btn" data-editanggota="${a.id}">${icon("pencil",15)}</button><button class="icon-btn" data-copyanggota="${a.id}">${icon("copy",15)}</button><button class="icon-btn" data-delanggota="${a.id}">${icon("trash2",15)}</button></td></tr>`).join("")}
   </tbody></table></div>${list.length===0?'<div class="muted" style="text-align:center;">Tidak ada anggota yang cocok.</div>':''}`;
   wrap.querySelectorAll("[data-historyanggota]").forEach(b=>b.addEventListener("click", ()=>openMemberHistory(b.dataset.historyanggota)));
   wrap.querySelectorAll("[data-editanggota]").forEach(b=>b.addEventListener("click", ()=>openAnggotaModal("edit", state.anggota.find(a=>a.id===b.dataset.editanggota))));
@@ -1331,7 +1334,7 @@ function renderAnggotaTable(){
   wrap.querySelectorAll("[data-delanggota]").forEach(b=>b.addEventListener("click", ()=>deleteAnggota(b.dataset.delanggota)));
 }
 function bindAnggota(){
-  document.getElementById("anggotaSearch").addEventListener("input", e=>{ state.search=e.target.value; renderAnggotaTable(); });
+  document.getElementById("anggotaSearch").addEventListener("input", e=>{ state.memberSearch=e.target.value; renderAnggotaTable(); });
   const sort = document.getElementById("anggotaSort");
   if(sort) sort.addEventListener("change", renderAnggotaTable);
   document.getElementById("btnScanAnggota").addEventListener("click", ()=>{ state.scanMode="member"; state.scanOpen=true; renderModal(); });
@@ -1489,7 +1492,7 @@ function saveRakFromForm(){
 function katalogShellHTML(){
   return `
     <div class="toolbar">
-      <div class="search-box"><span>${icon("search",15)}</span><input id="searchInput" placeholder="Cari judul, penyusun, atau kode buku..." value="${esc(state.search)}"/></div>
+      <div class="search-box"><span>${icon("search",15)}</span><input id="searchInput" placeholder="Cari judul, penyusun, atau kode buku..." value="${esc(state.bookSearch)}"/></div>
       <select id="katFilterSelect"><option value="Semua" ${state.katFilter==='Semua'?'selected':''}>Semua Kategori</option>
         ${state.kategoriList.map(k=>`<option value="${esc(k.kode)}" ${state.katFilter===k.kode?'selected':''}>${esc(k.kode)} — ${esc(k.nama)}</option>`).join("")}</select>
       <select id="statusFilterSelect"><option value="Semua" ${state.statusFilter==='Semua'?'selected':''}>Semua Status</option>
@@ -1503,7 +1506,7 @@ function katalogShellHTML(){
   `;
 }
 function bindKatalogToolbar(){
-  document.getElementById("searchInput").addEventListener("input", e=>{ state.search=e.target.value; renderKatalogGrid(); });
+  document.getElementById("searchInput").addEventListener("input", e=>{ state.bookSearch=e.target.value; renderKatalogGrid(); });
   document.getElementById("katFilterSelect").addEventListener("change", e=>{ state.katFilter=e.target.value; renderKatalogGrid(); });
   document.getElementById("statusFilterSelect").addEventListener("change", e=>{ state.statusFilter=e.target.value; renderKatalogGrid(); });
   document.getElementById("btnCetakLabel").addEventListener("click", printLabels);
@@ -1512,7 +1515,7 @@ function bindKatalogToolbar(){
 }
 function renderKatalogGrid(){
   const grid=document.getElementById("katalogGrid"); if(!grid) return;
-  const q=state.search.toLowerCase();
+  const q=state.bookSearch.toLowerCase();
   const list = state.books.map(b=>({...b, status:isDipinjam(b.kode)?"dipinjam":"tersedia"}))
     .filter(b=>{
       const mQ = b.judul.toLowerCase().includes(q) || b.penyusun.toLowerCase().includes(q) || b.kode.toLowerCase().includes(q);
@@ -1541,7 +1544,8 @@ function renderKatalogGrid(){
         ${loanRec ? `<p class="book-loan-note">Dipinjam ${esc(loanRec.nama)} (Kls ${esc(loanRec.kelas)}) sejak ${fmt(loanRec.tanggalPinjam)}</p>` : ""}
         <div class="book-actions">
           <button class="btn btn-primary" style="flex:1;justify-content:center;" data-loan="${esc(b.id)}" ${b.status==='dipinjam'||b.statusFisik!=='baik'?'disabled':''}>${icon("bookOpen",15)} Pinjamkan</button>
-          <button class="icon-btn" data-edit="${esc(b.id)}">${icon("pencil",15)}</button>
+          <button class="icon-btn" title="Riwayat peminjaman buku" aria-label="Riwayat peminjaman buku" data-historybook="${esc(b.kode)}">${icon("history",15)}</button>
+          <button class="icon-btn" title="Edit buku" aria-label="Edit buku" data-edit="${esc(b.id)}">${icon("pencil",15)}</button>
           <button class="icon-btn" data-copybook="${esc(b.id)}">${icon("copy",15)}</button>
           <button class="icon-btn" data-del="${esc(b.id)}">${icon("trash2",15)}</button>
         </div>

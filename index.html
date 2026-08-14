@@ -2162,8 +2162,8 @@ async function importBooksFromFile(file){
     const {h,rows:body}=headerMap(rows);
     const aliases={
       kode:["kode","kodebuku","code","nomorbuku"], kategori:["kategori","category"], judul:["judul","judulbuku","title"],
-      penyusun:["penyusun","penulis","pengarang","author"], penerbit:["penerbit","publisher"], tahunTerbit:["tahunterbit","tahun","year"],
-      sumber:["sumber","source"], tanggalDiterima:["tanggalditerima","tglditerima","tanggal","tanggalbeli"], rak:["rak","lokasi","shelf"], keterangan:["keterangan","catatan","notes"]
+      penyusun:["penyusun","penulis","pengarang","author","penyusunpengarang"], penerbit:["penerbit","publisher"], tahunTerbit:["tahunterbit","tahun","year"],
+      sumber:["sumber","source","sumberbuku"], tanggalDiterima:["tanggalditerima","tglditerima","tanggal","tanggalbeli","tanggalbeliditerimabuku"], rak:["rak","lokasi","shelf"], keterangan:["keterangan","catatan","notes","ket"]
     };
     importedRows=body.map(r=>({kode:normalizeBookCode(getField(r,h,...aliases.kode)),kategori:getField(r,h,...aliases.kategori),judul:getField(r,h,...aliases.judul),penyusun:getField(r,h,...aliases.penyusun),penerbit:getField(r,h,...aliases.penerbit),tahunTerbit:getField(r,h,...aliases.tahunTerbit),sumber:getField(r,h,...aliases.sumber),tanggalDiterima:parseDateFlexible(getField(r,h,...aliases.tanggalDiterima)),rak:getField(r,h,...aliases.rak),keterangan:getField(r,h,...aliases.keterangan)})).filter(x=>x.kode&&x.judul);
   }

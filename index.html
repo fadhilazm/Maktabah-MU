@@ -222,6 +222,11 @@ const firebaseConfig = {
     #printArea{ display:block; position:absolute; top:0; left:0; width:100%; padding:14px; }
   }
 
+/* Professional icon system */
+.ui-icon{display:inline-block;flex:0 0 auto;width:1em;height:1em;vertical-align:-0.14em;margin-right:5px;stroke:currentColor;}
+.public-brand-mark .ui-icon,.public-quick-icon .ui-icon,.public-feature-icon .ui-icon{margin:0;}
+.public-quick-icon,.public-feature-icon{display:flex;align-items:center;justify-content:center;}
+.icon-btn .ui-icon,.close-x .ui-icon{margin:0;}
 /* ============ PUBLIC WEBSITE ============ */
 .public-site{min-height:100vh;background:#FBF7EF;color:#2B2013}
 .public-nav{position:sticky;top:0;z-index:20;background:rgba(251,247,239,.96);backdrop-filter:blur(12px);border-bottom:1px solid #E6D8BF}
@@ -421,7 +426,7 @@ const ICONS = {
   filePdf: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h2a2 2 0 0 1 0 4H8z"/><path d="M13 17v-4h3"/><path d="M13 15h3"/>',
 };
 function icon(name, size=12){
-  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:5px;">${ICONS[name]||""}</svg>`;
+  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ui-icon" aria-hidden="true">${ICONS[name]||""}</svg>`;
 }
 function suggestKode(kategori, books){
   const nums = books.map(b=>b.kode||"").filter(k=>k.toUpperCase().startsWith(kategori))
@@ -801,7 +806,7 @@ function publicHTML(){
     <nav class="public-nav">
       <div class="public-nav-inner">
         <button class="public-brand" data-public-home style="border:0;background:none;cursor:pointer;text-align:left;padding:0">
-          <span class="public-brand-mark">icon("bookOpen",22)</span>
+          <span class="public-brand-mark">${icon("bookOpen",22)}</span>
           <span><div class="public-brand-title">${esc(state.settings.namaMaktabah)}</div><div class="public-brand-sub">Kalibagor · Banyumas · Jawa Tengah</div></span>
         </button>
         <div class="public-nav-links">
@@ -832,10 +837,10 @@ function publicHTML(){
         <div><h3 class="public-section-title">Jelajahi Maktabah</h3><p class="public-section-desc">Akses informasi perpustakaan dengan sederhana.</p></div>
       </div>
       <div class="public-quick">
-        <div class="public-quick-card" data-public-catalog><div class="public-quick-icon">icon("library",15)</div><div class="public-quick-title">Katalog Buku</div><div class="public-quick-text">Cari dan lihat koleksi yang tersedia.</div></div>
-        <div class="public-quick-card" data-public-info><div class="public-quick-icon">icon("info",15)</div><div class="public-quick-title">Tentang Maktabah</div><div class="public-quick-text">Kenali fungsi dan layanan Maktabah Al-Faruq.</div></div>
-        <div class="public-quick-card" data-public-info><div class="public-quick-icon">icon("bookOpen",15)</div><div class="public-quick-title">Panduan Peminjaman</div><div class="public-quick-text">Ketahui alur sederhana meminjam dan mengembalikan buku.</div></div>
-        <div class="public-quick-card" data-admin-login><div class="public-quick-icon">icon("lockKeyhole",15)</div><div class="public-quick-title">Area Petugas</div><div class="public-quick-text">Masuk ke dashboard untuk mengelola Maktabah.</div></div>
+        <div class="public-quick-card" data-public-catalog><div class="public-quick-icon">${icon("library",15)}</div><div class="public-quick-title">Katalog Buku</div><div class="public-quick-text">Cari dan lihat koleksi yang tersedia.</div></div>
+        <div class="public-quick-card" data-public-info><div class="public-quick-icon">${icon("info",15)}</div><div class="public-quick-title">Tentang Maktabah</div><div class="public-quick-text">Kenali fungsi dan layanan Maktabah Al-Faruq.</div></div>
+        <div class="public-quick-card" data-public-info><div class="public-quick-icon">${icon("bookOpen",15)}</div><div class="public-quick-title">Panduan Peminjaman</div><div class="public-quick-text">Ketahui alur sederhana meminjam dan mengembalikan buku.</div></div>
+        <div class="public-quick-card" data-admin-login><div class="public-quick-icon">${icon("lockKeyhole",15)}</div><div class="public-quick-title">Area Petugas</div><div class="public-quick-text">Masuk ke dashboard untuk mengelola Maktabah.</div></div>
       </div>
     </section>
 
@@ -870,9 +875,9 @@ function publicHTML(){
         </div>
       </div>
       <div class="public-feature-strip">
-        <div class="public-feature-card"><div class="public-feature-icon">icon("bookOpen",18)</div><div><strong>Koleksi untuk belajar</strong><span>Beragam buku untuk mendukung pembelajaran dan pembentukan adab.</span></div></div>
-        <div class="public-feature-card"><div class="public-feature-icon">icon("search",18)</div><div><strong>Mudah ditemukan</strong><span>Cari judul, penyusun, kategori, atau kode buku dengan cepat.</span></div></div>
-        <div class="public-feature-card"><div class="public-feature-icon">icon("library",18)</div><div><strong>Tertata & terpercaya</strong><span>Data koleksi dikelola dalam satu sistem Maktabah.</span></div></div>
+        <div class="public-feature-card"><div class="public-feature-icon">${icon("bookOpen",18)}</div><div><strong>Koleksi untuk belajar</strong><span>Beragam buku untuk mendukung pembelajaran dan pembentukan adab.</span></div></div>
+        <div class="public-feature-card"><div class="public-feature-icon">${icon("search",18)}</div><div><strong>Mudah ditemukan</strong><span>Cari judul, penyusun, kategori, atau kode buku dengan cepat.</span></div></div>
+        <div class="public-feature-card"><div class="public-feature-icon">${icon("library",18)}</div><div><strong>Tertata & terpercaya</strong><span>Data koleksi dikelola dalam satu sistem Maktabah.</span></div></div>
       </div>
     </section>
 
@@ -1114,7 +1119,7 @@ function dashboardHTML(){
       ${statCard("Total Denda Belum Lunas", rupiah(totalDenda), "var(--rose)", "Rp")}
       ${statCard("Buku Hilang/Rusak", rusakHilang, "#8C6239", "!")}
     </div>
-    ${overdueCount>0 ? `<div class="alert-box alert-rose">icon("alertTriangle",15) ${overdueCount} peminjaman sudah melewati jatuh tempo — cek Transaksi ▸ Pengembalian.</div>` : ""}
+    ${overdueCount>0 ? `<div class="alert-box alert-rose">${icon("alertTriangle",15)} ${overdueCount} peminjaman sudah melewati jatuh tempo — cek Transaksi ▸ Pengembalian.</div>` : ""}
     <div class="dash-grid">
       <div class="panel"><h3 class="panel-title">Peminjaman per Kelas</h3>
         ${perKelas.length===0 ? `<div class="muted">Belum ada data.</div>` : `<div class="chart-bars">${perKelas.map(p=>`
@@ -1129,7 +1134,7 @@ function dashboardHTML(){
     </div>
     <div class="panel" style="margin-top:18px;"><h3 class="panel-title">Aktivitas Terbaru</h3>
       ${recent.length===0 ? `<div class="muted">Belum ada aktivitas.</div>` : recent.map(e=>`
-        <div class="activity-item"><span>${e.type==='pinjam'?'icon("bookOpen",15)':'icon("rotateCcw",15)'}</span><span><b>${esc(e.nama)}</b> ${e.type==='pinjam'?'meminjam':'mengembalikan'} <i>${esc(e.judul)}</i></span><span class="activity-time">${fmt(e.tanggal)}</span></div>
+        <div class="activity-item"><span>${e.type==='pinjam'?icon("bookOpen",15):icon("rotateCcw",15)}</span><span><b>${esc(e.nama)}</b> ${e.type==='pinjam'?'meminjam':'mengembalikan'} <i>${esc(e.judul)}</i></span><span class="activity-time">${fmt(e.tanggal)}</span></div>
       `).join("")}
     </div>
   `;
@@ -1164,7 +1169,7 @@ function anggotaHTML(){
   const list = [...state.anggota].sort((a,b)=>a.nama.localeCompare(b.nama));
   return `
     <div class="toolbar">
-      <div class="search-box"><span>icon("search",15)</span><input id="anggotaSearch" placeholder="Cari nama atau NIS..." value="${esc(state.search)}"/></div>
+      <div class="search-box"><span>${icon("search",15)}</span><input id="anggotaSearch" placeholder="Cari nama atau NIS..." value="${esc(state.search)}"/></div>
       <button class="btn btn-primary" id="btnTambahAnggota">+ Tambah Anggota</button>
     </div>
     <div id="anggotaTableWrap"></div>
@@ -1176,7 +1181,7 @@ function renderAnggotaTable(){
   const list = state.anggota.filter(a=>a.nama.toLowerCase().includes(q) || a.nis.toLowerCase().includes(q)).sort((a,b)=>a.nama.localeCompare(b.nama));
   wrap.innerHTML = `<div class="table-wrap"><table class="data-table"><thead><tr><th>NIS</th><th>Nama</th><th>Kelas</th><th>L/P</th><th>Terdaftar</th><th></th></tr></thead><tbody>
     ${list.map(a=>`<tr><td>${esc(a.nis)}</td><td>${esc(a.nama)}</td><td>Kelas ${esc(a.kelas)}</td><td>${esc(a.lp)}</td><td>${fmt(a.tglDaftar)}</td>
-      <td style="display:flex;gap:6px;"><button class="icon-btn" data-editanggota="${a.id}">icon("pencil",15)</button><button class="icon-btn" data-copyanggota="${a.id}">icon("copy",15)</button><button class="icon-btn" data-delanggota="${a.id}">icon("trash2",15)</button></td></tr>`).join("")}
+      <td style="display:flex;gap:6px;"><button class="icon-btn" data-editanggota="${a.id}">${icon("pencil",15)}</button><button class="icon-btn" data-copyanggota="${a.id}">${icon("copy",15)}</button><button class="icon-btn" data-delanggota="${a.id}">${icon("trash2",15)}</button></td></tr>`).join("")}
   </tbody></table></div>${list.length===0?'<div class="muted" style="text-align:center;">Tidak ada anggota yang cocok.</div>':''}`;
   wrap.querySelectorAll("[data-editanggota]").forEach(b=>b.addEventListener("click", ()=>openAnggotaModal("edit", state.anggota.find(a=>a.id===b.dataset.editanggota))));
   wrap.querySelectorAll("[data-copyanggota]").forEach(b=>b.addEventListener("click", ()=>copyAnggota(b.dataset.copyanggota)));
@@ -1226,7 +1231,7 @@ function kategoriBodyHTML(){
           <input type="color" class="kat-swatch" value="${esc(k.color)}" data-kat-color="${esc(k.kode)}"/>
           <input class="kat-input-kode" value="${esc(k.kode)}" data-kat-kode="${esc(k.kode)}"/>
           <input class="kat-input-nama" value="${esc(k.nama)}" data-kat-nama="${esc(k.kode)}"/>
-          <button class="kat-del" data-kat-del="${esc(k.kode)}">icon("trash2",15)</button>
+          <button class="kat-del" data-kat-del="${esc(k.kode)}">${icon("trash2",15)}</button>
         </div>`).join("")}
     </div>
     <div style="border-top:1px dashed var(--line);padding-top:14px;margin-top:6px;">
@@ -1281,7 +1286,7 @@ function kontribHTML(){
     </div>
     <div class="table-wrap"><table class="data-table"><thead><tr><th>Jenis</th><th>Nama</th><th></th></tr></thead><tbody>
       ${state.kontribList.map(k=>`<tr><td><span class="badge ${k.jenis==='Pengarang'?'badge-plum':'badge-blue'}">${k.jenis}</span></td><td>${esc(k.nama)}</td>
-        <td style="display:flex;gap:6px;"><button class="icon-btn" data-editkontrib="${k.id}">icon("pencil",15)</button><button class="icon-btn" data-delkontrib="${k.id}">icon("trash2",15)</button></td></tr>`).join("")}
+        <td style="display:flex;gap:6px;"><button class="icon-btn" data-editkontrib="${k.id}">${icon("pencil",15)}</button><button class="icon-btn" data-delkontrib="${k.id}">${icon("trash2",15)}</button></td></tr>`).join("")}
     </tbody></table></div>
   `;
 }
@@ -1309,7 +1314,7 @@ function rakHTML(){
     <div class="toolbar"><button class="btn btn-primary" id="btnTambahRak">+ Tambah Rak/Lokasi</button></div>
     <div class="table-wrap"><table class="data-table"><thead><tr><th>Kode</th><th>Nama Lokasi</th><th></th></tr></thead><tbody>
       ${state.rakList.map(r=>`<tr><td><span class="kode-chip" style="background:var(--blue);">${esc(r.kode)}</span></td><td>${esc(r.nama)}</td>
-        <td style="display:flex;gap:6px;"><button class="icon-btn" data-editrak="${r.id}">icon("pencil",15)</button><button class="icon-btn" data-delrak="${r.id}">icon("trash2",15)</button></td></tr>`).join("")}
+        <td style="display:flex;gap:6px;"><button class="icon-btn" data-editrak="${r.id}">${icon("pencil",15)}</button><button class="icon-btn" data-delrak="${r.id}">${icon("trash2",15)}</button></td></tr>`).join("")}
     </tbody></table></div>
   `;
 }
@@ -1338,14 +1343,14 @@ function saveRakFromForm(){
 function katalogShellHTML(){
   return `
     <div class="toolbar">
-      <div class="search-box"><span>icon("search",15)</span><input id="searchInput" placeholder="Cari judul, penyusun, atau kode buku..." value="${esc(state.search)}"/></div>
+      <div class="search-box"><span>${icon("search",15)}</span><input id="searchInput" placeholder="Cari judul, penyusun, atau kode buku..." value="${esc(state.search)}"/></div>
       <select id="katFilterSelect"><option value="Semua" ${state.katFilter==='Semua'?'selected':''}>Semua Kategori</option>
         ${state.kategoriList.map(k=>`<option value="${esc(k.kode)}" ${state.katFilter===k.kode?'selected':''}>${esc(k.kode)} — ${esc(k.nama)}</option>`).join("")}</select>
       <select id="statusFilterSelect"><option value="Semua" ${state.statusFilter==='Semua'?'selected':''}>Semua Status</option>
         <option value="tersedia" ${state.statusFilter==='tersedia'?'selected':''}>Tersedia</option>
         <option value="dipinjam" ${state.statusFilter==='dipinjam'?'selected':''}>Dipinjam</option></select>
       <button class="btn btn-outline" id="btnCetakLabel">${icon("printer",15)} Cetak Label QR</button>
-      <button class="btn btn-gold" id="btnScan">icon("scanLine",15) Scan Buku</button>
+      <button class="btn btn-gold" id="btnScan">${icon("scanLine",15)} Scan Buku</button>
       <button class="btn btn-primary" id="btnTambahBuku">+ Tambah Buku</button>
     </div>
     <div id="katalogGrid"></div>
@@ -1389,10 +1394,10 @@ function renderKatalogGrid(){
         <p class="book-meta small">Terbit ${esc(b.tahunTerbit)} · ${esc(b.sumber)}${b.keterangan?` · ${esc(b.keterangan)}`:''}</p>
         ${loanRec ? `<p class="book-loan-note">Dipinjam ${esc(loanRec.nama)} (Kls ${esc(loanRec.kelas)}) sejak ${fmt(loanRec.tanggalPinjam)}</p>` : ""}
         <div class="book-actions">
-          <button class="btn btn-primary" style="flex:1;justify-content:center;" data-loan="${esc(b.id)}" ${b.status==='dipinjam'||b.statusFisik!=='baik'?'disabled':''}>icon("bookOpen",15) Pinjamkan</button>
-          <button class="icon-btn" data-edit="${esc(b.id)}">icon("pencil",15)</button>
-          <button class="icon-btn" data-copybook="${esc(b.id)}">icon("copy",15)</button>
-          <button class="icon-btn" data-del="${esc(b.id)}">icon("trash2",15)</button>
+          <button class="btn btn-primary" style="flex:1;justify-content:center;" data-loan="${esc(b.id)}" ${b.status==='dipinjam'||b.statusFisik!=='baik'?'disabled':''}>${icon("bookOpen",15)} Pinjamkan</button>
+          <button class="icon-btn" data-edit="${esc(b.id)}">${icon("pencil",15)}</button>
+          <button class="icon-btn" data-copybook="${esc(b.id)}">${icon("copy",15)}</button>
+          <button class="icon-btn" data-del="${esc(b.id)}">${icon("trash2",15)}</button>
         </div>
       </div>`;
   }).join("")}</div>`;
@@ -1464,7 +1469,7 @@ function peminjamanHTML(){
       </div>
       <p class="hint">Tanggal pinjam: ${fmt(todayDate)} · Jatuh tempo: ${fmt(addDays(todayDate, state.settings.lamaPinjamHari))} (${state.settings.lamaPinjamHari} hari)</p>
       <button class="btn btn-primary btn-block" data-newloan="1" style="margin-top:10px;" ${tersedia.length===0?'disabled':''}>Catat Peminjaman</button>
-      <p class="hint">Bisa juga langsung scan QR buku lewat tombol icon("scanLine",15) Scan di Data Buku.</p>
+      <p class="hint">Bisa juga langsung scan QR buku lewat tombol ${icon("scanLine",15)} Scan di Data Buku.</p>
     </div>
     <h3 class="panel-title">Peminjaman Berjalan (${activeLoans().length})</h3>
     ${loanListHTML(activeLoans(), false)}
@@ -1488,13 +1493,13 @@ function loanListHTML(list, showLunas){
       <div class="loan-left"><span class="kode-chip" style="background:${kat.color}">${esc(l.kodeBuku)}</span>
         <div><div class="loan-title">${esc(l.judulBuku)}</div><div class="loan-sub">${esc(l.nama)} · Kelas ${esc(l.kelas)} · pinjam ${fmt(l.tanggalPinjam)} · jatuh tempo ${fmt(l.tanggalJatuhTempo)}${denda>0?` · <b style="color:var(--rose)">${rupiah(denda)}</b>`:''}</div></div></div>
       <div class="loan-left">
-        ${late?`<span class="status-tag" style="color:var(--rose)">icon("alertTriangle",15) Terlambat ${hariTerlambat(l)}h</span>`:`<span class="status-tag" style="color:var(--plum)">icon("clock3",15) Berjalan</span>`}
-        <button class="btn btn-gold btn-sm" data-return="${l.id}">icon("rotateCcw",15) Kembalikan</button>
+        ${late?`<span class="status-tag" style="color:var(--rose)">${icon("alertTriangle",15)} Terlambat ${hariTerlambat(l)}h</span>`:`<span class="status-tag" style="color:var(--plum)">${icon("clock3",15)} Berjalan</span>`}
+        <button class="btn btn-gold btn-sm" data-return="${l.id}">${icon("rotateCcw",15)} Kembalikan</button>
         <button class="btn btn-outline btn-sm" data-extend="${l.id}">⏩ +${state.settings.lamaPinjamHari}h</button>
         <button class="btn btn-rose btn-sm" data-lostloan="${l.id}" data-kind="hilang">Hilang</button>
         <button class="btn btn-rose btn-sm" data-lostloan="${l.id}" data-kind="rusak">Rusak</button>
-        <button class="icon-btn" title="Edit transaksi" data-editloan="${l.id}">icon("pencil",15)</button>
-        <button class="icon-btn" title="Hapus transaksi" data-delloan="${l.id}">icon("trash2",15)</button>
+        <button class="icon-btn" title="Edit transaksi" data-editloan="${l.id}">${icon("pencil",15)}</button>
+        <button class="icon-btn" title="Hapus transaksi" data-delloan="${l.id}">${icon("trash2",15)}</button>
       </div></div>`;
   }).join("");
 }
@@ -1507,11 +1512,11 @@ function pengembalianHTML(){
     ${al.length===0? `<div class="muted" style="text-align:center;padding:40px 0;">Tidak ada buku yang sedang dipinjam.</div>` : loanListHTML(al)}
     <div class="row-between" style="margin-top:24px;align-items:center;">
       <h3 class="panel-title" style="margin:0;">Riwayat Pengembalian</h3>
-      ${hist.length>0? `<button class="btn btn-rose btn-sm" id="btnClearHistory">icon("trash2",15) Hapus Riwayat</button>` : ''}
+      ${hist.length>0? `<button class="btn btn-rose btn-sm" id="btnClearHistory">${icon("trash2",15)} Hapus Riwayat</button>` : ''}
     </div>
     ${hist.length===0? `<div class="muted">Belum ada riwayat.</div>` : `<div class="table-wrap"><table class="data-table"><thead><tr><th>Kode</th><th>Judul</th><th>Peminjam</th><th>Pinjam</th><th>Kembali</th><th>Denda</th><th></th></tr></thead><tbody>
       ${hist.map(l=>{ const d=dendaLoan(l); return `<tr><td><span class="kode-chip" style="background:var(--plum)">${esc(l.kodeBuku)}</span></td><td>${esc(l.judulBuku)}</td><td>${esc(l.nama)} (Kls ${esc(l.kelas)})</td><td>${fmt(l.tanggalPinjam)}</td><td>${fmt(l.tanggalKembali)}</td><td>${d>0?`<span class="badge ${l.dendaLunas?'badge-plum':'badge-rose'}">${rupiah(d)} ${l.dendaLunas?'Lunas':'Belum'}</span>`:'-'}</td>
-      <td style="display:flex;gap:6px;"><button class="icon-btn" title="Edit transaksi" data-editloan="${l.id}">icon("pencil",15)</button><button class="icon-btn" title="Hapus transaksi" data-delloan="${l.id}">icon("trash2",15)</button></td></tr>`; }).join("")}
+      <td style="display:flex;gap:6px;"><button class="icon-btn" title="Edit transaksi" data-editloan="${l.id}">${icon("pencil",15)}</button><button class="icon-btn" title="Hapus transaksi" data-delloan="${l.id}">${icon("trash2",15)}</button></td></tr>`; }).join("")}
     </tbody></table></div>`}
   `;
 }
@@ -1530,8 +1535,8 @@ function perpanjanganHTML(){
         <div><div class="loan-title">${esc(l.judulBuku)}</div><div class="loan-sub">${esc(l.nama)} · Kelas ${esc(l.kelas)} · jatuh tempo ${fmt(l.tanggalJatuhTempo)} · sudah diperpanjang ${l.perpanjang||0}×</div></div></div>
         <div class="loan-left">
           <button class="btn btn-outline btn-sm" data-extend="${l.id}">⏩ Perpanjang +${state.settings.lamaPinjamHari} hari</button>
-          <button class="icon-btn" title="Edit transaksi" data-editloan="${l.id}">icon("pencil",15)</button>
-          <button class="icon-btn" title="Hapus transaksi" data-delloan="${l.id}">icon("trash2",15)</button>
+          <button class="icon-btn" title="Edit transaksi" data-editloan="${l.id}">${icon("pencil",15)}</button>
+          <button class="icon-btn" title="Hapus transaksi" data-delloan="${l.id}">${icon("trash2",15)}</button>
         </div>
       </div>`).join("")}
   `;
@@ -1591,7 +1596,7 @@ function dendaHTML(){
     ${list.map(l=>`<tr><td><span class="kode-chip" style="background:var(--plum)">${esc(l.kodeBuku)}</span></td><td>${esc(l.judulBuku)}</td><td>${esc(l.nama)} (Kls ${esc(l.kelas)})</td><td>${hariTerlambat(l)} hari</td><td>${rupiah(dendaLoan(l))}</td>
       <td><span class="badge ${l.dendaLunas?'badge-plum':'badge-rose'}">${l.dendaLunas?'Lunas':'Belum Lunas'}</span></td>
       <td style="display:flex;gap:6px;"><button class="btn btn-sm ${l.dendaLunas?'btn-outline':'btn-gold'}" data-lunas="${l.id}">${l.dendaLunas?'Batal Lunas':'Tandai Lunas'}</button>
-      <button class="icon-btn" title="Edit transaksi" data-editloan="${l.id}">icon("pencil",15)</button><button class="icon-btn" title="Hapus transaksi" data-delloan="${l.id}">icon("trash2",15)</button></td></tr>`).join("")}
+      <button class="icon-btn" title="Edit transaksi" data-editloan="${l.id}">${icon("pencil",15)}</button><button class="icon-btn" title="Hapus transaksi" data-delloan="${l.id}">${icon("trash2",15)}</button></td></tr>`).join("")}
     </tbody></table></div>`}
   `;
 }
@@ -1612,7 +1617,7 @@ function loanEditModalHTML(){
   const d = state.loanEditModal.data;
   const tersediaBuku = state.books.filter(b=> b.kode===d.kodeBuku || !isDipinjam(b.kode)).sort((a,b)=>a.kode.localeCompare(b.kode));
   return `<div class="modal-backdrop" id="leBackdrop"><div class="modal">
-    <div class="modal-header"><h3 class="modal-title">Edit Transaksi Peminjaman</h3><button class="close-x" id="closeLeModal">icon("x",15)</button></div>
+    <div class="modal-header"><h3 class="modal-title">Edit Transaksi Peminjaman</h3><button class="close-x" id="closeLeModal">${icon("x",15)}</button></div>
     <p class="hint" style="margin:0 0 14px;">Gunakan ini untuk memperbaiki transaksi yang salah pilih nama anggota atau salah pilih buku, meskipun sudah terlanjur disimpan.</p>
     <div class="field"><label class="field-label">Anggota (Peminjam)</label>
       <select id="le_anggota">${state.anggota.slice().sort((a,b)=>a.nama.localeCompare(b.nama)).map(a=>`<option value="${a.id}" ${a.id===d.anggotaId?'selected':''}>${esc(a.nama)} — Kelas ${esc(a.kelas)}</option>`).join("")}</select>
@@ -1638,7 +1643,7 @@ function loanEditModalHTML(){
     </div>
     <div class="field"><label class="field-label">Tanggal Kembali (kosongkan jika status masih Dipinjam)</label><input type="date" id="le_tglkembali" value="${esc(d.tanggalKembali||'')}"/></div>
     <button class="btn btn-primary btn-block" id="saveLeBtn" style="margin-top:16px;">Simpan Perubahan</button>
-    <button class="btn btn-rose btn-block" id="delLeBtn" style="margin-top:8px;">icon("trash2",15) Hapus Transaksi Ini</button>
+    <button class="btn btn-rose btn-block" id="delLeBtn" style="margin-top:8px;">${icon("trash2",15)} Hapus Transaksi Ini</button>
   </div></div>`;
 }
 function bindLoanEditModal(){
@@ -1735,7 +1740,7 @@ function targetHTML(){
       }).join("")}
       <button class="btn btn-primary" id="saveTargetBtn" style="margin-top:12px;">Simpan Target</button>
     </div>
-    <div class="panel"><h3 class="panel-title">icon("trophy",15) Prestasi Membaca (Top 5)</h3>
+    <div class="panel"><h3 class="panel-title">${icon("trophy",15)} Prestasi Membaca (Top 5)</h3>
       <div class="top-list">${ranking.map((r,i)=>`<div class="top-item"><div class="top-rank">${i+1}</div><div class="top-title">${esc(r.a.nama)} <span class="muted" style="padding:0;">(Kls ${esc(r.a.kelas)})</span></div><div class="top-count">${r.total} buku</div></div>`).join("")||'<div class="muted">Belum ada data.</div>'}</div>
     </div>
   </div>`;
@@ -1743,7 +1748,7 @@ function targetHTML(){
 
 /* ============ PENCARIAN ANGGOTA ============ */
 function cariAnggotaHTML(){
-  return `<div class="toolbar"><div class="search-box"><span>icon("search",15)</span><input id="anggotaSearchCari" placeholder="Cari nama anggota..." value="${esc(state.search)}"/></div></div>
+  return `<div class="toolbar"><div class="search-box"><span>${icon("search",15)}</span><input id="anggotaSearchCari" placeholder="Cari nama anggota..." value="${esc(state.search)}"/></div></div>
     <div id="cariAnggotaResult"></div>`;
 }
 function renderCariAnggotaResult(){
@@ -1809,7 +1814,7 @@ function cetakHTML(){
   const s=state.sub;
   if(s==="kartuanggota") return cetakKartuAnggotaHTML();
   if(s==="kartubuku") return cetakKartuBukuHTML();
-  if(s==="label") return `<div class="panel"><h3 class="panel-title">Label / Barcode QR</h3><p class="hint" style="margin-bottom:14px;">Mencetak QR seluruh koleksi buku ke kertas biasa — bisa digunakan bersama fitur icon("scanLine",15) Scan di Data Buku.</p><button class="btn btn-primary" id="btnCetakLabel2">${icon("printer",15)} Cetak Semua Label QR</button></div>`;
+  if(s==="label") return `<div class="panel"><h3 class="panel-title">Label / Barcode QR</h3><p class="hint" style="margin-bottom:14px;">Mencetak QR seluruh koleksi buku ke kertas biasa — bisa digunakan bersama fitur ${icon("scanLine",15)} Scan di Data Buku.</p><button class="btn btn-primary" id="btnCetakLabel2">${icon("printer",15)} Cetak Semua Label QR</button></div>`;
   if(s==="katalog") return cetakKatalogHTML();
   if(s==="bukti") return cetakBuktiHTML();
   return "";
@@ -2205,7 +2210,7 @@ function bindAuthModal(){
 function bookModalHTML(){
   const m=state.bookModal, d=m.data;
   return `<div class="modal-backdrop" id="bookBackdrop"><div class="modal" id="bookModalBox">
-    <div class="modal-header"><h3 class="modal-title">${m.mode==='add'?'Tambah Buku':'Edit Buku'}</h3><button class="close-x" id="closeBookModal">icon("x",15)</button></div>
+    <div class="modal-header"><h3 class="modal-title">${m.mode==='add'?'Tambah Buku':'Edit Buku'}</h3><button class="close-x" id="closeBookModal">${icon("x",15)}</button></div>
     <div class="field-row">
       <div class="field"><label class="field-label">Kategori</label>
         <select id="f_kategori">${state.kategoriList.map(k=>`<option value="${esc(k.kode)}" ${d.kategori===k.kode?'selected':''}>${esc(k.kode)} — ${esc(k.nama)}</option>`).join("")}</select>
@@ -2252,13 +2257,13 @@ function bindBookModal(){
 function loanModalHTML(){
   const b=state.loanTarget, kat=katByKode(b.kategori);
   if(state.anggota.length===0){
-    return `<div class="modal-backdrop" id="loanBackdrop"><div class="modal" style="max-width:360px;"><div class="modal-header"><h3 class="modal-title">Belum Ada Anggota</h3><button class="close-x" id="closeLoanModal">icon("x",15)</button></div><p class="hint">Tambahkan anggota dulu di Master Data ▸ Data Anggota sebelum mencatat peminjaman.</p></div></div>`;
+    return `<div class="modal-backdrop" id="loanBackdrop"><div class="modal" style="max-width:360px;"><div class="modal-header"><h3 class="modal-title">Belum Ada Anggota</h3><button class="close-x" id="closeLoanModal">${icon("x",15)}</button></div><p class="hint">Tambahkan anggota dulu di Master Data ▸ Data Anggota sebelum mencatat peminjaman.</p></div></div>`;
   }
   return `<div class="modal-backdrop" id="loanBackdrop"><div class="modal" style="max-width:380px;">
     <div class="modal-header" style="align-items:flex-start;"><div>
       <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--gold);font-weight:700;">Formulir Peminjaman</div>
       <h3 class="modal-title" style="margin-top:3px;">${esc(b.judul)}</h3><span class="kode-chip" style="background:${kat.color}">${esc(b.kode)}</span>
-    </div><button class="close-x" id="closeLoanModal">icon("x",15)</button></div>
+    </div><button class="close-x" id="closeLoanModal">${icon("x",15)}</button></div>
     <div class="field" style="margin-top:14px;"><label class="field-label">Anggota</label>
       <select id="l_anggota">${state.anggota.sort((a,b2)=>a.nama.localeCompare(b2.nama)).map(a=>`<option value="${a.id}">${esc(a.nama)} — Kelas ${esc(a.kelas)}</option>`).join("")}</select>
     </div>
@@ -2282,7 +2287,7 @@ function openLoanModal(bookId){ const b=state.books.find(x=>x.id===bookId); if(!
 /* ---- Anggota modal ---- */
 function anggotaModalHTML(){
   const m=state.anggotaModal, d=m.data;
-  return `<div class="modal-backdrop" id="agBackdrop"><div class="modal"><div class="modal-header"><h3 class="modal-title">${m.mode==='add'?'Tambah Anggota':'Edit Anggota'}</h3><button class="close-x" id="closeAgModal">icon("x",15)</button></div>
+  return `<div class="modal-backdrop" id="agBackdrop"><div class="modal"><div class="modal-header"><h3 class="modal-title">${m.mode==='add'?'Tambah Anggota':'Edit Anggota'}</h3><button class="close-x" id="closeAgModal">${icon("x",15)}</button></div>
     <div class="field-row"><div class="field"><label class="field-label">NIS</label><input id="ag_nis" value="${esc(d.nis)}"/></div><div class="field"><label class="field-label">Kelas</label><select id="ag_kelas">${["1","2","3","4","5","6"].map(k=>`<option value="${k}" ${d.kelas===k?'selected':''}>Kelas ${k}</option>`).join("")}</select></div></div>
     <div class="field"><label class="field-label">Nama Lengkap</label><input id="ag_nama" value="${esc(d.nama)}"/></div>
     <div class="field-row"><div class="field"><label class="field-label">L/P</label><select id="ag_lp"><option value="L" ${d.lp==='L'?'selected':''}>Laki-laki</option><option value="P" ${d.lp==='P'?'selected':''}>Perempuan</option></select></div>
@@ -2300,7 +2305,7 @@ function bindAnggotaModal(){
 /* ---- Kontrib modal ---- */
 function kontribModalHTML(){
   const m=state.kontribModal, d=m.data;
-  return `<div class="modal-backdrop" id="ktBackdrop"><div class="modal" style="max-width:360px;"><div class="modal-header"><h3 class="modal-title">${m.mode==='add'?'Tambah':'Edit'} Data</h3><button class="close-x" id="closeKtModal">icon("x",15)</button></div>
+  return `<div class="modal-backdrop" id="ktBackdrop"><div class="modal" style="max-width:360px;"><div class="modal-header"><h3 class="modal-title">${m.mode==='add'?'Tambah':'Edit'} Data</h3><button class="close-x" id="closeKtModal">${icon("x",15)}</button></div>
     <div class="field"><label class="field-label">Jenis</label><select id="kt_jenis"><option value="Pengarang" ${d.jenis==='Pengarang'?'selected':''}>Pengarang</option><option value="Penerbit" ${d.jenis==='Penerbit'?'selected':''}>Penerbit</option></select></div>
     <div class="field"><label class="field-label">Nama</label><input id="kt_nama" value="${esc(d.nama)}"/></div>
     <button class="btn btn-primary btn-block" id="saveKtBtn" style="margin-top:16px;">Simpan</button>
@@ -2315,7 +2320,7 @@ function bindKontribModal(){
 /* ---- Rak modal ---- */
 function rakModalHTML(){
   const m=state.rakModal, d=m.data;
-  return `<div class="modal-backdrop" id="rkBackdrop"><div class="modal" style="max-width:360px;"><div class="modal-header"><h3 class="modal-title">${m.mode==='add'?'Tambah':'Edit'} Rak</h3><button class="close-x" id="closeRkModal">icon("x",15)</button></div>
+  return `<div class="modal-backdrop" id="rkBackdrop"><div class="modal" style="max-width:360px;"><div class="modal-header"><h3 class="modal-title">${m.mode==='add'?'Tambah':'Edit'} Rak</h3><button class="close-x" id="closeRkModal">${icon("x",15)}</button></div>
     <div class="field"><label class="field-label">Kode Rak</label><input id="rk_kode" value="${esc(d.kode)}" style="font-family:var(--mono);text-transform:uppercase;"/></div>
     <div class="field"><label class="field-label">Nama Lokasi</label><input id="rk_nama" value="${esc(d.nama)}" placeholder="cth. Rak Sudut Aqidah"/></div>
     <button class="btn btn-primary btn-block" id="saveRkBtn" style="margin-top:16px;">Simpan</button>
@@ -2330,7 +2335,7 @@ function bindRakModal(){
 /* ---- Kategori quick modal ---- */
 function katModalHTML(){
   return `<div class="modal-backdrop" id="katBackdrop"><div class="modal" style="max-width:460px;">
-    <div class="modal-header" style="margin-bottom:2px;"><h3 class="modal-title">Kelola Kategori</h3><button class="close-x" id="closeKatModal">icon("x",15)</button></div>
+    <div class="modal-header" style="margin-bottom:2px;"><h3 class="modal-title">Kelola Kategori</h3><button class="close-x" id="closeKatModal">${icon("x",15)}</button></div>
     ${kategoriBodyHTML()}
   </div></div>`;
 }
@@ -2348,7 +2353,7 @@ function bindKatModal(){
 /* ---- PIN modal ---- */
 function pinModalHTML(){
   return `<div class="modal-backdrop" id="pinBackdrop"><div class="modal" style="max-width:320px;text-align:center;">
-    <div class="modal-header"><h3 class="modal-title">Masuk Mode Admin</h3><button class="close-x" id="closePinModal">icon("x",15)</button></div>
+    <div class="modal-header"><h3 class="modal-title">Masuk Mode Admin</h3><button class="close-x" id="closePinModal">${icon("x",15)}</button></div>
     <div class="pin-box"><input id="pinInput" type="password" placeholder="PIN" maxlength="8"/></div>
     <button class="btn btn-primary btn-block" id="pinSubmitBtn" style="margin-top:14px;">Masuk</button>
   </div></div>`;
@@ -2364,7 +2369,7 @@ function bindPinModal(){
 let scanStream=null, scanRAF=null;
 function scanModalHTML(){
   return `<div class="modal-backdrop" id="scanBackdrop"><div class="modal" style="max-width:380px;">
-    <div class="modal-header"><h3 class="modal-title">Scan Kode Buku</h3><button class="close-x" id="closeScanModal">icon("x",15)</button></div>
+    <div class="modal-header"><h3 class="modal-title">Scan Kode Buku</h3><button class="close-x" id="closeScanModal">${icon("x",15)}</button></div>
     <div class="scan-video-wrap"><video id="scanVideo" playsinline muted></video><div class="scan-frame"></div></div>
     <p class="scan-hint">Arahkan kamera ke QR pada buku...</p>
   </div></div>`;

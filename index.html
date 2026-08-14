@@ -2990,12 +2990,27 @@ function bindScanConfirm(){
 
 /* ============ CETAK: LABEL QR ============ */
 function qrImageUrl(text, size){ return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(text)}`; }
+
+// Tunggu seluruh gambar QR benar-benar selesai dimuat sebelum membuka dialog cetak.
+// Ini mencegah QR hilang ketika browser/tablet mencetak terlalu cepat.
+async function printAfterImages(delay=250){
+  const imgs=[...document.querySelectorAll("#printArea img")];
+  const waits=imgs.map(img=>new Promise(resolve=>{
+    if(img.complete && img.naturalWidth>0){ resolve(); return; }
+    const done=()=>{ img.removeEventListener("load",done); img.removeEventListener("error",done); resolve(); };
+    img.addEventListener("load",done,{once:true});
+    img.addEventListener("error",done,{once:true});
+  }));
+  await Promise.all(waits);
+  await new Promise(r=>setTimeout(r,delay));
+  window.print();
+}
 function printLabels(){
   const list=[...state.books].sort((a,b)=>a.kode.localeCompare(b.kode));
   if(list.length===0){ showToast("Belum ada buku untuk dicetak","rose"); return; }
   const area=document.getElementById("printArea");
-  area.innerHTML = `<div class="label-grid">${list.map(b=>`<div class="label-card"><div class="qr"><img src="${qrImageUrl(b.kode,64)}" width="64" height="64" alt="QR ${esc(b.kode)}"/></div><div class="label-kode">${esc(b.kode)}</div><div class="label-judul">${esc(b.judul)}</div><div class="label-brand">${esc(state.settings.namaMaktabah)} · Kalibagor</div></div>`).join("")}</div>`;
-  setTimeout(()=>window.print(), 400);
+  area.innerHTML = `<div class="label-grid">${list.map(b=>`<div class="label-card"><div class="qr"><img referrerpolicy="no-referrer" src="${qrImageUrl(b.kode,64)}" width="64" height="64" alt="QR ${esc(b.kode)}"/></div><div class="label-kode">${esc(b.kode)}</div><div class="label-judul">${esc(b.judul)}</div><div class="label-brand">${esc(state.settings.namaMaktabah)} · Kalibagor</div></div>`).join("")}</div>`;
+  printAfterImages(350);
 }
 
 /* ============ CETAK: KARTU ANGGOTA ============ */
@@ -3003,19 +3018,19 @@ function kartuAnggotaCardHTML(a){
   return `<div class="id-card"><div class="id-card-head">${esc(state.settings.namaMaktabah)}</div>
     <div class="id-card-row"><b>Nama:</b> ${esc(a.nama)}</div><div class="id-card-row"><b>NIS:</b> ${esc(a.nis)}</div>
     <div class="id-card-row"><b>Kelas:</b> ${esc(a.kelas)}</div><div class="id-card-row"><b>Terdaftar:</b> ${fmt(a.tglDaftar)}</div>
-    <div class="id-card-qr"><img src="${qrImageUrl(a.nis||a.id,64)}" width="64" height="64" alt="QR ${esc(a.nis||a.id)}"/></div></div>`;
+    <div class="id-card-qr"><img referrerpolicy="no-referrer" src="${qrImageUrl(a.nis||a.id,64)}" width="64" height="64" alt="QR ${esc(a.nis||a.id)}"/></div></div>`;
 }
 function printKartuAnggota(id){
   const a=anggotaById(id); if(!a){ showToast("Anggota tidak ditemukan","rose"); return; }
   const area=document.getElementById("printArea");
   area.innerHTML = `<div class="id-card-grid">${kartuAnggotaCardHTML(a)}</div>`;
-  setTimeout(()=>window.print(), 400);
+  printAfterImages(350);
 }
 function printSemuaKartuAnggota(){
   if(state.anggota.length===0){ showToast("Belum ada anggota","rose"); return; }
   const area=document.getElementById("printArea");
   area.innerHTML = `<div class="id-card-grid">${state.anggota.map(kartuAnggotaCardHTML).join("")}</div>`;
-  setTimeout(()=>window.print(), 400);
+  printAfterImages(350);
 }
 
 /* ============ CETAK: KARTU BUKU ============ */
@@ -3033,10 +3048,10 @@ function printSemuaKartuBuku(){
       <div class="id-card-row"><b>Judul:</b> ${esc(b.judul)}</div>
       <div class="id-card-row"><b>Penyusun:</b> ${esc(b.penyusun)}</div><div class="id-card-row"><b>Penerbit:</b> ${esc(b.penerbit)} (${esc(b.tahunTerbit)})</div>
       <div class="id-card-row"><b>Kategori:</b> ${esc(kat.nama)}</div>
-      <div class="id-card-qr"><img src="${qrImageUrl(b.kode,64)}" width="64" height="64" alt="QR ${esc(b.kode)}"/></div>
+      <div class="id-card-qr"><img referrerpolicy="no-referrer" src="${qrImageUrl(b.kode,64)}" width="64" height="64" alt="QR ${esc(b.kode)}"/></div>
     </div>`;
   }).join("")}</div>`;
-  setTimeout(()=>window.print(),400);
+  printAfterImages(350);
 }
 function printKartuBuku(bookId){
   const b=state.books.find(x=>x.id===bookId); if(!b){ showToast("Buku tidak ditemukan","rose"); return; }
@@ -3049,9 +3064,9 @@ function printKartuBuku(bookId){
     <div class="id-card-row"><b>Judul:</b> ${esc(b.judul)}</div>
     <div class="id-card-row"><b>Penyusun:</b> ${esc(b.penyusun)}</div><div class="id-card-row"><b>Penerbit:</b> ${esc(b.penerbit)} (${esc(b.tahunTerbit)})</div>
     <div class="id-card-row"><b>Kategori:</b> ${esc(kat.nama)}</div>
-    <div class="id-card-qr"><img src="${qrImageUrl(b.kode,64)}" width="64" height="64" alt="QR ${esc(b.kode)}"/></div>
+    <div class="id-card-qr"><img referrerpolicy="no-referrer" src="${qrImageUrl(b.kode,64)}" width="64" height="64" alt="QR ${esc(b.kode)}"/></div>
   </div></div>`;
-  setTimeout(()=>window.print(), 400);
+  printAfterImages(350);
 }
 
 /* ============ CETAK: KATALOG ============ */

@@ -2030,7 +2030,11 @@ function cetakKartuAnggotaHTML(){
     </tbody></table></div></div>`;
 }
 function cetakKartuBukuHTML(){
-  return `<div class="panel"><h3 class="panel-title">Kartu Buku</h3><p class="hint" style="margin-bottom:14px;">Kartu info per buku (kode, judul, penyusun, kategori) — biasanya ditempel di sampul dalam buku.</p>
+  return `<div class="panel"><h3 class="panel-title">Kartu Buku</h3>
+    <p class="hint" style="margin-bottom:14px;">Kartu identitas setiap buku lengkap dengan kode QR. Bisa ditempel di bagian dalam sampul buku agar identitas dan riwayat buku mudah ditelusuri.</p>
+    <div class="toolbar">
+      <button class="btn btn-primary" id="btnCetakSemuaKartuBuku">${icon("printer",15)} Cetak Semua Kartu Buku</button>
+    </div>
     <div class="table-wrap"><table class="data-table"><thead><tr><th>Kode</th><th>Judul</th><th></th></tr></thead><tbody>
       ${state.books.map(b=>`<tr><td><span class="kode-chip" style="background:${katByKode(b.kategori).color}">${esc(b.kode)}</span></td><td>${esc(b.judul)}</td><td><button class="btn btn-outline btn-sm" data-printbukukartu="${b.id}">${icon("printer",15)} Cetak</button></td></tr>`).join("")}
     </tbody></table></div></div>`;
@@ -2050,6 +2054,7 @@ function bindCetakExtra(){
   const b1=document.getElementById("btnCetakLabel2"); if(b1) b1.addEventListener("click", printLabels);
   const b2=document.getElementById("btnCetakSemuaKartu"); if(b2) b2.addEventListener("click", printSemuaKartuAnggota);
   const b3=document.getElementById("btnCetakKatalog"); if(b3) b3.addEventListener("click", printKatalog);
+  const b4=document.getElementById("btnCetakSemuaKartuBuku"); if(b4) b4.addEventListener("click", printSemuaKartuBuku);
   document.querySelectorAll("[data-printbukukartu]").forEach(b=>b.addEventListener("click", ()=>printKartuBuku(b.dataset.printbukukartu)));
 }
 
@@ -2950,6 +2955,32 @@ function printSemuaKartuAnggota(){
   area.innerHTML = `<div class="id-card-grid">${state.anggota.map(kartuAnggotaCardHTML).join("")}</div>`;
   printAfterImagesReady();
 }
+function printSemuaKartuBuku(){
+  if(state.books.length===0){ showToast("Belum ada buku untuk dicetak","rose"); return; }
+  const list=[...state.books].sort((a,b)=>String(a.kode||"").localeCompare(String(b.kode||""), undefined, {numeric:true, sensitivity:"base"}));
+  const area=document.getElementById("printArea");
+  area.innerHTML = `<div class="id-card-grid">${list.map(b=>{
+    const kat=katByKode(b.kategori);
+    const rak=(state.rakList.find(r=>r.kode===b.rak)||{}).nama||"-";
+    return `<div class="id-card book-card-print">
+      <div class="id-card-head">${esc(state.settings.namaMaktabah)}<small>Kartu Identitas Buku · Maktabah Marhalah Ula (Ibtidaiyah) Al-Faruq</small></div>
+      <span class="book-code">${esc(b.kode)}</span>
+      <div class="book-print-title">${esc(b.judul)}</div>
+      <div class="book-kat">${esc(kat.nama)}</div>
+      <div class="book-footer">
+        <div class="book-info">
+          <div><b>Penyusun:</b> ${esc(b.penyusun||"-")}</div>
+          <div><b>Penerbit:</b> ${esc(b.penerbit||"-")}</div>
+          <div><b>Tahun:</b> ${esc(b.tahunTerbit||"-")}</div>
+          <div><b>Rak:</b> ${esc(rak)}</div>
+        </div>
+        <div class="book-qr qr-slot" data-qr="${esc(b.kode)}"></div>
+      </div>
+    </div>`;
+  }).join("")}</div>`;
+  printAfterImagesReady();
+}
+
 function printKartuBuku(bookId){
   const b=state.books.find(x=>x.id===bookId); if(!b){ showToast("Buku tidak ditemukan","rose"); return; }
   const kat=katByKode(b.kategori);

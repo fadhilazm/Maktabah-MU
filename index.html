@@ -9,6 +9,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://unpkg.com/mammoth@1.8.0/mammoth.browser.min.js"></script>
@@ -199,17 +200,33 @@ const firebaseConfig = {
 
   #printArea{ display:none; }
   .label-grid{ display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; }
-  .label-card{ border:1px dashed #999; border-radius:4px; padding:8px; text-align:center; break-inside:avoid; }
-  .label-card .qr{ display:flex; justify-content:center; margin-bottom:4px; }
-  .label-kode{ font-family:var(--mono); font-size:11px; font-weight:700; }
-  .label-judul{ font-size:9px; line-height:1.2; margin-top:2px; }
-  .label-brand{ font-size:7px; color:#888; margin-top:3px; }
-
-  .id-card-grid{ display:grid; grid-template-columns:repeat(2, 1fr); gap:14px; }
-  .id-card{ border:1px solid #333; border-radius:10px; padding:14px; break-inside:avoid; }
-  .id-card-head{ font-family:var(--display); font-weight:700; font-size:13px; border-bottom:1px solid #333; padding-bottom:6px; margin-bottom:8px; }
-  .id-card-row{ font-size:11px; margin:3px 0; }
-  .id-card-qr{ display:flex; justify-content:center; margin-top:8px; }
+  .label-card{ border:1px solid #D7C69B; border-radius:9px; padding:9px; text-align:center; break-inside:avoid; background:linear-gradient(145deg,#fffdf7,#f5efe1); position:relative; overflow:hidden; }
+  .label-card::before{ content:""; position:absolute; inset:0 0 auto 0; height:4px; background:linear-gradient(90deg,var(--plum),var(--gold)); }
+  .label-card .qr{ display:flex; justify-content:center; align-items:center; margin:3px 0 5px; min-height:68px; }
+  .label-card .qr img,.label-card .qr canvas{ width:64px!important; height:64px!important; image-rendering:pixelated; }
+  .label-kode{ font-family:var(--mono); font-size:11px; font-weight:800; color:var(--plum); }
+  .label-judul{ font-size:9px; line-height:1.25; margin-top:3px; font-weight:700; }
+  .label-brand{ font-size:7px; color:#766B5F; margin-top:4px; }
+  .id-card-grid{ display:grid; grid-template-columns:repeat(2, 1fr); gap:12px; }
+  .id-card{ border:1px solid #CFC3A8; border-radius:13px; padding:14px; break-inside:avoid; position:relative; overflow:hidden; background:linear-gradient(135deg,#fffdf7 0%,#f5efe1 100%); box-shadow:0 2px 0 rgba(74,37,69,.08); }
+  .id-card::before{ content:""; position:absolute; left:0; right:0; top:0; height:7px; background:linear-gradient(90deg,var(--plum),#6B8D76,var(--gold)); }
+  .id-card::after{ content:""; position:absolute; width:85px; height:85px; right:-32px; top:-32px; border-radius:50%; border:14px solid rgba(184,151,55,.10); }
+  .id-card-head{ font-family:var(--display); font-weight:800; font-size:13px; color:var(--plum); padding-bottom:7px; margin-bottom:9px; border-bottom:1px solid #D9CFBA; position:relative; z-index:1; }
+  .id-card-head small{ display:block; font-family:var(--body); font-size:7.5px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:#8A806E; margin-top:2px; }
+  .id-card-row{ font-size:10.5px; margin:4px 0; color:#433B35; position:relative; z-index:1; }
+  .id-card-row b{ color:var(--plum); min-width:58px; display:inline-block; }
+  .id-card-qr{ display:flex; justify-content:center; align-items:center; margin-top:9px; padding-top:7px; border-top:1px dashed #D7CBB4; position:relative; z-index:1; }
+  .id-card-qr .qr-box{ width:76px; height:76px; padding:5px; background:#fff; border:1px solid #D6C9AD; border-radius:8px; display:flex; align-items:center; justify-content:center; }
+  .id-card-qr img,.id-card-qr canvas{ width:64px!important; height:64px!important; image-rendering:pixelated; }
+  .book-card-print{ min-height:205px; }
+  .book-card-print .book-print-title{ font-family:var(--display); font-size:15px; font-weight:800; line-height:1.2; color:var(--plum); margin:5px 0 7px; position:relative; z-index:1; }
+  .book-card-print .book-code{ display:inline-block; font-family:var(--mono); font-size:9px; font-weight:800; background:var(--gold); color:var(--plum-deep); padding:3px 7px; border-radius:999px; }
+  .book-card-print .book-kat{ font-size:8px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#7B6E5C; margin-bottom:7px; }
+  .book-card-print .book-footer{ display:flex; justify-content:space-between; align-items:flex-end; gap:10px; margin-top:8px; position:relative; z-index:1; }
+  .book-card-print .book-info{ font-size:9px; line-height:1.45; color:#554C42; flex:1; }
+  .book-card-print .book-info b{ color:var(--plum); }
+  .book-card-print .book-qr{ width:76px; height:76px; padding:5px; background:#fff; border:1px solid #D6C9AD; border-radius:8px; display:flex; align-items:center; justify-content:center; }
+  .book-card-print .book-qr img,.book-card-print .book-qr canvas{ width:64px!important; height:64px!important; image-rendering:pixelated; }
 
   .receipt{ max-width:340px; margin:0 auto; border:1px dashed #333; padding:16px; font-size:12px; }
   .receipt h3{ font-family:var(--display); text-align:center; margin:0 0 4px; }
@@ -2864,48 +2881,95 @@ function handleScanResult(text){
 }
 
 /* ============ CETAK: LABEL QR ============ */
-function qrImageUrl(text, size){ return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(text)}`; }
+function qrImageUrl(text, size){
+  return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(String(text||""))}`;
+}
+function renderLocalPrintQR(){
+  const slots=[...document.querySelectorAll("#printArea .qr-slot")];
+  if(!slots.length) return false;
+  if(typeof QRCode === "undefined"){
+    // Fallback jika CDN QRCode.js gagal dimuat.
+    slots.forEach(slot=>{
+      const value=slot.getAttribute("data-qr")||"";
+      slot.innerHTML=`<img loading="eager" src="${qrImageUrl(value,64)}" width="64" height="64" alt="QR ${esc(value)}"/>`;
+    });
+    return false;
+  }
+  slots.forEach(slot=>{
+    slot.innerHTML="";
+    const value=slot.getAttribute("data-qr")||"";
+    try{ new QRCode(slot,{text:value,width:64,height:64,colorDark:"#241B2E",colorLight:"#FFFFFF",correctLevel:QRCode.CorrectLevel.M}); }catch(_e){
+      slot.innerHTML=`<img loading="eager" src="${qrImageUrl(value,64)}" width="64" height="64" alt="QR ${esc(value)}"/>`;
+    }
+  });
+  return true;
+}
+function printAfterImagesReady(){
+  const area=document.getElementById("printArea");
+  if(renderLocalPrintQR()){
+    requestAnimationFrame(()=>setTimeout(()=>window.print(),220));
+    return;
+  }
+  const imgs=[...area.querySelectorAll("img")];
+  if(!imgs.length){ window.print(); return; }
+  imgs.forEach(img=>{ img.loading="eager"; img.decoding="sync"; });
+  Promise.all(imgs.map(img=>new Promise(resolve=>{
+    if(img.complete && img.naturalWidth>0){ resolve(); return; }
+    const timer=setTimeout(resolve,7000);
+    img.addEventListener("load",()=>{ clearTimeout(timer); resolve(); },{once:true});
+    img.addEventListener("error",()=>{ clearTimeout(timer); resolve(); },{once:true});
+  }))).then(()=>requestAnimationFrame(()=>setTimeout(()=>window.print(),120)));
+}
 function printLabels(){
   const list=[...state.books].sort((a,b)=>a.kode.localeCompare(b.kode));
   if(list.length===0){ showToast("Belum ada buku untuk dicetak","rose"); return; }
   const area=document.getElementById("printArea");
-  area.innerHTML = `<div class="label-grid">${list.map(b=>`<div class="label-card"><div class="qr"><img src="${qrImageUrl(b.kode,64)}" width="64" height="64" alt="QR ${esc(b.kode)}"/></div><div class="label-kode">${esc(b.kode)}</div><div class="label-judul">${esc(b.judul)}</div><div class="label-brand">${esc(state.settings.namaMaktabah)} · Kalibagor</div></div>`).join("")}</div>`;
-  setTimeout(()=>window.print(), 400);
+  area.innerHTML = `<div class="label-grid">${list.map(b=>`<div class="label-card"><div class="qr qr-slot" data-qr="${esc(b.kode)}"></div><div class="label-kode">${esc(b.kode)}</div><div class="label-judul">${esc(b.judul)}</div><div class="label-brand">${esc(state.settings.namaMaktabah)} · Kalibagor</div></div>`).join("")}</div>`;
+  printAfterImagesReady();
 }
-
-/* ============ CETAK: KARTU ANGGOTA ============ */
 function kartuAnggotaCardHTML(a){
-  return `<div class="id-card"><div class="id-card-head">${esc(state.settings.namaMaktabah)}</div>
-    <div class="id-card-row"><b>Nama:</b> ${esc(a.nama)}</div><div class="id-card-row"><b>NIS:</b> ${esc(a.nis)}</div>
-    <div class="id-card-row"><b>Kelas:</b> ${esc(a.kelas)}</div><div class="id-card-row"><b>Terdaftar:</b> ${fmt(a.tglDaftar)}</div>
-    <div class="id-card-qr"><img src="${qrImageUrl(a.nis||a.id,64)}" width="64" height="64" alt="QR ${esc(a.nis||a.id)}"/></div></div>`;
+  const qrValue=a.nis||a.id||a.kode;
+  return `<div class="id-card">
+    <div class="id-card-head">${esc(state.settings.namaMaktabah)}<small>Kartu Anggota · Maktabah Marhalah Ula (Ibtidaiyah) Al-Faruq</small></div>
+    <div class="id-card-row"><b>Nama</b> ${esc(a.nama)}</div>
+    <div class="id-card-row"><b>NIS</b> ${esc(a.nis||"-")}</div>
+    <div class="id-card-row"><b>Kelas</b> ${esc(a.kelas)}</div>
+    <div class="id-card-row"><b>Terdaftar</b> ${fmt(a.tglDaftar)}</div>
+    <div class="id-card-qr"><div class="qr-box qr-slot" data-qr="${esc(qrValue)}"></div></div>
+  </div>`;
 }
 function printKartuAnggota(id){
   const a=anggotaById(id); if(!a){ showToast("Anggota tidak ditemukan","rose"); return; }
   const area=document.getElementById("printArea");
   area.innerHTML = `<div class="id-card-grid">${kartuAnggotaCardHTML(a)}</div>`;
-  setTimeout(()=>window.print(), 400);
+  printAfterImagesReady();
 }
 function printSemuaKartuAnggota(){
   if(state.anggota.length===0){ showToast("Belum ada anggota","rose"); return; }
   const area=document.getElementById("printArea");
   area.innerHTML = `<div class="id-card-grid">${state.anggota.map(kartuAnggotaCardHTML).join("")}</div>`;
-  setTimeout(()=>window.print(), 400);
+  printAfterImagesReady();
 }
-
-/* ============ CETAK: KARTU BUKU ============ */
 function printKartuBuku(bookId){
   const b=state.books.find(x=>x.id===bookId); if(!b){ showToast("Buku tidak ditemukan","rose"); return; }
   const kat=katByKode(b.kategori);
   const area=document.getElementById("printArea");
-  area.innerHTML = `<div class="id-card-grid"><div class="id-card">
-    <div class="id-card-head">${esc(state.settings.namaMaktabah)}</div>
-    <div class="id-card-row"><b>Kode:</b> ${esc(b.kode)}</div><div class="id-card-row"><b>Judul:</b> ${esc(b.judul)}</div>
-    <div class="id-card-row"><b>Penyusun:</b> ${esc(b.penyusun)}</div><div class="id-card-row"><b>Penerbit:</b> ${esc(b.penerbit)} (${esc(b.tahunTerbit)})</div>
-    <div class="id-card-row"><b>Kategori:</b> ${esc(kat.nama)}</div>
-    <div class="id-card-qr"><img src="${qrImageUrl(b.kode,64)}" width="64" height="64" alt="QR ${esc(b.kode)}"/></div>
+  area.innerHTML = `<div class="id-card-grid"><div class="id-card book-card-print">
+    <div class="id-card-head">${esc(state.settings.namaMaktabah)}<small>Kartu Identitas Buku · Maktabah Marhalah Ula (Ibtidaiyah) Al-Faruq</small></div>
+    <span class="book-code">${esc(b.kode)}</span>
+    <div class="book-print-title">${esc(b.judul)}</div>
+    <div class="book-kat">${esc(kat.nama)}</div>
+    <div class="book-footer">
+      <div class="book-info">
+        <div><b>Penyusun:</b> ${esc(b.penyusun||"-")}</div>
+        <div><b>Penerbit:</b> ${esc(b.penerbit||"-")}</div>
+        <div><b>Tahun:</b> ${esc(b.tahunTerbit||"-")}</div>
+        <div><b>Rak:</b> ${esc((state.rakList.find(r=>r.kode===b.rak)||{}).nama||"-")}</div>
+      </div>
+      <div class="book-qr qr-slot" data-qr="${esc(b.kode)}"></div>
+    </div>
   </div></div>`;
-  setTimeout(()=>window.print(), 400);
+  printAfterImagesReady();
 }
 
 /* ============ CETAK: KATALOG ============ */

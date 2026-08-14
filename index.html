@@ -835,7 +835,7 @@ const katByKode = (kode) => state.kategoriList.find(k=>k.kode===kode) || {kode,n
 const kodeColor = (kode) => {
   const key = String(kode||"").trim().charAt(0).toUpperCase();
   const palette = {
-    A:"#D64545", B:"#3B82C4", C:"#E0B52B", D:"#2F8F68", E:"#8B5CF6",
+    A:"#D64545", B:"#E0B52B", C:"#3B82C4", D:"#2F8F68", E:"#8B5CF6",
     F:"#E07832", G:"#0F8B8D", H:"#C64A87", I:"#6B8E23", J:"#5B6FB5",
     K:"#B06B2D", L:"#4B9B8A", M:"#A04E78", N:"#7A7A35", O:"#597AAB",
     P:"#C05A3A", Q:"#648A5A", R:"#7953A6", S:"#31839A", T:"#A06A35",
@@ -1367,7 +1367,8 @@ function anggotaHTML(){
         <option value="kelas">Urutkan: Kelas 1 → 6</option>
         <option value="kelas-desc">Urutkan: Kelas 6 → 1</option>
       </select>
-      <button class="btn btn-gold" id="btnScanMember">${icon("scanLine",15)} Scan Anggota</button>
+      <button class="btn btn-gold" id="btnScanMember" data-scan-section="anggota" aria-label="Scan QR Anggota">${icon("scanLine",15)} Scan Anggota</button>
+      
       <button class="btn btn-primary" id="btnTambahAnggota">+ Tambah Anggota</button>
     </div>
     <div id="anggotaTableWrap"></div>

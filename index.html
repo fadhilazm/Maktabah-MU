@@ -2022,64 +2022,22 @@ async function readPdfRows(file){
   const all=[];
   for(let pno=1;pno<=pdf.numPages;pno++){
     const page=await pdf.getPage(pno);
-    all.push(...pdfRowsFromContent(await page.getTextContent()));
+    const pageRows=pdfRowsFromContent(await page.getTextContent());
+    // Keep a page marker so roster import can safely infer sections/gender.
+    all.push(["__PAGE__",String(pno)]);
+    all.push(...pageRows.map(r=>r.filter(Boolean)));
   }
   return all;
 }
 
-async function readImportFile(file){
-  const ext=(file.name.split(".").pop()||"").toLowerCase();
-  if(ext==="csv") return parseDelimitedText(await file.text());
-  const buf=await file.arrayBuffer();
-  if(ext==="xlsx"||ext==="xls"){
-    if(typeof XLSX==="undefined") throw new Error("Pembaca Excel belum termuat.");
-    const wb=XLSX.read(buf,{type:"array"});
-    // Jangan selalu memakai sheet pertama. Banyak file sekolah memiliki
-    // sheet Cover/Daftar Isi sebelum sheet data sebenarnya.
-    let bestRows=[], bestScore=-1;
-    for(const name of wb.SheetNames){
-      const ws=wb.Sheets[name];
-      const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:""}).map(r=>r.map(cleanImportCell)).filter(r=>r.some(Boolean));
-      const flat=rows.slice(0,40).flat().map(normalizeImportKey);
-      const score=flat.reduce((n,x)=>n+( ["nis","nomorinduk","nama","namalengkap","namasantri","namasiswa","kelas","rombel","jeniskelamin","jk"].includes(x)?1:0),0);
-      if(score>bestScore || (score===bestScore && rows.length>bestRows.length)){bestScore=score;bestRows=rows;}
-    }
-    return bestRows;
-  }
-  if(ext==="docx"){
-    if(typeof mammoth==="undefined") throw new Error("Pembaca Word belum termuat.");
-    // HTML keeps table cells separated; raw text is only the fallback.
-    const html=await mammoth.convertToHtml({arrayBuffer:buf});
-    const doc=new DOMParser().parseFromString(html.value,"text/html");
-    const tables=[...doc.querySelectorAll("table")];
-    if(tables.length){
-      const out=[];
-      tables.forEach(t=>[...t.querySelectorAll("tr")].forEach(tr=>{
-        const cells=[...tr.querySelectorAll("th,td")].map(c=>cleanImportCell(c.textContent));
-        if(cells.some(Boolean)) out.push(cells);
-      }));
-      if(out.length) return out;
-    }
-    const raw=await mammoth.extractRawText({arrayBuffer:buf});
-    return parseDelimitedText(raw.value);
-  }
-  if(ext==="pdf") return (await readPdfRows(file)).map(r=>r.map(x=>x.text));
-  throw new Error("Format file belum didukung. Gunakan CSV, Excel, PDF, atau Word (.docx).");
-}
-
-function headerMap(rows, type="generic"){
-  const aliases = type === "members"
-    ? ["nis","nomorinduk","nomorinduksantri","noinduk","nidsantri","idsantri","id","nama","namalengkap","namaanggota","namasantri","namasiswa","namamurid","name","kelas","rombel","tingkat","jeniskelamin","jeniskelamin","jk","lp","alamat"]
-    : ["kode","kodebuku","nomorbuku","code","judul","judulbuku","title","kategori","category","penyusun","penulis","pengarang","author","penerbit","publisher","tahun","tahunterbit","year","sumber","tanggal","tanggalditerima","rak","lokasi","shelf","keterangan","catatan","notes"];
-  let best=0, bestScore=-1;
-  const limit=Math.min((rows||[]).length,40);
-  for(let i=0;i<limit;i++){
-    const r=(rows[i]||[]).map(normalizeImportKey).filter(Boolean);
-    if(!r.length) continue;
-    const score=r.reduce((n,x)=>n+(aliases.includes(x)?1:0),0);
-    if(score>bestScore){bestScore=score;best=i;}
-  }
-  return {h:((rows||[])[best]||[]).map(normalizeImportKey), rows:(rows||[]).slice(best+1), headerIndex:best, headerScore:Math.max(0,bestScore)};
+function headerMap(rows){
+  const normalized=(rows||[]).map(r=>r.map(normalizeImportKey));
+  let best=0, score=-1;
+  normalized.slice(0,12).forEach((r,i)=>{
+    const sc=r.filter(x=>["kode","kodebuku","nomor","nomorbuku","judul","judulbuku","nama","nis","kelas","penyusun","pengarang","penerbit","tahun","tahunterbit"].includes(x)).length;
+    if(sc>score){score=sc;best=i;}
+  });
+  return {h:normalized[best]||[], rows:(rows||[]).slice(best+1), headerIndex:best};
 }
 function getField(row,map,...keys){
   for(const k of keys){
@@ -2202,34 +2160,91 @@ async function importBooksFromFile(file){
 async function importMembersFromFile(file){
   const rows=await readImportFile(file);
   if(!rows.length) throw new Error("Tidak ada data yang dapat dibaca dari file.");
-  const {h,rows:body,headerScore}=headerMap(rows,"members");
-  const aliases={nis:["nis","nomorinduk","nomorinduksantri","noinduk","nidsantri","idsantri","id"],nama:["nama","namalengkap","namaanggota","namasantri","namasiswa","namamurid","name"],kelas:["kelas","rombel","tingkat","class"],lp:["lp","jeniskelamin","jk","jenis kelamin","lakiperempuan","gender"],alamat:["alamat","address","domisili"],tglDaftar:["tgldaftar","tanggaldaftar","tanggal"]};
+
+  // First try a normal spreadsheet/table header.
+  const {h,rows:body}=headerMap(rows);
+  const aliases={nis:["nis","nomorinduk","nomorinduksantri","id"],nama:["nama","name","namasantri"],kelas:["kelas","class","tingkat"],lp:["lp","jeniskelamin","jk","jenis kelamin","gender"],alamat:["alamat","address"],tglDaftar:["tgldaftar","tanggaldaftar","tanggal"]};
   let candidates=[];
-  const hasHeader=headerScore>0 && (findHeaderIndex(h,["nama","namalengkap","namasantri","namasiswa","name"])>=0 || findHeaderIndex(h,["nis","nomorinduk","noinduk"])>=0);
+  const hasHeader=findHeaderIndex(h,["nama","name","namasantri"])>=0 || findHeaderIndex(h,["nis","nomorinduk","nomorinduksantri"])>=0;
+
   if(hasHeader){
-    candidates=body.map(r=>({nis:getField(r,h,...aliases.nis),nama:getField(r,h,...aliases.nama),kelas:getField(r,h,...aliases.kelas),lp:getField(r,h,...aliases.lp),alamat:getField(r,h,...aliases.alamat),tglDaftar:parseDateFlexible(getField(r,h,...aliases.tglDaftar))})).filter(x=>x.nama);
-  } else {
-    // Generic PDF roster fallback: take the first numeric token as NIS and
-    // the following text as the name; class can be supplied by section rows.
+    candidates=body.map(r=>({
+      nis:getField(r,h,...aliases.nis),
+      nama:getField(r,h,...aliases.nama),
+      kelas:getField(r,h,...aliases.kelas),
+      lp:getField(r,h,...aliases.lp),
+      alamat:getField(r,h,...aliases.alamat),
+      tglDaftar:parseDateFlexible(getField(r,h,...aliases.tglDaftar))
+    })).filter(x=>x.nama && (x.nis || x.kelas));
+  }
+
+  // Robust roster/PDF fallback. Handles the actual layout:
+  // NO | NIS | NAMA, with KELAS X and Putri/Putra section labels.
+  if(!candidates.length){
     let currentKelas="";
-    for(const r of rows){
+    let currentLP="L";
+    for(const raw of rows){
+      const r=(raw||[]).map(cleanImportCell).filter(Boolean);
+      if(!r.length) continue;
       const s=r.join(" ");
-      const km=s.match(/\b(?:kelas|kls)\s*([1-6])\b/i); if(km){currentKelas=km[1]; continue;}
-      const nm=s.match(/^\s*(\d{3,})\s+(.+?)(?:\s+([1-6])\s*)?$/);
-      if(nm) candidates.push({nis:nm[1],nama:cleanImportCell(nm[2]),kelas:nm[3]||currentKelas,lp:"",alamat:"",tglDaftar:""});
+      if(/^__PAGE__$/i.test(r[0])) continue;
+      if(/\b(?:putri|banat|perempuan)\b/i.test(s)) currentLP="P";
+      if(/\b(?:putra|banin|laki[- ]?laki)\b/i.test(s)) currentLP="L";
+      const km=s.match(/\b(?:kelas|kls)\s*([1-6])\b/i);
+      if(km){ currentKelas=km[1]; continue; }
+
+      // Actual PDF/table row: 1 510233020267260037 ABDULLAH
+      let m=s.match(/^\s*(\d{1,2})\s+(\d{8,})\s+(.+?)\s*$/);
+      if(!m){
+        // Also accept rows without the NO column: 510233020267260037 NAME
+        m=s.match(/^\s*(\d{8,})\s+(.+?)\s*$/);
+      }
+      if(!m) continue;
+
+      const nis=m.length===4?m[2]:m[1];
+      const nama=cleanImportCell(m.length===4?m[3]:m[2]);
+      if(!nis || !nama || /^nama$/i.test(nama)) continue;
+      candidates.push({nis,nama,kelas:currentKelas,lp:currentLP,alamat:"",tglDaftar:""});
     }
   }
-  if(!candidates.length) throw new Error("File terbaca, tetapi data anggota belum dikenali. Pastikan ada NIS dan nama.");
+
+  // Last fallback for Excel sheets where the header is not in row 1:
+  // locate any row containing a long numeric NIS and a non-numeric name.
+  if(!candidates.length){
+    for(const raw of rows){
+      const r=(raw||[]).map(cleanImportCell).filter(Boolean);
+      const nisIndex=r.findIndex(x=>/^\d{8,}$/.test(x));
+      if(nisIndex<0) continue;
+      const name=r.slice(nisIndex+1).find(x=>/[A-Za-zÀ-ÿ]{3,}/.test(x) && !/^\d+$/.test(x));
+      if(name) candidates.push({nis:r[nisIndex],nama:name,kelas:"",lp:"L",alamat:"",tglDaftar:""});
+    }
+  }
+
+  if(!candidates.length) throw new Error("File terbaca, tetapi data anggota belum dikenali. Sistem mencari NIS (minimal 8 digit) dan nama santri.");
+
   let added=0,skipped=0;
+  const existingNis=new Set(state.anggota.map(a=>cleanImportCell(a.nis)).filter(Boolean));
+  const existingNames=new Set(state.anggota.map(a=>cleanImportCell(a.nama).toLowerCase()).filter(Boolean));
+  const incomingNis=new Set(), incomingNames=new Set();
   candidates.forEach(d=>{
     const nis=cleanImportCell(d.nis), nama=cleanImportCell(d.nama);
     if(!nama){skipped++;return;}
-    if((nis && state.anggota.some(a=>cleanImportCell(a.nis)===nis)) || state.anggota.some(a=>a.nama.toLowerCase()===nama.toLowerCase())){skipped++;return;}
-    state.anggota.push({id:uid(),nis,nama,kelas:cleanImportCell(d.kelas)||"1",lp:(cleanImportCell(d.lp)||"L").toUpperCase(),alamat:cleanImportCell(d.alamat),tglDaftar:parseDateFlexible(d.tglDaftar)||iso(todayDate)});
-    added++;
+    const nk=nama.toLowerCase();
+    if((nis && (existingNis.has(nis)||incomingNis.has(nis))) || existingNames.has(nk) || incomingNames.has(nk)){skipped++;return;}
+    state.anggota.push({
+      id:uid(),
+      nis,
+      nama,
+      kelas:cleanImportCell(d.kelas)||"1",
+      lp:(cleanImportCell(d.lp)||"L").toUpperCase()==="P"?"P":"L",
+      alamat:cleanImportCell(d.alamat),
+      tglDaftar:parseDateFlexible(d.tglDaftar)||iso(todayDate)
+    });
+    if(nis) incomingNis.add(nis); incomingNames.add(nk); added++;
   });
   scheduleSave(); render(); showToast(`Import anggota selesai: ${added} masuk, ${skipped} dilewati.`, added?"plum":"rose");
 }
+
 function bindImpexp(){
   const eb=document.getElementById("exportBukuCsv");
   if(eb) eb.addEventListener("click", ()=>{

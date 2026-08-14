@@ -516,7 +516,7 @@ let state = {
   loaded:false,
   group:"dashboard", sub:null,
   search:"", katFilter:"Semua", statusFilter:"Semua",
-  bookModal:null, loanTarget:null, katModalOpen:false, scanOpen:false,
+  bookModal:null, loanTarget:null, katModalOpen:false, scanOpen:false, historyModal:null, scanMode:"buku",
   anggotaModal:null, rakModal:null, kontribModal:null, pinPrompt:null, authModal:null,
   laporanFrom:"", laporanTo:"",
 };
@@ -823,6 +823,51 @@ function dendaLoan(l){ return hariTerlambat(l) * (state.settings.dendaPerHari||0
 function isAdmin(){ return currentRole==="admin" && !!currentUser; }
 function guardAdmin(){ if(!isAdmin()){ showToast("Aksi ini butuh mode Admin — buka Sistem ▸ Hak Akses", "rose"); return false; } return true; }
 
+/* ============ RIWAYAT PEMINJAMAN ============ */
+function historyForBook(kode){
+  return (Array.isArray(state.loans)?state.loans:[])
+    .filter(l=>l.kodeBuku===kode)
+    .sort((a,b)=>new Date(b.tanggalPinjam||0)-new Date(a.tanggalPinjam||0));
+}
+function historyForMember(id){
+  return (Array.isArray(state.loans)?state.loans:[])
+    .filter(l=>l.anggotaId===id)
+    .sort((a,b)=>new Date(b.tanggalPinjam||0)-new Date(a.tanggalPinjam||0));
+}
+function openBookHistory(kode){
+  const b=bookByKode(kode); if(!b) return;
+  state.historyModal={type:"book",kode}; renderModal();
+}
+function openMemberHistory(id){
+  const a=anggotaById(id); if(!a) return;
+  state.historyModal={type:"member",id}; renderModal();
+}
+function historyModalHTML(){
+  const m=state.historyModal;
+  if(m.type==="book"){
+    const b=bookByKode(m.kode); const rows=historyForBook(m.kode); const active=rows.find(l=>l.status==="dipinjam");
+    return `<div class="modal-backdrop" id="historyBackdrop"><div class="modal" style="max-width:760px;">
+      <div class="modal-header"><div><div class="hint" style="margin:0;text-transform:uppercase;letter-spacing:.08em;">Riwayat Buku</div><h3 class="modal-title" style="margin-top:3px;">${esc(b?.judul||m.kode)}</h3></div><button class="close-x" id="closeHistoryModal">${icon("x",17)}</button></div>
+      <div class="panel" style="margin:0 0 14px;background:var(--cream);"><div class="row-between"><div><b>Kode:</b> ${esc(m.kode)}<br><span class="muted">${active?`Sedang dipinjam oleh <b>${esc(active.nama)}</b> — Kelas ${esc(active.kelas)}`:'Saat ini tersedia'}</span></div><span class="badge ${active?'badge-rose':'badge-plum'}">${active?'Dipinjam':'Tersedia'}</span></div></div>
+      <div class="table-wrap"><table class="data-table"><thead><tr><th>No</th><th>Tanggal Pinjam</th><th>Peminjam</th><th>Kelas</th><th>Status</th><th>Tanggal Kembali</th></tr></thead><tbody>
+      ${rows.length?rows.map((l,i)=>`<tr><td>${i+1}</td><td>${fmt(l.tanggalPinjam)}</td><td>${esc(l.nama)}</td><td>${esc(l.kelas)}</td><td>${esc(l.status)}</td><td>${l.tanggalKembali?fmt(l.tanggalKembali):'—'}</td></tr>`).join(''):`<tr><td colspan="6" class="muted">Belum pernah ada transaksi peminjaman untuk buku ini.</td></tr>`}
+      </tbody></table></div><p class="hint" style="margin-top:10px;">Total riwayat: <b>${rows.length}</b> transaksi.</p>
+    </div></div>`;
+  }
+  const a=anggotaById(m.id); const rows=historyForMember(m.id); const active=rows.filter(l=>l.status==="dipinjam");
+  return `<div class="modal-backdrop" id="historyBackdrop"><div class="modal" style="max-width:760px;">
+    <div class="modal-header"><div><div class="hint" style="margin:0;text-transform:uppercase;letter-spacing:.08em;">Riwayat Anggota</div><h3 class="modal-title" style="margin-top:3px;">${esc(a?.nama||'Anggota')}</h3><div class="muted">Kelas ${esc(a?.kelas||'—')} · NIS ${esc(a?.nis||'—')}</div></div><button class="close-x" id="closeHistoryModal">${icon("x",17)}</button></div>
+    <div class="panel" style="margin:0 0 14px;background:var(--cream);"><b>${active.length}</b> peminjaman aktif · <b>${rows.length}</b> total transaksi</div>
+    <div class="table-wrap"><table class="data-table"><thead><tr><th>No</th><th>Tanggal Pinjam</th><th>Buku</th><th>Kode</th><th>Status</th><th>Tanggal Kembali</th></tr></thead><tbody>
+    ${rows.length?rows.map((l,i)=>`<tr><td>${i+1}</td><td>${fmt(l.tanggalPinjam)}</td><td>${esc(l.judulBuku)}</td><td>${esc(l.kodeBuku)}</td><td>${esc(l.status)}</td><td>${l.tanggalKembali?fmt(l.tanggalKembali):'—'}</td></tr>`).join(''):`<tr><td colspan="6" class="muted">Belum ada riwayat peminjaman.</td></tr>`}
+    </tbody></table></div>
+  </div></div>`;
+}
+function bindHistoryModal(){
+  document.getElementById("historyBackdrop")?.addEventListener("click",e=>{if(e.target.id==="historyBackdrop"){state.historyModal=null;renderModal();}});
+  document.getElementById("closeHistoryModal")?.addEventListener("click",()=>{state.historyModal=null;renderModal();});
+}
+
 /* ============ TOAST ============ */
 let toastTimer=null;
 function showToast(msg, tone){
@@ -848,6 +893,7 @@ function publicBookCard(b){
       <div class="public-book-title">${esc(b.judul)}</div>
       <div class="public-book-meta">${esc(b.penyusun||"—")} · ${esc(katByKode(b.kategori).nama)} · Kode ${esc(b.kode)}</div>
       <span class="public-status ${borrowed?'borrowed':''}">${borrowed?'Sedang dipinjam':'Tersedia'}</span>
+      <button type="button" class="btn btn-outline btn-sm" data-public-history-book="${esc(b.kode)}" style="margin-top:9px;">${icon("history",14)} Riwayat</button>
     </div>
   </article>`;
 }
@@ -1008,6 +1054,7 @@ function renderPublic(){
     document.querySelectorAll("[data-public-home]").forEach(b=>b.onclick=()=>{window.scrollTo({top:0,behavior:"smooth"});});
     document.querySelectorAll("[data-public-info],[data-public-about]").forEach(b=>b.onclick=()=>document.getElementById("publicAbout")?.scrollIntoView({behavior:"smooth",block:"start"}));
     document.querySelectorAll("[data-public-guide]").forEach(b=>b.onclick=()=>document.getElementById("publicGuide")?.scrollIntoView({behavior:"smooth",block:"start"}));
+    document.querySelectorAll("[data-public-history-book]").forEach(b=>b.onclick=()=>openBookHistory(b.dataset.publicHistoryBook));
     bindPublicGuideStepper();
     document.querySelectorAll("[data-public-catalog]").forEach(b=>b.onclick=()=>{
       const mount=document.getElementById("publicCatalogMount");
@@ -1312,8 +1359,9 @@ function renderAnggotaTable(){
   const list = sortAnggotaList(filtered);
   wrap.innerHTML = `<div class="table-wrap"><table class="data-table"><thead><tr><th>NIS</th><th>Nama</th><th>Kelas</th><th>L/P</th><th>Terdaftar</th><th></th></tr></thead><tbody>
     ${list.map(a=>`<tr><td>${esc(a.nis)}</td><td>${esc(a.nama)}</td><td>Kelas ${esc(a.kelas)}</td><td>${esc(a.lp)}</td><td>${fmt(a.tglDaftar)}</td>
-      <td style="display:flex;gap:6px;"><button class="icon-btn" data-editanggota="${a.id}">${icon("pencil",15)}</button><button class="icon-btn" data-copyanggota="${a.id}">${icon("copy",15)}</button><button class="icon-btn" data-delanggota="${a.id}">${icon("trash2",15)}</button></td></tr>`).join("")}
+      <td style="display:flex;gap:6px;"><button class="btn btn-outline btn-sm" data-historyanggota="${a.id}" title="Riwayat peminjaman">${icon("history",15)} Riwayat</button><button class="icon-btn" data-editanggota="${a.id}">${icon("pencil",15)}</button><button class="icon-btn" data-copyanggota="${a.id}">${icon("copy",15)}</button><button class="icon-btn" data-delanggota="${a.id}">${icon("trash2",15)}</button></td></tr>`).join("")}
   </tbody></table></div>${list.length===0?'<div class="muted" style="text-align:center;">Tidak ada anggota yang cocok.</div>':''}`;
+  wrap.querySelectorAll("[data-historyanggota]").forEach(b=>b.addEventListener("click", ()=>openMemberHistory(b.dataset.historyanggota)));
   wrap.querySelectorAll("[data-editanggota]").forEach(b=>b.addEventListener("click", ()=>openAnggotaModal("edit", state.anggota.find(a=>a.id===b.dataset.editanggota))));
   wrap.querySelectorAll("[data-copyanggota]").forEach(b=>b.addEventListener("click", ()=>copyAnggota(b.dataset.copyanggota)));
   wrap.querySelectorAll("[data-delanggota]").forEach(b=>b.addEventListener("click", ()=>deleteAnggota(b.dataset.delanggota)));
@@ -1483,7 +1531,7 @@ function katalogShellHTML(){
         <option value="tersedia" ${state.statusFilter==='tersedia'?'selected':''}>Tersedia</option>
         <option value="dipinjam" ${state.statusFilter==='dipinjam'?'selected':''}>Dipinjam</option></select>
       <button class="btn btn-outline" id="btnCetakLabel">${icon("printer",15)} Cetak Label QR</button>
-      <button class="btn btn-gold" id="btnScan">${icon("scanLine",15)} Scan Buku</button>
+      <button class="btn btn-gold" id="btnScanBook">${icon("scanLine",15)} Scan Buku</button><button class="btn btn-outline" id="btnScanMember">${icon("scanLine",15)} Scan Anggota</button>
       <button class="btn btn-primary" id="btnTambahBuku">+ Tambah Buku</button>
     </div>
     <div id="katalogGrid"></div>
@@ -1494,7 +1542,8 @@ function bindKatalogToolbar(){
   document.getElementById("katFilterSelect").addEventListener("change", e=>{ state.katFilter=e.target.value; renderKatalogGrid(); });
   document.getElementById("statusFilterSelect").addEventListener("change", e=>{ state.statusFilter=e.target.value; renderKatalogGrid(); });
   document.getElementById("btnCetakLabel").addEventListener("click", printLabels);
-  document.getElementById("btnScan").addEventListener("click", ()=>{ state.scanOpen=true; renderModal(); });
+  document.getElementById("btnScanBook").addEventListener("click", ()=>{ state.scanMode="buku"; state.scanOpen=true; renderModal(); });
+  document.getElementById("btnScanMember").addEventListener("click", ()=>{ state.scanMode="anggota"; state.scanOpen=true; renderModal(); });
   document.getElementById("btnTambahBuku").addEventListener("click", openAddBook);
 }
 function renderKatalogGrid(){
@@ -1528,12 +1577,14 @@ function renderKatalogGrid(){
         ${loanRec ? `<p class="book-loan-note">Dipinjam ${esc(loanRec.nama)} (Kls ${esc(loanRec.kelas)}) sejak ${fmt(loanRec.tanggalPinjam)}</p>` : ""}
         <div class="book-actions">
           <button class="btn btn-primary" style="flex:1;justify-content:center;" data-loan="${esc(b.id)}" ${b.status==='dipinjam'||b.statusFisik!=='baik'?'disabled':''}>${icon("bookOpen",15)} Pinjamkan</button>
+          <button class="btn btn-outline btn-sm" data-historybook="${esc(b.kode)}" title="Riwayat buku">${icon("history",15)}</button>
           <button class="icon-btn" data-edit="${esc(b.id)}">${icon("pencil",15)}</button>
           <button class="icon-btn" data-copybook="${esc(b.id)}">${icon("copy",15)}</button>
           <button class="icon-btn" data-del="${esc(b.id)}">${icon("trash2",15)}</button>
         </div>
       </div>`;
   }).join("")}</div>`;
+  grid.querySelectorAll("[data-historybook]").forEach(b=>b.addEventListener("click", ()=>openBookHistory(b.dataset.historybook)));
   grid.querySelectorAll("[data-loan]").forEach(b=>b.addEventListener("click", ()=>openLoanModal(b.dataset.loan)));
   grid.querySelectorAll("[data-edit]").forEach(b=>b.addEventListener("click", ()=>openEditBook(b.dataset.edit)));
   grid.querySelectorAll("[data-copybook]").forEach(b=>b.addEventListener("click", ()=>copyBook(b.dataset.copybook)));
@@ -1890,10 +1941,11 @@ function renderCariAnggotaResult(){
   const list = state.anggota.filter(a=>a.nama.toLowerCase().includes(q)).sort((a,b)=>a.nama.localeCompare(b.nama));
   wrap.innerHTML = list.map(a=>{
     const aktif = state.loans.filter(l=>l.anggotaId===a.id && l.status==="dipinjam");
-    return `<div class="panel" style="margin-bottom:12px;"><div class="row-between"><div><b>${esc(a.nama)}</b> <span class="muted" style="padding:0;">— Kelas ${esc(a.kelas)} · NIS ${esc(a.nis)}</span></div><span class="badge badge-plum">${aktif.length} pinjam aktif</span></div>
+    return `<div class="panel" style="margin-bottom:12px;"><div class="row-between"><div><b>${esc(a.nama)}</b> <span class="muted" style="padding:0;">— Kelas ${esc(a.kelas)} · NIS ${esc(a.nis)}</span></div><div style="display:flex;gap:7px;align-items:center;"><span class="badge badge-plum">${aktif.length} pinjam aktif</span><button class="btn btn-outline btn-sm" data-history-cari-anggota="${a.id}">${icon("history",15)} Riwayat</button></div></div>
       ${aktif.length>0?`<div style="margin-top:8px;">${aktif.map(l=>`<div class="loan-sub">• ${esc(l.judulBuku)} (jatuh tempo ${fmt(l.tanggalJatuhTempo)})</div>`).join("")}</div>`:''}
     </div>`;
   }).join("") || `<div class="muted">Tidak ditemukan.</div>`;
+  wrap.querySelectorAll("[data-history-cari-anggota]").forEach(b=>b.addEventListener("click",()=>openMemberHistory(b.dataset.historyCariAnggota)));
 }
 
 /* ============ LAPORAN ============ */
@@ -2505,6 +2557,7 @@ function renderModal(){
   if(state.katModalOpen){ root.innerHTML=katModalHTML(); bindKatModal(); return; }
   if(state.pinPrompt){ root.innerHTML=pinModalHTML(); bindPinModal(); return; }
   if(state.scanOpen){ root.innerHTML=scanModalHTML(); bindScanModal(); return; }
+  if(state.historyModal){ root.innerHTML=historyModalHTML(); bindHistoryModal(); return; }
   root.innerHTML="";
 }
 
@@ -2743,9 +2796,9 @@ function bindPinModal(){
 let scanStream=null, scanRAF=null;
 function scanModalHTML(){
   return `<div class="modal-backdrop" id="scanBackdrop"><div class="modal" style="max-width:380px;">
-    <div class="modal-header"><h3 class="modal-title">Scan Kode Buku</h3><button class="close-x" id="closeScanModal">${icon("x",15)}</button></div>
+    <div class="modal-header"><h3 class="modal-title">Scan ${state.scanMode==='anggota'?'Barcode Anggota':'Barcode Buku'}</h3><button class="close-x" id="closeScanModal">${icon("x",15)}</button></div>
     <div class="scan-video-wrap"><video id="scanVideo" playsinline muted></video><div class="scan-frame"></div></div>
-    <p class="scan-hint">Arahkan kamera ke QR pada buku...</p>
+    <p class="scan-hint">Arahkan kamera ke ${state.scanMode==='anggota'?'QR/barcode kartu anggota':'QR/barcode pada buku'}...</p>
   </div></div>`;
 }
 function bindScanModal(){
@@ -2797,13 +2850,16 @@ function stopScan(){
 }
 function handleScanResult(text){
   stopScan();
-  const kode=text.toUpperCase();
+  const value=String(text||'').trim();
+  if(state.scanMode==='anggota'){
+    const a=state.anggota.find(x=>String(x.nis||'').toUpperCase()===value.toUpperCase() || String(x.id||'').toUpperCase()===value.toUpperCase());
+    if(!a){ showToast(`Barcode anggota "${value}" tidak ditemukan`,'rose'); return; }
+    openMemberHistory(a.id); return;
+  }
+  const kode=value.toUpperCase();
   const book=state.books.find(b=>b.kode===kode);
-  if(!book){ showToast(`Kode "${kode}" tidak ditemukan`,"rose"); return; }
-  if(isDipinjam(book.kode)){
-    const loan=activeLoans().find(l=>l.kodeBuku===book.kode);
-    if(loan && confirm(`"${book.judul}" dipinjam ${loan.nama}. Kembalikan sekarang?`)) returnLoan(loan.id);
-  }else{ openLoanModal(book.id); }
+  if(!book){ showToast(`Kode "${kode}" tidak ditemukan`,'rose'); return; }
+  openBookHistory(kode);
 }
 
 /* ============ CETAK: LABEL QR ============ */

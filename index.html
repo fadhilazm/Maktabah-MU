@@ -2859,36 +2859,60 @@ function bindScanModal(){
 }
 async function startScan(){
   try{
-    scanStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}});
+    scanStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"},width:{ideal:1280},height:{ideal:720}}});
     const video=document.getElementById("scanVideo"); if(!video) return;
     video.srcObject=scanStream; await video.play();
+    // Gunakan BarcodeDetector bila tersedia, tetapi tetap siapkan jsQR sebagai fallback.
+    let detector=null;
     if("BarcodeDetector" in window){
-      try{
-        const detector = new BarcodeDetector({formats:["qr_code","code_128","code_39","ean_13","ean_8","upc_a","upc_e","itf","codabar"]});
-        scanLoopNative(detector); return;
-      }catch(e){}
+      try{ detector=new BarcodeDetector({formats:["qr_code","code_128","code_39","ean_13","ean_8","upc_a","upc_e","itf","codabar"]}); }catch(e){ detector=null; }
     }
     const ok = await ensureJsQR();
-    if(!ok){ stopScan(); return; }
-    scanLoop();
+    if(!ok && !detector){ stopScan(); return; }
+    scanLoopRobust(detector);
   }catch(e){ showToast("Tidak bisa akses kamera — pastikan izin kamera & halaman dibuka lewat HTTPS","rose"); stopScan(); }
 }
-async function scanLoopNative(detector){
+
+async function scanLoopRobust(detector){
   const video=document.getElementById("scanVideo"); if(!video) return;
-  if(video.readyState!==video.HAVE_ENOUGH_DATA){ scanRAF=requestAnimationFrame(()=>scanLoopNative(detector)); return; }
-  try{ const codes=await detector.detect(video); if(codes&&codes.length&&codes[0].rawValue){ handleScanResult(String(codes[0].rawValue).trim()); return; } }catch(e){}
-  scanRAF=requestAnimationFrame(()=>scanLoopNative(detector));
+  if(video.readyState<video.HAVE_ENOUGH_DATA || !video.videoWidth){ scanRAF=requestAnimationFrame(()=>scanLoopRobust(detector)); return; }
+  let found=null;
+  // 1) Native detector: cepat dan biasanya sangat stabil di Chrome Android.
+  if(detector){
+    try{
+      const codes=await detector.detect(video);
+      if(codes&&codes.length){
+        const c=codes.find(x=>x.rawValue);
+        if(c) found=String(c.rawValue).trim();
+      }
+    }catch(e){}
+  }
+  // 2) jsQR: scan beberapa area agar QR yang kecil/di sisi frame tetap terbaca.
+  if(!found && typeof jsQR==="function"){
+    try{
+      const maxW=900;
+      const scale=Math.min(1,maxW/video.videoWidth);
+      const w=Math.max(320,Math.round(video.videoWidth*scale));
+      const h=Math.max(240,Math.round(video.videoHeight*scale));
+      const canvas=document.createElement("canvas"); canvas.width=w; canvas.height=h;
+      const ctx=canvas.getContext("2d",{willReadFrequently:true});
+      ctx.drawImage(video,0,0,w,h);
+      const image=ctx.getImageData(0,0,w,h);
+      const result=jsQR(image.data,w,h,{inversionAttempts:"attemptBoth"});
+      if(result&&result.data) found=String(result.data).trim();
+      // Jika belum ketemu, fokus ke area tengah tempat frame berada.
+      if(!found){
+        const side=Math.round(Math.min(w,h)*0.82), sx=Math.round((w-side)/2), sy=Math.round((h-side)/2);
+        const crop=ctx.getImageData(sx,sy,side,side);
+        const result2=jsQR(crop.data,side,side,{inversionAttempts:"attemptBoth"});
+        if(result2&&result2.data) found=String(result2.data).trim();
+      }
+    }catch(e){}
+  }
+  if(found){ handleScanResult(found); return; }
+  scanRAF=requestAnimationFrame(()=>scanLoopRobust(detector));
 }
-function scanLoop(){
-  const video=document.getElementById("scanVideo"); if(!video) return;
-  if(video.readyState!==video.HAVE_ENOUGH_DATA){ scanRAF=requestAnimationFrame(scanLoop); return; }
-  const canvas=document.createElement("canvas"); canvas.width=video.videoWidth; canvas.height=video.videoHeight;
-  const ctx=canvas.getContext("2d"); ctx.drawImage(video,0,0,canvas.width,canvas.height);
-  const imageData=ctx.getImageData(0,0,canvas.width,canvas.height);
-  const code=typeof jsQR==="function"?jsQR(imageData.data,imageData.width,imageData.height):null;
-  if(code&&code.data){ handleScanResult(code.data.trim()); return; }
-  scanRAF=requestAnimationFrame(scanLoop);
-}
+
 function stopScan(){
   cancelAnimationFrame(scanRAF); scanRAF=null;
   if(scanStream){ scanStream.getTracks().forEach(t=>t.stop()); scanStream=null; }
@@ -2903,15 +2927,24 @@ function startReturnScanFlow(){
   state.scanIgnoreValue=null; state.scanIgnoreUntil=0; state.scanMode="return-book"; state.scanOpen=true; renderModal();
 }
 function handleScanResult(text){
-  const raw=String(text||"").trim(); const normalized=raw.toUpperCase(); const mode=state.scanMode||"book";
+  const raw=String(text||"").trim();
+  const payload=decodeScanPayload(raw);
+  const normalized=String(payload.value||raw).trim().toUpperCase();
+  const mode=state.scanMode||"book";
 
-  // Setelah scan kartu anggota, kamera dibuka kembali untuk scan buku.
-  // QR kartu yang masih berada di depan kamera harus diabaikan sementara,
-  // supaya NIS anggota tidak dianggap sebagai kode buku.
+  // Saat berpindah dari scan anggota ke scan buku, QR anggota yang sama diabaikan sementara.
   if(mode==="loan-book" && state.scanIgnoreValue===normalized && Date.now()<state.scanIgnoreUntil){ return; }
 
-  // Jika pada tahap scan buku yang terbaca justru QR anggota, jangan tutup
-  // kamera. Beri petunjuk agar petugas mengarahkan kamera ke buku.
+  // QR bertipe MEMBER tidak boleh dianggap sebagai buku.
+  if((mode==="loan-book" || mode==="return-book") && payload.type==="member"){
+    if(Date.now()-Number(state.scanWrongNoticeAt||0)>1800){
+      state.scanWrongNoticeAt=Date.now();
+      showToast("QR anggota terbaca — arahkan kamera ke QR buku.","rose");
+    }
+    return;
+  }
+
+  // Untuk QR lama (raw), tetap kenali NIS anggota ketika berada di tahap buku.
   if((mode==="loan-book" || mode==="return-book") && state.anggota.some(x=>String(x.nis||"").trim().toUpperCase()===normalized || String(x.id||"").trim().toUpperCase()===normalized)){
     if(Date.now()-Number(state.scanWrongNoticeAt||0)>1800){
       state.scanWrongNoticeAt=Date.now();
@@ -2920,33 +2953,42 @@ function handleScanResult(text){
     return;
   }
 
-  stopScan();
   if(mode==="member"){
     const a=state.anggota.find(x=>String(x.nis||"").trim().toUpperCase()===normalized||String(x.id||"").trim().toUpperCase()===normalized);
+    stopScan();
     if(!a){ showToast(`Kode anggota "${raw}" tidak ditemukan`,"rose"); return; }
     openMemberHistory(a.id); return;
   }
+
   if(mode==="loan-member"){
+    // Tahap pertama menerima QR MEMBER maupun QR lama berisi NIS.
     const a=state.anggota.find(x=>String(x.nis||"").trim().toUpperCase()===normalized||String(x.id||"").trim().toUpperCase()===normalized);
-    if(!a){ showToast(`Kode anggota "${raw}" tidak ditemukan`,"rose"); return; }
+    if(!a){ showToast(`Kode anggota "${raw}" tidak ditemukan — pastikan QR kartu anggota yang dipindai.`,"rose"); return; }
+    stopScan();
     state.scanTxnMemberId=a.id;
-    // Hindari QR kartu yang sama terbaca lagi saat kamera berpindah ke tahap buku.
     state.scanIgnoreValue=normalized; state.scanIgnoreUntil=Date.now()+3000; state.scanWrongNoticeAt=0;
     state.scanMode="loan-book"; state.scanOpen=true; renderModal(); return;
   }
+
   const book=state.books.find(b=>String(b.kode||"").trim().toUpperCase()===normalized);
-  if(!book){ showToast(`Kode buku "${raw}" tidak ditemukan`,"rose"); return; }
+  if(!book){ stopScan(); showToast(`Kode buku "${raw}" tidak ditemukan — pastikan QR buku yang dipindai.`,"rose"); return; }
+
   if(mode==="loan-book"){
     const a=anggotaById(state.scanTxnMemberId);
-    if(!a){ state.scanTxnMemberId=null; showToast("Anggota peminjam tidak ditemukan. Ulangi scan.","rose"); return; }
-    if(isDipinjam(book.kode)||book.statusFisik!=="baik"){ showToast(`Buku "${book.judul}" tidak tersedia untuk dipinjam`,"rose"); return; }
+    if(!a){ stopScan(); state.scanTxnMemberId=null; showToast("Anggota peminjam tidak ditemukan. Ulangi scan.","rose"); return; }
+    if(isDipinjam(book.kode)||book.statusFisik!=="baik"){ stopScan(); showToast(`Buku "${book.judul}" tidak tersedia untuk dipinjam`,"rose"); return; }
+    stopScan();
     state.scanConfirm={type:"loan",memberId:a.id,bookId:book.id}; state.scanTxnMemberId=null; state.scanIgnoreValue=null; state.scanIgnoreUntil=0; renderModal(); return;
   }
+
   if(mode==="return-book"){
-    const loan=activeLoans().find(l=>l.kodeBuku===book.kode);
+    const loan=activeLoans().find(l=>String(l.kodeBuku||"").trim().toUpperCase()===normalized);
+    stopScan();
     if(!loan){ showToast(`Buku "${book.judul}" tidak sedang dipinjam`,"rose"); return; }
     state.scanConfirm={type:"return",loanId:loan.id}; renderModal(); return;
   }
+
+  stopScan();
   openBookHistory(book.kode);
 }
 
@@ -2989,7 +3031,17 @@ function bindScanConfirm(){
 }
 
 /* ============ CETAK: LABEL QR ============ */
-function qrImageUrl(text, size){ return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(text)}`; }
+function qrPayloadBook(kode){ return `BOOK|${String(kode||"").trim()}`; }
+function qrPayloadMember(nis,id){ return `MEMBER|${String(nis||id||"").trim()}`; }
+function qrImageUrl(text, size){ return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&margin=8&ecc=M&data=${encodeURIComponent(text)}`; }
+function decodeScanPayload(raw){
+  const t=String(raw||"").trim();
+  const u=t.toUpperCase();
+  if(u.startsWith("BOOK|")) return {type:"book", value:t.slice(5).trim()};
+  if(u.startsWith("MEMBER|")) return {type:"member", value:t.slice(7).trim()};
+  // QR lama yang sudah terlanjur dicetak tetap didukung.
+  return {type:"unknown", value:t};
+}
 
 // Tunggu seluruh gambar QR benar-benar selesai dimuat sebelum membuka dialog cetak.
 // Ini mencegah QR hilang ketika browser/tablet mencetak terlalu cepat.
@@ -3009,7 +3061,7 @@ function printLabels(){
   const list=[...state.books].sort((a,b)=>a.kode.localeCompare(b.kode));
   if(list.length===0){ showToast("Belum ada buku untuk dicetak","rose"); return; }
   const area=document.getElementById("printArea");
-  area.innerHTML = `<div class="label-grid">${list.map(b=>`<div class="label-card"><div class="qr"><img referrerpolicy="no-referrer" src="${qrImageUrl(b.kode,64)}" width="64" height="64" alt="QR ${esc(b.kode)}"/></div><div class="label-kode">${esc(b.kode)}</div><div class="label-judul">${esc(b.judul)}</div><div class="label-brand">${esc(state.settings.namaMaktabah)} · Kalibagor</div></div>`).join("")}</div>`;
+  area.innerHTML = `<div class="label-grid">${list.map(b=>`<div class="label-card"><div class="qr"><img referrerpolicy="no-referrer" src="${qrImageUrl(qrPayloadBook(b.kode),140)}" width="140" height="140" alt="QR ${esc(b.kode)}"/></div><div class="label-kode">${esc(b.kode)}</div><div class="label-judul">${esc(b.judul)}</div><div class="label-brand">${esc(state.settings.namaMaktabah)} · Kalibagor</div></div>`).join("")}</div>`;
   printAfterImages(350);
 }
 
@@ -3018,7 +3070,7 @@ function kartuAnggotaCardHTML(a){
   return `<div class="id-card"><div class="id-card-head">${esc(state.settings.namaMaktabah)}</div>
     <div class="id-card-row"><b>Nama:</b> ${esc(a.nama)}</div><div class="id-card-row"><b>NIS:</b> ${esc(a.nis)}</div>
     <div class="id-card-row"><b>Kelas:</b> ${esc(a.kelas)}</div><div class="id-card-row"><b>Terdaftar:</b> ${fmt(a.tglDaftar)}</div>
-    <div class="id-card-qr"><img referrerpolicy="no-referrer" src="${qrImageUrl(a.nis||a.id,64)}" width="64" height="64" alt="QR ${esc(a.nis||a.id)}"/></div></div>`;
+    <div class="id-card-qr"><img referrerpolicy="no-referrer" src="${qrImageUrl(qrPayloadMember(a.nis,a.id),140)}" width="140" height="140" alt="QR ${esc(a.nis||a.id)}"/></div></div>`;
 }
 function printKartuAnggota(id){
   const a=anggotaById(id); if(!a){ showToast("Anggota tidak ditemukan","rose"); return; }
@@ -3048,7 +3100,7 @@ function printSemuaKartuBuku(){
       <div class="id-card-row"><b>Judul:</b> ${esc(b.judul)}</div>
       <div class="id-card-row"><b>Penyusun:</b> ${esc(b.penyusun)}</div><div class="id-card-row"><b>Penerbit:</b> ${esc(b.penerbit)} (${esc(b.tahunTerbit)})</div>
       <div class="id-card-row"><b>Kategori:</b> ${esc(kat.nama)}</div>
-      <div class="id-card-qr"><img referrerpolicy="no-referrer" src="${qrImageUrl(b.kode,64)}" width="64" height="64" alt="QR ${esc(b.kode)}"/></div>
+      <div class="id-card-qr"><img referrerpolicy="no-referrer" src="${qrImageUrl(qrPayloadBook(b.kode),140)}" width="140" height="140" alt="QR ${esc(b.kode)}"/></div>
     </div>`;
   }).join("")}</div>`;
   printAfterImages(350);
@@ -3064,7 +3116,7 @@ function printKartuBuku(bookId){
     <div class="id-card-row"><b>Judul:</b> ${esc(b.judul)}</div>
     <div class="id-card-row"><b>Penyusun:</b> ${esc(b.penyusun)}</div><div class="id-card-row"><b>Penerbit:</b> ${esc(b.penerbit)} (${esc(b.tahunTerbit)})</div>
     <div class="id-card-row"><b>Kategori:</b> ${esc(kat.nama)}</div>
-    <div class="id-card-qr"><img referrerpolicy="no-referrer" src="${qrImageUrl(b.kode,64)}" width="64" height="64" alt="QR ${esc(b.kode)}"/></div>
+    <div class="id-card-qr"><img referrerpolicy="no-referrer" src="${qrImageUrl(qrPayloadBook(b.kode),140)}" width="140" height="140" alt="QR ${esc(b.kode)}"/></div>
   </div></div>`;
   printAfterImages(350);
 }

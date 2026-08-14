@@ -9,7 +9,6 @@
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://unpkg.com/mammoth@1.8.0/mammoth.browser.min.js"></script>
@@ -200,38 +199,17 @@ const firebaseConfig = {
 
   #printArea{ display:none; }
   .label-grid{ display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; }
-  .label-card{ border:1px solid #D7C69B; border-radius:9px; padding:9px; text-align:center; break-inside:avoid; background:linear-gradient(145deg,#fffdf7,#f5efe1); position:relative; overflow:hidden; }
-  .label-card::before{ content:""; position:absolute; inset:0 0 auto 0; height:4px; background:linear-gradient(90deg,var(--plum),var(--gold)); }
-  .label-card .qr{ display:flex; justify-content:center; align-items:center; margin:3px 0 5px; min-height:68px; }
-  .label-card .qr img,.label-card .qr canvas{ width:64px!important; height:64px!important; image-rendering:pixelated; }
-  .label-kode{ font-family:var(--mono); font-size:11px; font-weight:800; color:var(--plum); }
-  .kode-legend{ display:flex; gap:7px; flex-wrap:wrap; margin:0 0 14px; }
-  .kode-legend span{ display:inline-flex; align-items:center; gap:5px; font-family:var(--mono); font-size:10.5px; font-weight:800; padding:4px 7px; border-radius:999px; color:#fff; }
+  .label-card{ border:1px dashed #999; border-radius:4px; padding:8px; text-align:center; break-inside:avoid; }
+  .label-card .qr{ display:flex; justify-content:center; margin-bottom:4px; }
+  .label-kode{ font-family:var(--mono); font-size:11px; font-weight:700; }
+  .label-judul{ font-size:9px; line-height:1.2; margin-top:2px; }
+  .label-brand{ font-size:7px; color:#888; margin-top:3px; }
 
-  .label-judul{ font-size:9px; line-height:1.25; margin-top:3px; font-weight:700; }
-  .label-brand{ font-size:7px; color:#766B5F; margin-top:4px; }
-  .id-card-grid{ display:grid; grid-template-columns:repeat(2, 1fr); gap:12px; }
-  .id-card{ border:1px solid #CFC3A8; border-radius:13px; padding:14px; break-inside:avoid; position:relative; overflow:hidden; background:linear-gradient(135deg,#fffdf7 0%,#f5efe1 100%); box-shadow:0 2px 0 rgba(74,37,69,.08); }
-  .id-card::before{ content:""; position:absolute; left:0; right:0; top:0; height:7px; background:linear-gradient(90deg,var(--plum),#6B8D76,var(--gold)); }
-  .id-card::after{ content:""; position:absolute; width:85px; height:85px; right:-32px; top:-32px; border-radius:50%; border:14px solid rgba(184,151,55,.10); }
-  .id-card-head{ font-family:var(--display); font-weight:800; font-size:13px; color:var(--plum); padding-bottom:7px; margin-bottom:9px; border-bottom:1px solid #D9CFBA; position:relative; z-index:1; }
-  .id-card-head small{ display:block; font-family:var(--body); font-size:7.5px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:#8A806E; margin-top:2px; }
-  .id-card-row{ font-size:10.5px; margin:4px 0; color:#433B35; position:relative; z-index:1; }
-  .id-card-row b{ color:var(--plum); min-width:58px; display:inline-block; }
-  .id-card-qr{ display:flex; justify-content:center; align-items:center; margin-top:9px; padding-top:7px; border-top:1px dashed #D7CBB4; position:relative; z-index:1; }
-  .id-card-qr .qr-box{ width:76px; height:76px; padding:5px; background:#fff; border:1px solid #D6C9AD; border-radius:8px; display:flex; align-items:center; justify-content:center; }
-  .id-card-qr img,.id-card-qr canvas{ width:64px!important; height:64px!important; image-rendering:pixelated; }
-  .book-card-print{ min-height:205px; border-left:8px solid #B89737; overflow:hidden; position:relative; background:#fffdf8; }
-  .book-card-print::before{ content:""; position:absolute; left:0; right:0; top:0; height:7px; background:#B89737; }
-  .book-card-print .book-print-title{ font-family:var(--display); font-size:15px; font-weight:800; line-height:1.2; color:var(--plum); margin:5px 0 7px; position:relative; z-index:1; }
-  .book-card-print .book-code{ display:inline-flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:10px; font-weight:900; background:#B89737; color:#fff; padding:4px 9px; border-radius:6px; box-shadow:0 2px 0 rgba(0,0,0,.10); border:2px solid #B89737; }
-  .book-card-print .book-kat{ font-size:8px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#7B6E5C; margin-bottom:7px; }
-  .book-code-color-mark{ width:100%; height:6px; border-radius:4px; margin:5px 0 7px; }
-  .book-card-print .book-footer{ display:flex; justify-content:space-between; align-items:flex-end; gap:10px; margin-top:8px; position:relative; z-index:1; }
-  .book-card-print .book-info{ font-size:9px; line-height:1.45; color:#554C42; flex:1; }
-  .book-card-print .book-info b{ color:var(--plum); }
-  .book-card-print .book-qr{ width:76px; height:76px; padding:5px; background:#fff; border:1px solid #D6C9AD; border-radius:8px; display:flex; align-items:center; justify-content:center; }
-  .book-card-print .book-qr img,.book-card-print .book-qr canvas{ width:64px!important; height:64px!important; image-rendering:pixelated; }
+  .id-card-grid{ display:grid; grid-template-columns:repeat(2, 1fr); gap:14px; }
+  .id-card{ border:1px solid #333; border-radius:10px; padding:14px; break-inside:avoid; }
+  .id-card-head{ font-family:var(--display); font-weight:700; font-size:13px; border-bottom:1px solid #333; padding-bottom:6px; margin-bottom:8px; }
+  .id-card-row{ font-size:11px; margin:3px 0; }
+  .id-card-qr{ display:flex; justify-content:center; margin-top:8px; }
 
   .receipt{ max-width:340px; margin:0 auto; border:1px dashed #333; padding:16px; font-size:12px; }
   .receipt h3{ font-family:var(--display); text-align:center; margin:0 0 4px; }
@@ -442,7 +420,6 @@ const ICONS = {
   lockKeyhole: '<rect x="4" y="10" width="16" height="11" rx="2"/><circle cx="12" cy="15" r="1"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>',
   info: '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>',
   rotateCcw: '<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/>',
-  history: '<path d="M3 12a9 9 0 1 0 3-7.1"/><path d="M3 4v5h5"/><path d="M12 7v5l3 2"/>',
   users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
   trash2: '<path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="m19 6-1 15H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/>',
   pencil: '<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
@@ -518,7 +495,7 @@ function seedTarget(){ return [{kelas:"1",target:8},{kelas:"2",target:8},{kelas:
 
 /* ============ STATE ============ */
 let state = {
-  books: seedBooks(), loans: seedLoans(), kategoriList: seedKategoriList(),
+  books: seedBooks(), loans: seedLoans(), riwayatLoans: [], kategoriList: seedKategoriList(),
   anggota: seedAnggota(), rakList: seedRak(), kontribList: seedKontrib(), targetLiterasi: seedTarget(),
   settings: { 
     namaMaktabah:"Maktabah Marhalah Ula (Ibtidaiyah) Al-Faruq", 
@@ -539,7 +516,7 @@ let state = {
   loaded:false,
   group:"dashboard", sub:null,
   search:"", katFilter:"Semua", statusFilter:"Semua",
-  bookModal:null, loanTarget:null, katModalOpen:false, scanOpen:false, historyModal:null, scanMode:"buku",
+  bookModal:null, loanTarget:null, katModalOpen:false, scanOpen:false, scanMode:"book", scanTxnMemberId:null, scanConfirm:null,
   anggotaModal:null, rakModal:null, kontribModal:null, pinPrompt:null, authModal:null,
   laporanFrom:"", laporanTo:"",
 };
@@ -547,7 +524,7 @@ let state = {
 // Pastikan struktur state selalu aman meskipun Firebase/localStorage berisi data lama, null, atau format tidak lengkap.
 function ensureStateShape(){
   const arrays = [
-    "books","loans","kategoriList","anggota","rakList","kontribList","targetLiterasi"
+    "books","loans","riwayatLoans","kategoriList","anggota","rakList","kontribList","targetLiterasi"
   ];
   for(const key of arrays){
     if(!Array.isArray(state[key])) state[key]=[];
@@ -665,7 +642,7 @@ function normalizeSettings(){
 function persistPayload(){
   normalizeSettings();
   return JSON.stringify({
-    books:state.books, loans:state.loans, kategoriList:state.kategoriList,
+    books:state.books, loans:state.loans, riwayatLoans:state.riwayatLoans, kategoriList:state.kategoriList,
     anggota:state.anggota, rakList:state.rakList, kontribList:state.kontribList,
     targetLiterasi:state.targetLiterasi, settings:state.settings
   });
@@ -676,6 +653,7 @@ function applyPersisted(raw){
     const p=typeof raw==='string'?JSON.parse(raw):raw;
     if(Array.isArray(p.books)) state.books=p.books;
     if(Array.isArray(p.loans)) state.loans=p.loans;
+    if(Array.isArray(p.riwayatLoans)) state.riwayatLoans=p.riwayatLoans;
     if(Array.isArray(p.kategoriList)) state.kategoriList=p.kategoriList;
     if(Array.isArray(p.anggota)) state.anggota=p.anggota;
     if(Array.isArray(p.rakList)) state.rakList=p.rakList;
@@ -698,7 +676,7 @@ async function savePublicMirror(){
 }
 function privateDataPayload(){
   return {
-    books:state.books, loans:state.loans, kategoriList:state.kategoriList,
+    books:state.books, loans:state.loans, riwayatLoans:state.riwayatLoans, kategoriList:state.kategoriList,
     anggota:state.anggota, rakList:state.rakList, kontribList:state.kontribList,
     targetLiterasi:state.targetLiterasi
   };
@@ -831,18 +809,6 @@ function signOutMaktabah(){
 
 /* ============ DERIVED HELPERS ============ */
 const katByKode = (kode) => state.kategoriList.find(k=>k.kode===kode) || {kode,nama:"Tanpa kategori",color:"#6B6178"};
-// Warna kode buku berdasarkan huruf awal: A, B, C, dst. Dibuat konsisten di seluruh tampilan dan cetak.
-const kodeColor = (kode) => {
-  const key = String(kode||"").trim().charAt(0).toUpperCase();
-  const palette = {
-    A:"#D64545", B:"#E0B52B", C:"#3B82C4", D:"#2F8F68", E:"#8B5CF6",
-    F:"#E07832", G:"#0F8B8D", H:"#C64A87", I:"#6B8E23", J:"#5B6FB5",
-    K:"#B06B2D", L:"#4B9B8A", M:"#A04E78", N:"#7A7A35", O:"#597AAB",
-    P:"#C05A3A", Q:"#648A5A", R:"#7953A6", S:"#31839A", T:"#A06A35",
-    U:"#3D9165", V:"#9B527A", W:"#4F75A5", X:"#8B6B3D", Y:"#5F8A48", Z:"#75558F"
-  };
-  return palette[key] || "#6B6178";
-};
 const isDipinjam = (kode) => (Array.isArray(state.loans)?state.loans:[]).some(l=>l.kodeBuku===kode && l.status==="dipinjam");
 const bookByKode = (kode) => (Array.isArray(state.books)?state.books:[]).find(b=>b.kode===kode);
 const anggotaById = (id) => (Array.isArray(state.anggota)?state.anggota:[]).find(a=>a.id===id);
@@ -857,51 +823,6 @@ function hariTerlambat(l){
 function dendaLoan(l){ return hariTerlambat(l) * (state.settings.dendaPerHari||0); }
 function isAdmin(){ return currentRole==="admin" && !!currentUser; }
 function guardAdmin(){ if(!isAdmin()){ showToast("Aksi ini butuh mode Admin — buka Sistem ▸ Hak Akses", "rose"); return false; } return true; }
-
-/* ============ RIWAYAT PEMINJAMAN ============ */
-function historyForBook(kode){
-  return (Array.isArray(state.loans)?state.loans:[])
-    .filter(l=>l.kodeBuku===kode)
-    .sort((a,b)=>new Date(b.tanggalPinjam||0)-new Date(a.tanggalPinjam||0));
-}
-function historyForMember(id){
-  return (Array.isArray(state.loans)?state.loans:[])
-    .filter(l=>l.anggotaId===id)
-    .sort((a,b)=>new Date(b.tanggalPinjam||0)-new Date(a.tanggalPinjam||0));
-}
-function openBookHistory(kode){
-  const b=bookByKode(kode); if(!b) return;
-  state.historyModal={type:"book",kode}; renderModal();
-}
-function openMemberHistory(id){
-  const a=anggotaById(id); if(!a) return;
-  state.historyModal={type:"member",id}; renderModal();
-}
-function historyModalHTML(){
-  const m=state.historyModal;
-  if(m.type==="book"){
-    const b=bookByKode(m.kode); const rows=historyForBook(m.kode); const active=rows.find(l=>l.status==="dipinjam");
-    return `<div class="modal-backdrop" id="historyBackdrop"><div class="modal" style="max-width:760px;">
-      <div class="modal-header"><div><div class="hint" style="margin:0;text-transform:uppercase;letter-spacing:.08em;">Riwayat Buku</div><h3 class="modal-title" style="margin-top:3px;">${esc(b?.judul||m.kode)}</h3></div><button class="close-x" id="closeHistoryModal">${icon("x",17)}</button></div>
-      <div class="panel" style="margin:0 0 14px;background:var(--cream);"><div class="row-between"><div><b>Kode:</b> ${esc(m.kode)}<br><span class="muted">${active?`Sedang dipinjam oleh <b>${esc(active.nama)}</b> — Kelas ${esc(active.kelas)}`:'Saat ini tersedia'}</span></div><span class="badge ${active?'badge-rose':'badge-plum'}">${active?'Dipinjam':'Tersedia'}</span></div></div>
-      <div class="table-wrap"><table class="data-table"><thead><tr><th>No</th><th>Tanggal Pinjam</th><th>Peminjam</th><th>Kelas</th><th>Status</th><th>Tanggal Kembali</th></tr></thead><tbody>
-      ${rows.length?rows.map((l,i)=>`<tr><td>${i+1}</td><td>${fmt(l.tanggalPinjam)}</td><td>${esc(l.nama)}</td><td>${esc(l.kelas)}</td><td>${esc(l.status)}</td><td>${l.tanggalKembali?fmt(l.tanggalKembali):'—'}</td></tr>`).join(''):`<tr><td colspan="6" class="muted">Belum pernah ada transaksi peminjaman untuk buku ini.</td></tr>`}
-      </tbody></table></div><p class="hint" style="margin-top:10px;">Total riwayat: <b>${rows.length}</b> transaksi.</p>
-    </div></div>`;
-  }
-  const a=anggotaById(m.id); const rows=historyForMember(m.id); const active=rows.filter(l=>l.status==="dipinjam");
-  return `<div class="modal-backdrop" id="historyBackdrop"><div class="modal" style="max-width:760px;">
-    <div class="modal-header"><div><div class="hint" style="margin:0;text-transform:uppercase;letter-spacing:.08em;">Riwayat Anggota</div><h3 class="modal-title" style="margin-top:3px;">${esc(a?.nama||'Anggota')}</h3><div class="muted">Kelas ${esc(a?.kelas||'—')} · NIS ${esc(a?.nis||'—')}</div></div><button class="close-x" id="closeHistoryModal">${icon("x",17)}</button></div>
-    <div class="panel" style="margin:0 0 14px;background:var(--cream);"><b>${active.length}</b> peminjaman aktif · <b>${rows.length}</b> total transaksi</div>
-    <div class="table-wrap"><table class="data-table"><thead><tr><th>No</th><th>Tanggal Pinjam</th><th>Buku</th><th>Kode</th><th>Status</th><th>Tanggal Kembali</th></tr></thead><tbody>
-    ${rows.length?rows.map((l,i)=>`<tr><td>${i+1}</td><td>${fmt(l.tanggalPinjam)}</td><td>${esc(l.judulBuku)}</td><td>${esc(l.kodeBuku)}</td><td>${esc(l.status)}</td><td>${l.tanggalKembali?fmt(l.tanggalKembali):'—'}</td></tr>`).join(''):`<tr><td colspan="6" class="muted">Belum ada riwayat peminjaman.</td></tr>`}
-    </tbody></table></div>
-  </div></div>`;
-}
-function bindHistoryModal(){
-  document.getElementById("historyBackdrop")?.addEventListener("click",e=>{if(e.target.id==="historyBackdrop"){state.historyModal=null;renderModal();}});
-  document.getElementById("closeHistoryModal")?.addEventListener("click",()=>{state.historyModal=null;renderModal();});
-}
 
 /* ============ TOAST ============ */
 let toastTimer=null;
@@ -928,7 +849,6 @@ function publicBookCard(b){
       <div class="public-book-title">${esc(b.judul)}</div>
       <div class="public-book-meta">${esc(b.penyusun||"—")} · ${esc(katByKode(b.kategori).nama)} · Kode ${esc(b.kode)}</div>
       <span class="public-status ${borrowed?'borrowed':''}">${borrowed?'Sedang dipinjam':'Tersedia'}</span>
-      <button type="button" class="btn btn-outline btn-sm" data-public-history-book="${esc(b.kode)}" style="margin-top:9px;">${icon("history",14)} Riwayat</button>
     </div>
   </article>`;
 }
@@ -1089,7 +1009,6 @@ function renderPublic(){
     document.querySelectorAll("[data-public-home]").forEach(b=>b.onclick=()=>{window.scrollTo({top:0,behavior:"smooth"});});
     document.querySelectorAll("[data-public-info],[data-public-about]").forEach(b=>b.onclick=()=>document.getElementById("publicAbout")?.scrollIntoView({behavior:"smooth",block:"start"}));
     document.querySelectorAll("[data-public-guide]").forEach(b=>b.onclick=()=>document.getElementById("publicGuide")?.scrollIntoView({behavior:"smooth",block:"start"}));
-    document.querySelectorAll("[data-public-history-book]").forEach(b=>b.onclick=()=>openBookHistory(b.dataset.publicHistoryBook));
     bindPublicGuideStepper();
     document.querySelectorAll("[data-public-catalog]").forEach(b=>b.onclick=()=>{
       const mount=document.getElementById("publicCatalogMount");
@@ -1202,6 +1121,7 @@ function renderContent(){
   bindContentActions();
 }
 function bindContentActions(){
+  document.querySelectorAll("[data-historyloanbook]").forEach(b=>b.addEventListener("click", ()=>openBookHistory(b.dataset.historyloanbook)));
   document.querySelectorAll("[data-return]").forEach(b=>b.addEventListener("click", ()=>returnLoan(b.dataset.return)));
   document.querySelectorAll("[data-extend]").forEach(b=>b.addEventListener("click", ()=>extendLoan(b.dataset.extend)));
   document.querySelectorAll("[data-lostloan]").forEach(b=>b.addEventListener("click", ()=>markLoanLostDamaged(b.dataset.lostloan, b.dataset.kind)));
@@ -1209,6 +1129,10 @@ function bindContentActions(){
   document.querySelectorAll("[data-restorebook]").forEach(b=>b.addEventListener("click", ()=>restoreBook(b.dataset.restorebook)));
   document.querySelectorAll("[data-lunas]").forEach(b=>b.addEventListener("click", ()=>toggleLunas(b.dataset.lunas)));
   document.querySelectorAll("[data-newloan]").forEach(b=>b.addEventListener("click", createLoanFromForm));
+  const scanLoanBtn=document.getElementById("btnScanLoan");
+  if(scanLoanBtn) scanLoanBtn.addEventListener("click", startLoanScanFlow);
+  const scanReturnBtn=document.getElementById("btnScanReturn");
+  if(scanReturnBtn) scanReturnBtn.addEventListener("click", startReturnScanFlow);
   document.querySelectorAll("[data-editloan]").forEach(b=>b.addEventListener("click", ()=>openLoanEditModal(b.dataset.editloan)));
   document.querySelectorAll("[data-delloan]").forEach(b=>b.addEventListener("click", ()=>deleteLoan(b.dataset.delloan)));
   const clearHistBtn = document.getElementById("btnClearHistory"); if(clearHistBtn) clearHistBtn.addEventListener("click", clearHistoryLoans);
@@ -1367,9 +1291,7 @@ function anggotaHTML(){
         <option value="kelas">Urutkan: Kelas 1 → 6</option>
         <option value="kelas-desc">Urutkan: Kelas 6 → 1</option>
       </select>
-      <button class="btn btn-gold" id="btnScanMember" data-scan-section="anggota" aria-label="Scan QR Anggota">${icon("scanLine",15)} Scan Anggota</button>
-      
-      <button class="btn btn-primary" id="btnTambahAnggota">+ Tambah Anggota</button>
+      <button class="btn btn-outline" id="btnScanAnggota">${icon("scanLine",15)} Scan Anggota</button><button class="btn btn-primary" id="btnTambahAnggota">+ Tambah Anggota</button>
     </div>
     <div id="anggotaTableWrap"></div>
   `;
@@ -1396,7 +1318,7 @@ function renderAnggotaTable(){
   const list = sortAnggotaList(filtered);
   wrap.innerHTML = `<div class="table-wrap"><table class="data-table"><thead><tr><th>NIS</th><th>Nama</th><th>Kelas</th><th>L/P</th><th>Terdaftar</th><th></th></tr></thead><tbody>
     ${list.map(a=>`<tr><td>${esc(a.nis)}</td><td>${esc(a.nama)}</td><td>Kelas ${esc(a.kelas)}</td><td>${esc(a.lp)}</td><td>${fmt(a.tglDaftar)}</td>
-      <td style="display:flex;gap:6px;"><button class="btn btn-outline btn-sm" data-historyanggota="${a.id}" title="Riwayat peminjaman">${icon("history",15)} Riwayat</button><button class="icon-btn" data-editanggota="${a.id}">${icon("pencil",15)}</button><button class="icon-btn" data-copyanggota="${a.id}">${icon("copy",15)}</button><button class="icon-btn" data-delanggota="${a.id}">${icon("trash2",15)}</button></td></tr>`).join("")}
+      <td style="display:flex;gap:6px;"><button class="icon-btn" title="Riwayat peminjaman" data-historyanggota="${a.id}">${icon("history",15)}</button><button class="icon-btn" data-editanggota="${a.id}">${icon("pencil",15)}</button><button class="icon-btn" data-copyanggota="${a.id}">${icon("copy",15)}</button><button class="icon-btn" data-delanggota="${a.id}">${icon("trash2",15)}</button></td></tr>`).join("")}
   </tbody></table></div>${list.length===0?'<div class="muted" style="text-align:center;">Tidak ada anggota yang cocok.</div>':''}`;
   wrap.querySelectorAll("[data-historyanggota]").forEach(b=>b.addEventListener("click", ()=>openMemberHistory(b.dataset.historyanggota)));
   wrap.querySelectorAll("[data-editanggota]").forEach(b=>b.addEventListener("click", ()=>openAnggotaModal("edit", state.anggota.find(a=>a.id===b.dataset.editanggota))));
@@ -1407,7 +1329,7 @@ function bindAnggota(){
   document.getElementById("anggotaSearch").addEventListener("input", e=>{ state.search=e.target.value; renderAnggotaTable(); });
   const sort = document.getElementById("anggotaSort");
   if(sort) sort.addEventListener("change", renderAnggotaTable);
-  document.getElementById("btnScanMember").addEventListener("click", ()=>{ state.scanMode="anggota"; state.scanOpen=true; renderModal(); });
+  document.getElementById("btnScanAnggota").addEventListener("click", ()=>{ state.scanMode="member"; state.scanOpen=true; renderModal(); });
   document.getElementById("btnTambahAnggota").addEventListener("click", ()=>openAnggotaModal("add", {nis:"", nama:"", kelas:"1", lp:"L", alamat:"", tglDaftar:iso(todayDate)}));
   renderAnggotaTable();
 }
@@ -1569,7 +1491,7 @@ function katalogShellHTML(){
         <option value="tersedia" ${state.statusFilter==='tersedia'?'selected':''}>Tersedia</option>
         <option value="dipinjam" ${state.statusFilter==='dipinjam'?'selected':''}>Dipinjam</option></select>
       <button class="btn btn-outline" id="btnCetakLabel">${icon("printer",15)} Cetak Label QR</button>
-      <button class="btn btn-gold" id="btnScanBook">${icon("scanLine",15)} Scan Buku</button>
+      <button class="btn btn-gold" id="btnScan">${icon("scanLine",15)} Scan Buku</button>
       <button class="btn btn-primary" id="btnTambahBuku">+ Tambah Buku</button>
     </div>
     <div id="katalogGrid"></div>
@@ -1580,7 +1502,7 @@ function bindKatalogToolbar(){
   document.getElementById("katFilterSelect").addEventListener("change", e=>{ state.katFilter=e.target.value; renderKatalogGrid(); });
   document.getElementById("statusFilterSelect").addEventListener("change", e=>{ state.statusFilter=e.target.value; renderKatalogGrid(); });
   document.getElementById("btnCetakLabel").addEventListener("click", printLabels);
-  document.getElementById("btnScanBook").addEventListener("click", ()=>{ state.scanMode="buku"; state.scanOpen=true; renderModal(); });
+  document.getElementById("btnScan").addEventListener("click", ()=>{ state.scanMode="book"; state.scanOpen=true; renderModal(); });
   document.getElementById("btnTambahBuku").addEventListener("click", openAddBook);
 }
 function renderKatalogGrid(){
@@ -1604,7 +1526,7 @@ function renderKatalogGrid(){
     return `
       <div class="book-card">
         <div class="row-between">
-          <span class="kode-chip" style="background:${kodeColor(b.kode)}">${esc(b.kode)}</span>
+          <span class="kode-chip" style="background:${kat.color}">${esc(b.kode)}</span>
           <span class="due-stub" style="border:1.5px solid ${stubColor};color:${stubColor};${(b.status==='dipinjam'&&late)?'background:var(--rose-soft);':''}"><span class="due-dot" style="background:${stubColor}"></span>${stubLabel}</span>
         </div>
         <div class="kat-label" style="color:${kat.color}">${esc(kat.nama)}${rak?` · ${esc(rak.nama)}`:''}</div>
@@ -1614,7 +1536,6 @@ function renderKatalogGrid(){
         ${loanRec ? `<p class="book-loan-note">Dipinjam ${esc(loanRec.nama)} (Kls ${esc(loanRec.kelas)}) sejak ${fmt(loanRec.tanggalPinjam)}</p>` : ""}
         <div class="book-actions">
           <button class="btn btn-primary" style="flex:1;justify-content:center;" data-loan="${esc(b.id)}" ${b.status==='dipinjam'||b.statusFisik!=='baik'?'disabled':''}>${icon("bookOpen",15)} Pinjamkan</button>
-          <button class="btn btn-outline btn-sm" data-historybook="${esc(b.kode)}" title="Riwayat buku">${icon("history",15)}</button>
           <button class="icon-btn" data-edit="${esc(b.id)}">${icon("pencil",15)}</button>
           <button class="icon-btn" data-copybook="${esc(b.id)}">${icon("copy",15)}</button>
           <button class="icon-btn" data-del="${esc(b.id)}">${icon("trash2",15)}</button>
@@ -1680,8 +1601,9 @@ function peminjamanHTML(){
   if(state.anggota.length===0) return `<div class="alert-box alert-rose">Tambahkan anggota dulu di Master Data ▸ Data Anggota.</div>`;
   const tersedia = state.books.filter(b=>!isDipinjam(b.kode) && b.statusFisik==='baik').sort((a,b)=>a.kode.localeCompare(b.kode));
   return `
-    <div class="panel" style="max-width:520px;margin-bottom:20px;">
-      <h3 class="panel-title">Form Peminjaman Baru</h3>
+    <div class="panel" style="max-width:680px;margin-bottom:20px;">
+      <div class="row-between" style="gap:12px;align-items:flex-start;"><div><h3 class="panel-title" style="margin-bottom:4px;">Peminjaman Baru</h3><p class="hint" style="margin:0;">Pilih manual atau gunakan alur scan QR yang lebih cepat.</p></div><button class="btn btn-gold" id="btnScanLoan">${icon("scanLine",15)} Scan untuk Peminjaman</button></div>
+      <div class="field" style="margin-top:16px;"><label class="field-label">Anggota</label>
       <div class="field"><label class="field-label">Anggota</label>
         <select id="pj_anggota">${state.anggota.sort((a,b)=>a.nama.localeCompare(b.nama)).map(a=>`<option value="${a.id}">${esc(a.nama)} — Kelas ${esc(a.kelas)}</option>`).join("")}</select>
       </div>
@@ -1690,7 +1612,7 @@ function peminjamanHTML(){
       </div>
       <p class="hint">Tanggal pinjam: ${fmt(todayDate)} · Jatuh tempo: ${fmt(addDays(todayDate, state.settings.lamaPinjamHari))} (${state.settings.lamaPinjamHari} hari)</p>
       <button class="btn btn-primary btn-block" data-newloan="1" style="margin-top:10px;" ${tersedia.length===0?'disabled':''}>Catat Peminjaman</button>
-      <p class="hint">Bisa juga langsung scan QR buku lewat tombol ${icon("scanLine",15)} Scan di Data Buku.</p>
+      <p class="hint">Mode scan: scan kartu anggota terlebih dahulu, lalu scan QR buku. Sistem akan menampilkan konfirmasi sebelum menyimpan transaksi.</p>
     </div>
     <h3 class="panel-title">Peminjaman Berjalan (${activeLoans().length})</h3>
     ${loanListHTML(activeLoans(), false)}
@@ -1705,17 +1627,71 @@ function createLoanFromForm(){
     tanggalPinjam:iso(todayDate), tanggalJatuhTempo:iso(addDays(todayDate, state.settings.lamaPinjamHari)), tanggalKembali:null, status:"dipinjam", perpanjang:0, dendaLunas:false });
   scheduleSave(); showToast(`"${b.judul}" dipinjamkan ke ${ang.nama}`,"plum"); renderContent();
 }
+
+/* ============ RIWAYAT PEMINJAMAN ============ */
+function allLoanHistory(){
+  const activeAndClosed = Array.isArray(state.loans) ? state.loans : [];
+  const archived = Array.isArray(state.riwayatLoans) ? state.riwayatLoans : [];
+  const seen = new Set();
+  return [...activeAndClosed, ...archived]
+    .filter(l=>l && l.id && !seen.has(l.id) && (seen.add(l.id), true))
+    .filter(l=>l.status!=="dipinjam")
+    .sort((a,b)=>String(b.tanggalKembali||b.tanggalPinjam||"").localeCompare(String(a.tanggalKembali||a.tanggalPinjam||"")));
+}
+function memberLoanHistory(anggotaId){
+  return allLoanHistory().filter(l=>l.anggotaId===anggotaId);
+}
+function bookLoanHistory(kodeBuku){
+  return allLoanHistory().filter(l=>l.kodeBuku===kodeBuku);
+}
+function memberHistoryHTML(a){
+  const hist=memberLoanHistory(a.id);
+  const active=activeLoans().filter(l=>l.anggotaId===a.id);
+  return `<div class="modal-backdrop" id="historyBackdrop"><div class="modal" style="max-width:720px;">
+    <div class="modal-header"><div><div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--gold);font-weight:700;">Riwayat Anggota</div><h3 class="modal-title">${esc(a.nama)}</h3><div class="hint">NIS ${esc(a.nis||"-")} · Kelas ${esc(a.kelas||"-")}</div></div><button class="close-x" id="closeHistoryModal">${icon("x",15)}</button></div>
+    ${active.length?`<div class="panel" style="margin-bottom:12px;border-color:#ead2d2;"><b>Pinjaman aktif (${active.length})</b>${active.map(l=>`<div style="padding:9px 0;border-bottom:1px solid var(--line);"><b>${esc(l.judulBuku)}</b> · ${fmt(l.tanggalPinjam)} · jatuh tempo ${fmt(l.tanggalJatuhTempo)}</div>`).join("")}</div>`:""}
+    <div class="row-between"><h4 class="panel-title" style="margin:0;">Buku yang pernah dipinjam (${hist.length})</h4></div>
+    ${hist.length?`<div class="table-wrap" style="margin-top:10px;"><table class="data-table"><thead><tr><th>Tanggal</th><th>Buku</th><th>Kode</th><th>Kembali</th><th>Status</th></tr></thead><tbody>${hist.map(l=>`<tr><td>${fmt(l.tanggalPinjam)}</td><td>${esc(l.judulBuku)}</td><td>${esc(l.kodeBuku)}</td><td>${fmt(l.tanggalKembali)}</td><td>${esc(l.status)}</td></tr>`).join("")}</tbody></table></div>`:`<div class="muted" style="padding:30px 0;text-align:center;">Belum ada riwayat peminjaman.</div>`}
+  </div></div>`;
+}
+function bookHistoryHTML(b){
+  const hist=bookLoanHistory(b.kode);
+  const active=activeLoans().find(l=>l.kodeBuku===b.kode);
+  return `<div class="modal-backdrop" id="historyBackdrop"><div class="modal" style="max-width:760px;">
+    <div class="modal-header"><div><div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--gold);font-weight:700;">Riwayat Buku</div><h3 class="modal-title">${esc(b.judul)}</h3><div class="hint">${esc(b.kode)} · ${esc(b.penyusun||"-")}</div></div><button class="close-x" id="closeHistoryModal">${icon("x",15)}</button></div>
+    <div class="panel" style="margin-bottom:12px;"><b>Status saat ini:</b> ${active?`🔴 Dipinjam oleh ${esc(active.nama)} · Kelas ${esc(active.kelas)} · jatuh tempo ${fmt(active.tanggalJatuhTempo)}`:`🟢 Tersedia`}${!active?` <button type="button" class="btn btn-gold btn-sm" id="historyLoanBookBtn" style="margin-left:8px;">Pinjam Buku</button>`:""}</div>
+    <h4 class="panel-title" style="margin:0;">Pernah dipinjam oleh (${hist.length})</h4>
+    ${hist.length?`<div class="table-wrap" style="margin-top:10px;"><table class="data-table"><thead><tr><th>Tanggal</th><th>Peminjam</th><th>Kelas</th><th>Kembali</th><th>Status</th></tr></thead><tbody>${hist.map(l=>`<tr><td>${fmt(l.tanggalPinjam)}</td><td>${esc(l.nama)}</td><td>${esc(l.kelas)}</td><td>${fmt(l.tanggalKembali)}</td><td>${esc(l.status)}</td></tr>`).join("")}</tbody></table></div>`:`<div class="muted" style="padding:30px 0;text-align:center;">Belum pernah tercatat dipinjam.</div>`}
+  </div></div>`;
+}
+function openMemberHistory(id){
+  const a=state.anggota.find(x=>x.id===id); if(!a) return;
+  state.historyModal={type:"member",data:a}; renderModal();
+}
+function openBookHistory(kode){
+  const b=bookByKode(kode); if(!b) return;
+  state.historyModal={type:"book",data:b}; renderModal();
+}
+function historyModalHTML(){
+  return state.historyModal?.type==="member" ? memberHistoryHTML(state.historyModal.data) : bookHistoryHTML(state.historyModal.data);
+}
+function bindHistoryModal(){
+  document.getElementById("historyLoanBookBtn")?.addEventListener("click",()=>{ const b=state.historyModal?.data; state.historyModal=null; if(b) openLoanModal(b.id); });
+  document.getElementById("historyBackdrop")?.addEventListener("click",e=>{if(e.target.id==="historyBackdrop"){state.historyModal=null;renderModal();}});
+  document.getElementById("closeHistoryModal")?.addEventListener("click",()=>{state.historyModal=null;renderModal();});
+}
+
 function loanListHTML(list, showLunas){
   if(list.length===0) return `<div class="muted" style="text-align:center;padding:40px 0;">Tidak ada data.</div>`;
   return list.map(l=>{
     const late=isOverdue(l); const denda=dendaLoan(l);
     const kat = bookByKode(l.kodeBuku) ? katByKode(bookByKode(l.kodeBuku).kategori) : {color:"#6B6178"};
     return `<div class="loan-row ${late?'late':''}">
-      <div class="loan-left"><span class="kode-chip" style="background:${kodeColor(l.kodeBuku)}">${esc(l.kodeBuku)}</span>
+      <div class="loan-left"><span class="kode-chip" style="background:${kat.color}">${esc(l.kodeBuku)}</span>
         <div><div class="loan-title">${esc(l.judulBuku)}</div><div class="loan-sub">${esc(l.nama)} · Kelas ${esc(l.kelas)} · pinjam ${fmt(l.tanggalPinjam)} · jatuh tempo ${fmt(l.tanggalJatuhTempo)}${denda>0?` · <b style="color:var(--rose)">${rupiah(denda)}</b>`:''}</div></div></div>
       <div class="loan-left">
         ${late?`<span class="status-tag" style="color:var(--rose)">${icon("alertTriangle",15)} Terlambat ${hariTerlambat(l)}h</span>`:`<span class="status-tag" style="color:var(--plum)">${icon("clock3",15)} Berjalan</span>`}
-        <button class="btn btn-gold btn-sm" data-return="${l.id}">${icon("rotateCcw",15)} Kembalikan</button>
+        <button class="icon-btn" title="Riwayat buku" data-historyloanbook="${esc(l.kodeBuku)}">${icon("history",15)}</button><button class="btn btn-gold btn-sm" data-return="${l.id}">${icon("rotateCcw",15)} Kembalikan</button>
         <button class="btn btn-outline btn-sm" data-extend="${l.id}">⏩ +${state.settings.lamaPinjamHari}h</button>
         <button class="btn btn-rose btn-sm" data-lostloan="${l.id}" data-kind="hilang">Hilang</button>
         <button class="btn btn-rose btn-sm" data-lostloan="${l.id}" data-kind="rusak">Rusak</button>
@@ -1729,14 +1705,14 @@ function loanListHTML(list, showLunas){
 function pengembalianHTML(){
   const al = activeLoans();
   const hist = historyLoans();
-  return `<h3 class="panel-title">Proses Pengembalian</h3>
+  return `<div class="row-between" style="margin-bottom:16px;gap:12px;align-items:center;"><div><h3 class="panel-title" style="margin:0 0 4px;">Proses Pengembalian</h3><p class="hint" style="margin:0;">Scan QR buku untuk menemukan peminjam secara otomatis.</p></div><button class="btn btn-gold" id="btnScanReturn">${icon("scanLine",15)} Scan Buku untuk Pengembalian</button></div>
     ${al.length===0? `<div class="muted" style="text-align:center;padding:40px 0;">Tidak ada buku yang sedang dipinjam.</div>` : loanListHTML(al)}
     <div class="row-between" style="margin-top:24px;align-items:center;">
       <h3 class="panel-title" style="margin:0;">Riwayat Pengembalian</h3>
       ${hist.length>0? `<button class="btn btn-rose btn-sm" id="btnClearHistory">${icon("trash2",15)} Hapus Riwayat</button>` : ''}
     </div>
     ${hist.length===0? `<div class="muted">Belum ada riwayat.</div>` : `<div class="table-wrap"><table class="data-table"><thead><tr><th>Kode</th><th>Judul</th><th>Peminjam</th><th>Pinjam</th><th>Kembali</th><th>Denda</th><th></th></tr></thead><tbody>
-      ${hist.map(l=>{ const d=dendaLoan(l); return `<tr><td><span class="kode-chip" style="background:${kodeColor(l.kodeBuku)}">${esc(l.kodeBuku)}</span></td><td>${esc(l.judulBuku)}</td><td>${esc(l.nama)} (Kls ${esc(l.kelas)})</td><td>${fmt(l.tanggalPinjam)}</td><td>${fmt(l.tanggalKembali)}</td><td>${d>0?`<span class="badge ${l.dendaLunas?'badge-plum':'badge-rose'}">${rupiah(d)} ${l.dendaLunas?'Lunas':'Belum'}</span>`:'-'}</td>
+      ${hist.map(l=>{ const d=dendaLoan(l); return `<tr><td><span class="kode-chip" style="background:var(--plum)">${esc(l.kodeBuku)}</span></td><td>${esc(l.judulBuku)}</td><td>${esc(l.nama)} (Kls ${esc(l.kelas)})</td><td>${fmt(l.tanggalPinjam)}</td><td>${fmt(l.tanggalKembali)}</td><td>${d>0?`<span class="badge ${l.dendaLunas?'badge-plum':'badge-rose'}">${rupiah(d)} ${l.dendaLunas?'Lunas':'Belum'}</span>`:'-'}</td>
       <td style="display:flex;gap:6px;"><button class="icon-btn" title="Edit transaksi" data-editloan="${l.id}">${icon("pencil",15)}</button><button class="icon-btn" title="Hapus transaksi" data-delloan="${l.id}">${icon("trash2",15)}</button></td></tr>`; }).join("")}
     </tbody></table></div>`}
   `;
@@ -1752,7 +1728,7 @@ function perpanjanganHTML(){
   const al = activeLoans();
   return `<h3 class="panel-title">Perpanjangan Peminjaman</h3><p class="hint" style="margin-bottom:14px;">Setiap perpanjangan menambah ${state.settings.lamaPinjamHari} hari dari jatuh tempo saat ini.</p>
     ${al.length===0? `<div class="muted" style="text-align:center;padding:40px 0;">Tidak ada peminjaman aktif.</div>` : al.map(l=>`
-      <div class="loan-row ${isOverdue(l)?'late':''}"><div class="loan-left"><span class="kode-chip" style="background:${kodeColor(l.kodeBuku)}">${esc(l.kodeBuku)}</span>
+      <div class="loan-row ${isOverdue(l)?'late':''}"><div class="loan-left"><span class="kode-chip" style="background:var(--plum)">${esc(l.kodeBuku)}</span>
         <div><div class="loan-title">${esc(l.judulBuku)}</div><div class="loan-sub">${esc(l.nama)} · Kelas ${esc(l.kelas)} · jatuh tempo ${fmt(l.tanggalJatuhTempo)} · sudah diperpanjang ${l.perpanjang||0}×</div></div></div>
         <div class="loan-left">
           <button class="btn btn-outline btn-sm" data-extend="${l.id}">⏩ Perpanjang +${state.settings.lamaPinjamHari} hari</button>
@@ -1773,7 +1749,7 @@ function hilangRusakHTML(){
   const rusakBuku = state.books.filter(b=>b.statusFisik!=='baik');
   return `<h3 class="panel-title">Tandai Buku Dipinjam Hilang/Rusak</h3>
     ${activeLoans().length===0? `<div class="muted">Tidak ada peminjaman aktif.</div>` : activeLoans().map(l=>`
-      <div class="loan-row"><div class="loan-left"><span class="kode-chip" style="background:${kodeColor(l.kodeBuku)}">${esc(l.kodeBuku)}</span><div><div class="loan-title">${esc(l.judulBuku)}</div><div class="loan-sub">${esc(l.nama)} · Kelas ${esc(l.kelas)}</div></div></div>
+      <div class="loan-row"><div class="loan-left"><span class="kode-chip" style="background:var(--plum)">${esc(l.kodeBuku)}</span><div><div class="loan-title">${esc(l.judulBuku)}</div><div class="loan-sub">${esc(l.nama)} · Kelas ${esc(l.kelas)}</div></div></div>
         <div class="loan-left"><button class="btn btn-rose btn-sm" data-lostloan="${l.id}" data-kind="hilang">Tandai Hilang</button><button class="btn btn-rose btn-sm" data-lostloan="${l.id}" data-kind="rusak">Tandai Rusak</button></div>
       </div>`).join("")}
     <h3 class="panel-title" style="margin-top:22px;">Buku Tersedia — Tandai Rusak Tanpa Dipinjam</h3>
@@ -1814,7 +1790,7 @@ function dendaHTML(){
   const totalBelum = list.filter(l=>!l.dendaLunas).reduce((s,l)=>s+dendaLoan(l),0);
   return `<div class="alert-box alert-gold">Total denda belum lunas: <b>&nbsp;${rupiah(totalBelum)}</b></div>
     ${list.length===0? `<div class="muted" style="text-align:center;padding:40px 0;">Tidak ada denda.</div>` : `<div class="table-wrap"><table class="data-table"><thead><tr><th>Kode</th><th>Judul</th><th>Peminjam</th><th>Terlambat</th><th>Denda</th><th>Status</th><th></th></tr></thead><tbody>
-    ${list.map(l=>`<tr><td><span class="kode-chip" style="background:${kodeColor(l.kodeBuku)}">${esc(l.kodeBuku)}</span></td><td>${esc(l.judulBuku)}</td><td>${esc(l.nama)} (Kls ${esc(l.kelas)})</td><td>${hariTerlambat(l)} hari</td><td>${rupiah(dendaLoan(l))}</td>
+    ${list.map(l=>`<tr><td><span class="kode-chip" style="background:var(--plum)">${esc(l.kodeBuku)}</span></td><td>${esc(l.judulBuku)}</td><td>${esc(l.nama)} (Kls ${esc(l.kelas)})</td><td>${hariTerlambat(l)} hari</td><td>${rupiah(dendaLoan(l))}</td>
       <td><span class="badge ${l.dendaLunas?'badge-plum':'badge-rose'}">${l.dendaLunas?'Lunas':'Belum Lunas'}</span></td>
       <td style="display:flex;gap:6px;"><button class="btn btn-sm ${l.dendaLunas?'btn-outline':'btn-gold'}" data-lunas="${l.id}">${l.dendaLunas?'Batal Lunas':'Tandai Lunas'}</button>
       <button class="icon-btn" title="Edit transaksi" data-editloan="${l.id}">${icon("pencil",15)}</button><button class="icon-btn" title="Hapus transaksi" data-delloan="${l.id}">${icon("trash2",15)}</button></td></tr>`).join("")}
@@ -1903,8 +1879,12 @@ function deleteLoan(id){
   if(!guardAdmin()) return;
   const l = state.loans.find(x=>x.id===id); if(!l) return;
   if(confirm(`Hapus transaksi peminjaman "${l.judulBuku}" oleh ${l.nama}? Tindakan ini tidak bisa dibatalkan.`)){
+    if(l.status!=="dipinjam"){
+      if(!Array.isArray(state.riwayatLoans)) state.riwayatLoans=[];
+      if(!state.riwayatLoans.some(x=>x.id===l.id)) state.riwayatLoans.push({...l});
+    }
     state.loans = state.loans.filter(x=>x.id!==id);
-    scheduleSave(); showToast("Transaksi peminjaman dihapus","rose"); renderContent();
+    scheduleSave(); showToast("Transaksi dihapus; riwayat tetap disimpan","rose"); renderContent();
   }
 }
 function clearHistoryLoans(){
@@ -1914,6 +1894,7 @@ function clearHistoryLoans(){
   if(confirm(`Hapus semua ${hist.length} riwayat pengembalian? Catatan denda terkait juga akan hilang. Tindakan ini tidak bisa dibatalkan.`)){
     const histIds = new Set(hist.map(l=>l.id));
     state.loans = state.loans.filter(l=>!histIds.has(l.id));
+    state.riwayatLoans = (state.riwayatLoans||[]).filter(l=>!histIds.has(l.id));
     scheduleSave(); showToast("Riwayat pengembalian dihapus","rose"); renderContent();
   }
 }
@@ -1978,11 +1959,10 @@ function renderCariAnggotaResult(){
   const list = state.anggota.filter(a=>a.nama.toLowerCase().includes(q)).sort((a,b)=>a.nama.localeCompare(b.nama));
   wrap.innerHTML = list.map(a=>{
     const aktif = state.loans.filter(l=>l.anggotaId===a.id && l.status==="dipinjam");
-    return `<div class="panel" style="margin-bottom:12px;"><div class="row-between"><div><b>${esc(a.nama)}</b> <span class="muted" style="padding:0;">— Kelas ${esc(a.kelas)} · NIS ${esc(a.nis)}</span></div><div style="display:flex;gap:7px;align-items:center;"><span class="badge badge-plum">${aktif.length} pinjam aktif</span><button class="btn btn-outline btn-sm" data-history-cari-anggota="${a.id}">${icon("history",15)} Riwayat</button></div></div>
+    return `<div class="panel" style="margin-bottom:12px;"><div class="row-between"><div><b>${esc(a.nama)}</b> <span class="muted" style="padding:0;">— Kelas ${esc(a.kelas)} · NIS ${esc(a.nis)}</span></div><span class="badge badge-plum">${aktif.length} pinjam aktif</span></div>
       ${aktif.length>0?`<div style="margin-top:8px;">${aktif.map(l=>`<div class="loan-sub">• ${esc(l.judulBuku)} (jatuh tempo ${fmt(l.tanggalJatuhTempo)})</div>`).join("")}</div>`:''}
     </div>`;
   }).join("") || `<div class="muted">Tidak ditemukan.</div>`;
-  wrap.querySelectorAll("[data-history-cari-anggota]").forEach(b=>b.addEventListener("click",()=>openMemberHistory(b.dataset.historyCariAnggota)));
 }
 
 /* ============ LAPORAN ============ */
@@ -2049,17 +2029,9 @@ function cetakKartuAnggotaHTML(){
     </tbody></table></div></div>`;
 }
 function cetakKartuBukuHTML(){
-  return `<div class="panel"><h3 class="panel-title">Kartu Buku</h3>
-    <p class="hint" style="margin-bottom:10px;">Kartu identitas setiap buku lengkap dengan kode QR. Bisa ditempel di bagian dalam sampul buku agar identitas dan riwayat buku mudah ditelusuri.</p>
-    <div class="kode-legend">
-      <span style="background:${kodeColor("A0001")}">A</span><span style="background:${kodeColor("B0001")}">B</span><span style="background:${kodeColor("C0001")}">C</span><span style="background:${kodeColor("D0001")}">D</span><span style="background:${kodeColor("E0001")}">E</span><span style="background:${kodeColor("F0001")}">F</span><span style="background:${kodeColor("G0001")}">G</span><span style="background:${kodeColor("H0001")}">H</span>
-      <small style="color:var(--ink-soft);align-self:center;">Warna mengikuti huruf awal kode buku.</small>
-    </div>
-    <div class="toolbar">
-      <button class="btn btn-primary" id="btnCetakSemuaKartuBuku">${icon("printer",15)} Cetak Semua Kartu Buku</button>
-    </div>
+  return `<div class="panel"><h3 class="panel-title">Kartu Buku</h3><p class="hint" style="margin-bottom:14px;">Kartu info per buku (kode, judul, penyusun, kategori) — biasanya ditempel di sampul dalam buku.</p>
     <div class="table-wrap"><table class="data-table"><thead><tr><th>Kode</th><th>Judul</th><th></th></tr></thead><tbody>
-      ${state.books.map(b=>`<tr><td><span class="kode-chip" style="background:${kodeColor(b.kode)}">${esc(b.kode)}</span></td><td>${esc(b.judul)}</td><td><button class="btn btn-outline btn-sm" data-printbukukartu="${b.id}">${icon("printer",15)} Cetak</button></td></tr>`).join("")}
+      ${state.books.map(b=>`<tr><td><span class="kode-chip" style="background:${katByKode(b.kategori).color}">${esc(b.kode)}</span></td><td>${esc(b.judul)}</td><td><button class="btn btn-outline btn-sm" data-printbukukartu="${b.id}">${icon("printer",15)} Cetak</button></td></tr>`).join("")}
     </tbody></table></div></div>`;
 }
 function cetakKatalogHTML(){
@@ -2070,14 +2042,13 @@ function cetakBuktiHTML(){
   const list = [...state.loans].sort((a,b)=>new Date(b.tanggalPinjam)-new Date(a.tanggalPinjam)).slice(0,50);
   return `<div class="panel"><h3 class="panel-title">Bukti Peminjaman / Pengembalian</h3>
     <div class="table-wrap"><table class="data-table"><thead><tr><th>Kode</th><th>Judul</th><th>Peminjam</th><th>Status</th><th></th></tr></thead><tbody>
-      ${list.map(l=>`<tr><td><span class="kode-chip" style="background:${kodeColor(l.kodeBuku)}">${esc(l.kodeBuku)}</span></td><td>${esc(l.judulBuku)}</td><td>${esc(l.nama)}</td><td>${l.status}</td><td><button class="btn btn-outline btn-sm" data-printbukti="${l.id}">${icon("printer",15)} Cetak</button></td></tr>`).join("")}
+      ${list.map(l=>`<tr><td><span class="kode-chip" style="background:var(--plum)">${esc(l.kodeBuku)}</span></td><td>${esc(l.judulBuku)}</td><td>${esc(l.nama)}</td><td>${l.status}</td><td><button class="btn btn-outline btn-sm" data-printbukti="${l.id}">${icon("printer",15)} Cetak</button></td></tr>`).join("")}
     </tbody></table></div></div>`;
 }
 function bindCetakExtra(){
   const b1=document.getElementById("btnCetakLabel2"); if(b1) b1.addEventListener("click", printLabels);
   const b2=document.getElementById("btnCetakSemuaKartu"); if(b2) b2.addEventListener("click", printSemuaKartuAnggota);
   const b3=document.getElementById("btnCetakKatalog"); if(b3) b3.addEventListener("click", printKatalog);
-  const b4=document.getElementById("btnCetakSemuaKartuBuku"); if(b4) b4.addEventListener("click", printSemuaKartuBuku);
   document.querySelectorAll("[data-printbukukartu]").forEach(b=>b.addEventListener("click", ()=>printKartuBuku(b.dataset.printbukukartu)));
 }
 
@@ -2594,6 +2565,7 @@ function bindImpexp(){
 function renderModal(){
   const root=document.getElementById("modalRoot"); if(!root) return;
   if(state.authModal){ root.innerHTML=authModalHTML(); bindAuthModal(); return; }
+  if(state.scanConfirm){ root.innerHTML=scanConfirmHTML(); bindScanConfirm(); return; }
   if(state.bookModal){ root.innerHTML=bookModalHTML(); bindBookModal(); return; }
   if(state.loanTarget){ root.innerHTML=loanModalHTML(); bindLoanModal(); return; }
   if(state.loanEditModal){ root.innerHTML=loanEditModalHTML(); bindLoanEditModal(); return; }
@@ -2602,8 +2574,8 @@ function renderModal(){
   if(state.rakModal){ root.innerHTML=rakModalHTML(); bindRakModal(); return; }
   if(state.katModalOpen){ root.innerHTML=katModalHTML(); bindKatModal(); return; }
   if(state.pinPrompt){ root.innerHTML=pinModalHTML(); bindPinModal(); return; }
-  if(state.scanOpen){ root.innerHTML=scanModalHTML(); bindScanModal(); return; }
   if(state.historyModal){ root.innerHTML=historyModalHTML(); bindHistoryModal(); return; }
+  if(state.scanOpen){ root.innerHTML=scanModalHTML(); bindScanModal(); return; }
   root.innerHTML="";
 }
 
@@ -2735,7 +2707,7 @@ function loanModalHTML(){
   return `<div class="modal-backdrop" id="loanBackdrop"><div class="modal" style="max-width:380px;">
     <div class="modal-header" style="align-items:flex-start;"><div>
       <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--gold);font-weight:700;">Formulir Peminjaman</div>
-      <h3 class="modal-title" style="margin-top:3px;">${esc(b.judul)}</h3><span class="kode-chip" style="background:${kodeColor(b.kode)}">${esc(b.kode)}</span>
+      <h3 class="modal-title" style="margin-top:3px;">${esc(b.judul)}</h3><span class="kode-chip" style="background:${kat.color}">${esc(b.kode)}</span>
     </div><button class="close-x" id="closeLoanModal">${icon("x",15)}</button></div>
     <div class="field" style="margin-top:14px;"><label class="field-label">Anggota</label>
       <select id="l_anggota">${state.anggota.sort((a,b2)=>a.nama.localeCompare(b2.nama)).map(a=>`<option value="${a.id}">${esc(a.nama)} — Kelas ${esc(a.kelas)}</option>`).join("")}</select>
@@ -2841,10 +2813,16 @@ function bindPinModal(){
 /* ============ SCAN QR ============ */
 let scanStream=null, scanRAF=null;
 function scanModalHTML(){
-  return `<div class="modal-backdrop" id="scanBackdrop"><div class="modal" style="max-width:380px;">
-    <div class="modal-header"><h3 class="modal-title">Scan ${state.scanMode==='anggota'?'Barcode Anggota':'Barcode Buku'}</h3><button class="close-x" id="closeScanModal">${icon("x",15)}</button></div>
+  const m=state.scanMode;
+  let title="Scan Kode Buku", hint="Arahkan kamera ke QR/barcode buku...";
+  if(m==="member") { title="Scan Kode Anggota"; hint="Arahkan kamera ke QR/barcode kartu anggota..."; }
+  if(m==="loan-member") { title="Peminjaman — Scan Anggota"; hint="Langkah 1 dari 2: scan QR kartu anggota terlebih dahulu."; }
+  if(m==="loan-book") { title="Peminjaman — Scan Buku"; hint="Langkah 2 dari 2: scan QR buku yang akan dipinjam."; }
+  if(m==="return-book") { title="Pengembalian — Scan Buku"; hint="Scan QR buku yang sedang dipinjam untuk menemukan transaksi aktif."; }
+  return `<div class="modal-backdrop" id="scanBackdrop"><div class="modal" style="max-width:400px;">
+    <div class="modal-header"><div><h3 class="modal-title">${title}</h3><div class="hint" style="margin-top:3px;">${state.scanTxnMemberId && m==="loan-book" ? `Anggota: <b>${esc((anggotaById(state.scanTxnMemberId)||{}).nama||'-')}</b>` : ''}</div></div><button class="close-x" id="closeScanModal">${icon("x",15)}</button></div>
     <div class="scan-video-wrap"><video id="scanVideo" playsinline muted></video><div class="scan-frame"></div></div>
-    <p class="scan-hint">Arahkan kamera ke ${state.scanMode==='anggota'?'QR/barcode kartu anggota':'QR/barcode pada buku'}...</p>
+    <p class="scan-hint">${hint}</p>
   </div></div>`;
 }
 function bindScanModal(){
@@ -2857,13 +2835,11 @@ async function startScan(){
     scanStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}});
     const video=document.getElementById("scanVideo"); if(!video) return;
     video.srcObject=scanStream; await video.play();
-
     if("BarcodeDetector" in window){
       try{
-        const detector = new BarcodeDetector({formats:["qr_code"]});
-        scanLoopNative(detector);
-        return; // native path — no external library needed at all
-      }catch(e){ /* unsupported format list etc — fall through to jsQR */ }
+        const detector = new BarcodeDetector({formats:["qr_code","code_128","code_39","ean_13","ean_8","upc_a","upc_e","itf","codabar"]});
+        scanLoopNative(detector); return;
+      }catch(e){}
     }
     const ok = await ensureJsQR();
     if(!ok){ stopScan(); return; }
@@ -2873,10 +2849,7 @@ async function startScan(){
 async function scanLoopNative(detector){
   const video=document.getElementById("scanVideo"); if(!video) return;
   if(video.readyState!==video.HAVE_ENOUGH_DATA){ scanRAF=requestAnimationFrame(()=>scanLoopNative(detector)); return; }
-  try{
-    const codes = await detector.detect(video);
-    if(codes && codes.length>0 && codes[0].rawValue){ handleScanResult(String(codes[0].rawValue).trim()); return; }
-  }catch(e){}
+  try{ const codes=await detector.detect(video); if(codes&&codes.length&&codes[0].rawValue){ handleScanResult(String(codes[0].rawValue).trim()); return; } }catch(e){}
   scanRAF=requestAnimationFrame(()=>scanLoopNative(detector));
 }
 function scanLoop(){
@@ -2885,8 +2858,8 @@ function scanLoop(){
   const canvas=document.createElement("canvas"); canvas.width=video.videoWidth; canvas.height=video.videoHeight;
   const ctx=canvas.getContext("2d"); ctx.drawImage(video,0,0,canvas.width,canvas.height);
   const imageData=ctx.getImageData(0,0,canvas.width,canvas.height);
-  const code = typeof jsQR==="function" ? jsQR(imageData.data, imageData.width, imageData.height) : null;
-  if(code && code.data){ handleScanResult(code.data.trim()); return; }
+  const code=typeof jsQR==="function"?jsQR(imageData.data,imageData.width,imageData.height):null;
+  if(code&&code.data){ handleScanResult(code.data.trim()); return; }
   scanRAF=requestAnimationFrame(scanLoop);
 }
 function stopScan(){
@@ -2894,138 +2867,124 @@ function stopScan(){
   if(scanStream){ scanStream.getTracks().forEach(t=>t.stop()); scanStream=null; }
   state.scanOpen=false; renderModal();
 }
+function startLoanScanFlow(){
+  if(!state.anggota.length){ showToast("Belum ada anggota","rose"); return; }
+  state.scanTxnMemberId=null; state.scanMode="loan-member"; state.scanOpen=true; renderModal();
+}
+function startReturnScanFlow(){
+  if(!activeLoans().length){ showToast("Tidak ada peminjaman aktif","rose"); return; }
+  state.scanMode="return-book"; state.scanOpen=true; renderModal();
+}
 function handleScanResult(text){
+  const raw=String(text||"").trim(); const normalized=raw.toUpperCase(); const mode=state.scanMode||"book";
   stopScan();
-  const value=String(text||'').trim();
-  if(state.scanMode==='anggota'){
-    const a=state.anggota.find(x=>String(x.nis||'').toUpperCase()===value.toUpperCase() || String(x.id||'').toUpperCase()===value.toUpperCase());
-    if(!a){ showToast(`Barcode anggota "${value}" tidak ditemukan`,'rose'); return; }
+  if(mode==="member"){
+    const a=state.anggota.find(x=>String(x.nis||"").trim().toUpperCase()===normalized||String(x.id||"").trim().toUpperCase()===normalized);
+    if(!a){ showToast(`Kode anggota "${raw}" tidak ditemukan`,"rose"); return; }
     openMemberHistory(a.id); return;
   }
-  const kode=value.toUpperCase();
-  const book=state.books.find(b=>b.kode===kode);
-  if(!book){ showToast(`Kode "${kode}" tidak ditemukan`,'rose'); return; }
-  openBookHistory(kode);
+  if(mode==="loan-member"){
+    const a=state.anggota.find(x=>String(x.nis||"").trim().toUpperCase()===normalized||String(x.id||"").trim().toUpperCase()===normalized);
+    if(!a){ showToast(`Kode anggota "${raw}" tidak ditemukan`,"rose"); return; }
+    state.scanTxnMemberId=a.id; state.scanMode="loan-book"; state.scanOpen=true; renderModal(); return;
+  }
+  const book=state.books.find(b=>String(b.kode||"").trim().toUpperCase()===normalized);
+  if(!book){ showToast(`Kode buku "${raw}" tidak ditemukan`,"rose"); return; }
+  if(mode==="loan-book"){
+    const a=anggotaById(state.scanTxnMemberId);
+    if(!a){ state.scanTxnMemberId=null; showToast("Anggota peminjam tidak ditemukan. Ulangi scan.","rose"); return; }
+    if(isDipinjam(book.kode)||book.statusFisik!=="baik"){ showToast(`Buku "${book.judul}" tidak tersedia untuk dipinjam`,"rose"); return; }
+    state.scanConfirm={type:"loan",memberId:a.id,bookId:book.id}; state.scanTxnMemberId=null; renderModal(); return;
+  }
+  if(mode==="return-book"){
+    const loan=activeLoans().find(l=>l.kodeBuku===book.kode);
+    if(!loan){ showToast(`Buku "${book.judul}" tidak sedang dipinjam`,"rose"); return; }
+    state.scanConfirm={type:"return",loanId:loan.id}; renderModal(); return;
+  }
+  openBookHistory(book.kode);
+}
+
+function scanConfirmHTML(){
+  const c=state.scanConfirm;
+  if(!c) return '';
+  if(c.type==="loan"){
+    const a=anggotaById(c.memberId), b=state.books.find(x=>x.id===c.bookId), kat=b?katByKode(b.kategori):null;
+    if(!a||!b){ state.scanConfirm=null; return ''; }
+    return `<div class="modal-backdrop" id="scanConfirmBackdrop"><div class="modal" style="max-width:430px;">
+      <div class="modal-header"><div><div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--gold);font-weight:700;">Konfirmasi Peminjaman</div><h3 class="modal-title">${esc(b.judul)}</h3></div><button class="close-x" id="closeScanConfirm">${icon("x",15)}</button></div>
+      <div class="panel" style="margin-top:12px;"><div><b>Peminjam</b><br>${esc(a.nama)} · Kelas ${esc(a.kelas)}<br>NIS ${esc(a.nis||'-')}</div><hr style="border:0;border-top:1px solid var(--line);margin:12px 0;"><div><b>Buku</b><br><span class="kode-chip" style="background:${kat?kat.color:'var(--plum)'}">${esc(b.kode)}</span> ${esc(b.judul)}</div><div class="hint" style="margin-top:10px;">Tanggal pinjam: ${fmt(todayDate)} · Jatuh tempo: ${fmt(addDays(todayDate,state.settings.lamaPinjamHari))}</div></div>
+      <button class="btn btn-primary btn-block" id="confirmScanLoan" style="margin-top:14px;">${icon("check",15)} Simpan Peminjaman</button>
+    </div></div>`;
+  }
+  const l=state.loans.find(x=>x.id===c.loanId); const b=l?bookByKode(l.kodeBuku):null;
+  if(!l||!b){ state.scanConfirm=null; return ''; }
+  const d=dendaLoan(l);
+  return `<div class="modal-backdrop" id="scanConfirmBackdrop"><div class="modal" style="max-width:430px;">
+    <div class="modal-header"><div><div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--gold);font-weight:700;">Konfirmasi Pengembalian</div><h3 class="modal-title">${esc(b.judul)}</h3></div><button class="close-x" id="closeScanConfirm">${icon("x",15)}</button></div>
+    <div class="panel" style="margin-top:12px;"><div><b>Peminjam</b><br>${esc(l.nama)} · Kelas ${esc(l.kelas)}</div><hr style="border:0;border-top:1px solid var(--line);margin:12px 0;"><div><b>Kode Buku:</b> ${esc(l.kodeBuku)}</div><div class="hint" style="margin-top:8px;">Dipinjam: ${fmt(l.tanggalPinjam)} · Jatuh tempo: ${fmt(l.tanggalJatuhTempo)}${d>0?` · Denda saat ini: <b>${rupiah(d)}</b>`:''}</div></div>
+    <button class="btn btn-gold btn-block" id="confirmScanReturn" style="margin-top:14px;">${icon("rotateCcw",15)} Simpan Pengembalian</button>
+  </div></div>`;
+}
+function bindScanConfirm(){
+  document.getElementById("scanConfirmBackdrop")?.addEventListener("click",e=>{if(e.target.id==="scanConfirmBackdrop"){state.scanConfirm=null;renderModal();}});
+  document.getElementById("closeScanConfirm")?.addEventListener("click",()=>{state.scanConfirm=null;renderModal();});
+  document.getElementById("confirmScanLoan")?.addEventListener("click",()=>{
+    const c=state.scanConfirm, a=anggotaById(c.memberId), b=state.books.find(x=>x.id===c.bookId);
+    if(!a||!b){state.scanConfirm=null;renderModal();return;}
+    if(isDipinjam(b.kode)||b.statusFisik!=="baik"){showToast("Buku sudah tidak tersedia","rose");state.scanConfirm=null;renderModal();return;}
+    state.loans.unshift({id:uid(),kodeBuku:b.kode,judulBuku:b.judul,anggotaId:a.id,nama:a.nama,kelas:a.kelas,tanggalPinjam:iso(todayDate),tanggalJatuhTempo:iso(addDays(todayDate,state.settings.lamaPinjamHari)),tanggalKembali:null,status:"dipinjam",perpanjang:0,dendaLunas:false});
+    scheduleSave(); state.scanConfirm=null; showToast(`"${b.judul}" dipinjamkan ke ${a.nama}`,"plum"); renderContent();
+  });
+  document.getElementById("confirmScanReturn")?.addEventListener("click",()=>{
+    const c=state.scanConfirm, l=state.loans.find(x=>x.id===c.loanId); if(!l){state.scanConfirm=null;renderModal();return;}
+    state.loans=state.loans.map(x=>x.id===l.id?{...x,status:"dikembalikan",tanggalKembali:iso(todayDate)}:x);
+    scheduleSave(); state.scanConfirm=null; showToast(`"${l.judulBuku}" dikembalikan oleh ${l.nama}`,"rose"); renderContent();
+  });
 }
 
 /* ============ CETAK: LABEL QR ============ */
-function qrImageUrl(text, size){
-  return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(String(text||""))}`;
-}
-function renderLocalPrintQR(){
-  const slots=[...document.querySelectorAll("#printArea .qr-slot")];
-  if(!slots.length) return false;
-  if(typeof QRCode === "undefined"){
-    // Fallback jika CDN QRCode.js gagal dimuat.
-    slots.forEach(slot=>{
-      const value=slot.getAttribute("data-qr")||"";
-      slot.innerHTML=`<img loading="eager" src="${qrImageUrl(value,64)}" width="64" height="64" alt="QR ${esc(value)}"/>`;
-    });
-    return false;
-  }
-  slots.forEach(slot=>{
-    slot.innerHTML="";
-    const value=slot.getAttribute("data-qr")||"";
-    try{ new QRCode(slot,{text:value,width:64,height:64,colorDark:"#241B2E",colorLight:"#FFFFFF",correctLevel:QRCode.CorrectLevel.M}); }catch(_e){
-      slot.innerHTML=`<img loading="eager" src="${qrImageUrl(value,64)}" width="64" height="64" alt="QR ${esc(value)}"/>`;
-    }
-  });
-  return true;
-}
-function printAfterImagesReady(){
-  const area=document.getElementById("printArea");
-  if(renderLocalPrintQR()){
-    requestAnimationFrame(()=>setTimeout(()=>window.print(),220));
-    return;
-  }
-  const imgs=[...area.querySelectorAll("img")];
-  if(!imgs.length){ window.print(); return; }
-  imgs.forEach(img=>{ img.loading="eager"; img.decoding="sync"; });
-  Promise.all(imgs.map(img=>new Promise(resolve=>{
-    if(img.complete && img.naturalWidth>0){ resolve(); return; }
-    const timer=setTimeout(resolve,7000);
-    img.addEventListener("load",()=>{ clearTimeout(timer); resolve(); },{once:true});
-    img.addEventListener("error",()=>{ clearTimeout(timer); resolve(); },{once:true});
-  }))).then(()=>requestAnimationFrame(()=>setTimeout(()=>window.print(),120)));
-}
+function qrImageUrl(text, size){ return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(text)}`; }
 function printLabels(){
   const list=[...state.books].sort((a,b)=>a.kode.localeCompare(b.kode));
   if(list.length===0){ showToast("Belum ada buku untuk dicetak","rose"); return; }
   const area=document.getElementById("printArea");
-  area.innerHTML = `<div class="label-grid">${list.map(b=>`<div class="label-card"><div class="qr qr-slot" data-qr="${esc(b.kode)}"></div><div class="label-kode" style="color:${kodeColor(b.kode)}">${esc(b.kode)}</div><div class="label-judul">${esc(b.judul)}</div><div class="label-brand">${esc(state.settings.namaMaktabah)} · Kalibagor</div></div>`).join("")}</div>`;
-  printAfterImagesReady();
+  area.innerHTML = `<div class="label-grid">${list.map(b=>`<div class="label-card"><div class="qr"><img src="${qrImageUrl(b.kode,64)}" width="64" height="64" alt="QR ${esc(b.kode)}"/></div><div class="label-kode">${esc(b.kode)}</div><div class="label-judul">${esc(b.judul)}</div><div class="label-brand">${esc(state.settings.namaMaktabah)} · Kalibagor</div></div>`).join("")}</div>`;
+  setTimeout(()=>window.print(), 400);
 }
+
+/* ============ CETAK: KARTU ANGGOTA ============ */
 function kartuAnggotaCardHTML(a){
-  const qrValue=a.nis||a.id||a.kode;
-  return `<div class="id-card">
-    <div class="id-card-head">${esc(state.settings.namaMaktabah)}<small>Kartu Anggota · Maktabah Marhalah Ula (Ibtidaiyah) Al-Faruq</small></div>
-    <div class="id-card-row"><b>Nama</b> ${esc(a.nama)}</div>
-    <div class="id-card-row"><b>NIS</b> ${esc(a.nis||"-")}</div>
-    <div class="id-card-row"><b>Kelas</b> ${esc(a.kelas)}</div>
-    <div class="id-card-row"><b>Terdaftar</b> ${fmt(a.tglDaftar)}</div>
-    <div class="id-card-qr"><div class="qr-box qr-slot" data-qr="${esc(qrValue)}"></div></div>
-  </div>`;
+  return `<div class="id-card"><div class="id-card-head">${esc(state.settings.namaMaktabah)}</div>
+    <div class="id-card-row"><b>Nama:</b> ${esc(a.nama)}</div><div class="id-card-row"><b>NIS:</b> ${esc(a.nis)}</div>
+    <div class="id-card-row"><b>Kelas:</b> ${esc(a.kelas)}</div><div class="id-card-row"><b>Terdaftar:</b> ${fmt(a.tglDaftar)}</div>
+    <div class="id-card-qr"><img src="${qrImageUrl(a.nis||a.id,64)}" width="64" height="64" alt="QR ${esc(a.nis||a.id)}"/></div></div>`;
 }
 function printKartuAnggota(id){
   const a=anggotaById(id); if(!a){ showToast("Anggota tidak ditemukan","rose"); return; }
   const area=document.getElementById("printArea");
   area.innerHTML = `<div class="id-card-grid">${kartuAnggotaCardHTML(a)}</div>`;
-  printAfterImagesReady();
+  setTimeout(()=>window.print(), 400);
 }
 function printSemuaKartuAnggota(){
   if(state.anggota.length===0){ showToast("Belum ada anggota","rose"); return; }
   const area=document.getElementById("printArea");
   area.innerHTML = `<div class="id-card-grid">${state.anggota.map(kartuAnggotaCardHTML).join("")}</div>`;
-  printAfterImagesReady();
-}
-function printSemuaKartuBuku(){
-  if(state.books.length===0){ showToast("Belum ada buku untuk dicetak","rose"); return; }
-  const list=[...state.books].sort((a,b)=>String(a.kode||"").localeCompare(String(b.kode||""), undefined, {numeric:true, sensitivity:"base"}));
-  const area=document.getElementById("printArea");
-  area.innerHTML = `<div class="id-card-grid">${list.map(b=>{
-    const kat=katByKode(b.kategori);
-    const rak=(state.rakList.find(r=>r.kode===b.rak)||{}).nama||"-";
-    return `<div class="id-card book-card-print" style="border-left-color:${kodeColor(b.kode)};">
-      <div class="id-card-head">${esc(state.settings.namaMaktabah)}<small>Kartu Identitas Buku · Maktabah Marhalah Ula (Ibtidaiyah) Al-Faruq</small></div>
-      <div class="book-code-color-mark" style="background:${kodeColor(b.kode)};"></div>
-      <span class="book-code" style="background:${kodeColor(b.kode)};border-color:${kodeColor(b.kode)};color:#fff;">${esc(b.kode)}</span>
-      <div class="book-print-title">${esc(b.judul)}</div>
-      <div class="book-kat">${esc(kat.nama)}</div>
-      <div class="book-footer">
-        <div class="book-info">
-          <div><b>Penyusun:</b> ${esc(b.penyusun||"-")}</div>
-          <div><b>Penerbit:</b> ${esc(b.penerbit||"-")}</div>
-          <div><b>Tahun:</b> ${esc(b.tahunTerbit||"-")}</div>
-          <div><b>Rak:</b> ${esc(rak)}</div>
-        </div>
-        <div class="book-qr qr-slot" data-qr="${esc(b.kode)}"></div>
-      </div>
-    </div>`;
-  }).join("")}</div>`;
-  printAfterImagesReady();
+  setTimeout(()=>window.print(), 400);
 }
 
+/* ============ CETAK: KARTU BUKU ============ */
 function printKartuBuku(bookId){
   const b=state.books.find(x=>x.id===bookId); if(!b){ showToast("Buku tidak ditemukan","rose"); return; }
   const kat=katByKode(b.kategori);
   const area=document.getElementById("printArea");
-  area.innerHTML = `<div class="id-card-grid"><div class="id-card book-card-print" style="border-left-color:${kodeColor(b.kode)};">
-    <div class="id-card-head">${esc(state.settings.namaMaktabah)}<small>Kartu Identitas Buku · Maktabah Marhalah Ula (Ibtidaiyah) Al-Faruq</small></div>
-    <div class="book-code-color-mark" style="background:${kodeColor(b.kode)};"></div>
-    <span class="book-code" style="background:${kodeColor(b.kode)};border-color:${kodeColor(b.kode)};color:#fff;">${esc(b.kode)}</span>
-    <div class="book-print-title">${esc(b.judul)}</div>
-    <div class="book-kat">${esc(kat.nama)}</div>
-    <div class="book-footer">
-      <div class="book-info">
-        <div><b>Penyusun:</b> ${esc(b.penyusun||"-")}</div>
-        <div><b>Penerbit:</b> ${esc(b.penerbit||"-")}</div>
-        <div><b>Tahun:</b> ${esc(b.tahunTerbit||"-")}</div>
-        <div><b>Rak:</b> ${esc((state.rakList.find(r=>r.kode===b.rak)||{}).nama||"-")}</div>
-      </div>
-      <div class="book-qr qr-slot" data-qr="${esc(b.kode)}"></div>
-    </div>
+  area.innerHTML = `<div class="id-card-grid"><div class="id-card">
+    <div class="id-card-head">${esc(state.settings.namaMaktabah)}</div>
+    <div class="id-card-row"><b>Kode:</b> ${esc(b.kode)}</div><div class="id-card-row"><b>Judul:</b> ${esc(b.judul)}</div>
+    <div class="id-card-row"><b>Penyusun:</b> ${esc(b.penyusun)}</div><div class="id-card-row"><b>Penerbit:</b> ${esc(b.penerbit)} (${esc(b.tahunTerbit)})</div>
+    <div class="id-card-row"><b>Kategori:</b> ${esc(kat.nama)}</div>
+    <div class="id-card-qr"><img src="${qrImageUrl(b.kode,64)}" width="64" height="64" alt="QR ${esc(b.kode)}"/></div>
   </div></div>`;
-  printAfterImagesReady();
+  setTimeout(()=>window.print(), 400);
 }
 
 /* ============ CETAK: KATALOG ============ */

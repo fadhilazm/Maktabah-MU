@@ -205,6 +205,9 @@ const firebaseConfig = {
   .label-card .qr{ display:flex; justify-content:center; align-items:center; margin:3px 0 5px; min-height:68px; }
   .label-card .qr img,.label-card .qr canvas{ width:64px!important; height:64px!important; image-rendering:pixelated; }
   .label-kode{ font-family:var(--mono); font-size:11px; font-weight:800; color:var(--plum); }
+  .kode-legend{ display:flex; gap:7px; flex-wrap:wrap; margin:0 0 14px; }
+  .kode-legend span{ display:inline-flex; align-items:center; gap:5px; font-family:var(--mono); font-size:10.5px; font-weight:800; padding:4px 7px; border-radius:999px; color:#fff; }
+
   .label-judul{ font-size:9px; line-height:1.25; margin-top:3px; font-weight:700; }
   .label-brand{ font-size:7px; color:#766B5F; margin-top:4px; }
   .id-card-grid{ display:grid; grid-template-columns:repeat(2, 1fr); gap:12px; }
@@ -826,6 +829,18 @@ function signOutMaktabah(){
 
 /* ============ DERIVED HELPERS ============ */
 const katByKode = (kode) => state.kategoriList.find(k=>k.kode===kode) || {kode,nama:"Tanpa kategori",color:"#6B6178"};
+// Warna kode buku berdasarkan huruf awal: A, B, C, dst. Dibuat konsisten di seluruh tampilan dan cetak.
+const kodeColor = (kode) => {
+  const key = String(kode||"").trim().charAt(0).toUpperCase();
+  const palette = {
+    A:"#2F6B57", B:"#7A3E68", C:"#3F6F8F", D:"#A45A3D", E:"#587A63",
+    F:"#8A6239", G:"#66558F", H:"#A64F63", I:"#6F7D3A", J:"#365C7A",
+    K:"#8A6B2F", L:"#4E7A78", M:"#7B536E", N:"#6A6A3F", O:"#596B8A",
+    P:"#8B5E4B", Q:"#5D6B5A", R:"#6B4F7A", S:"#3D7080", T:"#7C6040",
+    U:"#4D745B", V:"#74516B", W:"#4D6580", X:"#80643E", Y:"#5B7350", Z:"#654F72"
+  };
+  return palette[key] || "#6B6178";
+};
 const isDipinjam = (kode) => (Array.isArray(state.loans)?state.loans:[]).some(l=>l.kodeBuku===kode && l.status==="dipinjam");
 const bookByKode = (kode) => (Array.isArray(state.books)?state.books:[]).find(b=>b.kode===kode);
 const anggotaById = (id) => (Array.isArray(state.anggota)?state.anggota:[]).find(a=>a.id===id);
@@ -1585,7 +1600,7 @@ function renderKatalogGrid(){
     return `
       <div class="book-card">
         <div class="row-between">
-          <span class="kode-chip" style="background:${kat.color}">${esc(b.kode)}</span>
+          <span class="kode-chip" style="background:${kodeColor(b.kode)}">${esc(b.kode)}</span>
           <span class="due-stub" style="border:1.5px solid ${stubColor};color:${stubColor};${(b.status==='dipinjam'&&late)?'background:var(--rose-soft);':''}"><span class="due-dot" style="background:${stubColor}"></span>${stubLabel}</span>
         </div>
         <div class="kat-label" style="color:${kat.color}">${esc(kat.nama)}${rak?` · ${esc(rak.nama)}`:''}</div>
@@ -1692,7 +1707,7 @@ function loanListHTML(list, showLunas){
     const late=isOverdue(l); const denda=dendaLoan(l);
     const kat = bookByKode(l.kodeBuku) ? katByKode(bookByKode(l.kodeBuku).kategori) : {color:"#6B6178"};
     return `<div class="loan-row ${late?'late':''}">
-      <div class="loan-left"><span class="kode-chip" style="background:${kat.color}">${esc(l.kodeBuku)}</span>
+      <div class="loan-left"><span class="kode-chip" style="background:${kodeColor(l.kodeBuku)}">${esc(l.kodeBuku)}</span>
         <div><div class="loan-title">${esc(l.judulBuku)}</div><div class="loan-sub">${esc(l.nama)} · Kelas ${esc(l.kelas)} · pinjam ${fmt(l.tanggalPinjam)} · jatuh tempo ${fmt(l.tanggalJatuhTempo)}${denda>0?` · <b style="color:var(--rose)">${rupiah(denda)}</b>`:''}</div></div></div>
       <div class="loan-left">
         ${late?`<span class="status-tag" style="color:var(--rose)">${icon("alertTriangle",15)} Terlambat ${hariTerlambat(l)}h</span>`:`<span class="status-tag" style="color:var(--plum)">${icon("clock3",15)} Berjalan</span>`}
@@ -1717,7 +1732,7 @@ function pengembalianHTML(){
       ${hist.length>0? `<button class="btn btn-rose btn-sm" id="btnClearHistory">${icon("trash2",15)} Hapus Riwayat</button>` : ''}
     </div>
     ${hist.length===0? `<div class="muted">Belum ada riwayat.</div>` : `<div class="table-wrap"><table class="data-table"><thead><tr><th>Kode</th><th>Judul</th><th>Peminjam</th><th>Pinjam</th><th>Kembali</th><th>Denda</th><th></th></tr></thead><tbody>
-      ${hist.map(l=>{ const d=dendaLoan(l); return `<tr><td><span class="kode-chip" style="background:var(--plum)">${esc(l.kodeBuku)}</span></td><td>${esc(l.judulBuku)}</td><td>${esc(l.nama)} (Kls ${esc(l.kelas)})</td><td>${fmt(l.tanggalPinjam)}</td><td>${fmt(l.tanggalKembali)}</td><td>${d>0?`<span class="badge ${l.dendaLunas?'badge-plum':'badge-rose'}">${rupiah(d)} ${l.dendaLunas?'Lunas':'Belum'}</span>`:'-'}</td>
+      ${hist.map(l=>{ const d=dendaLoan(l); return `<tr><td><span class="kode-chip" style="background:${kodeColor(l.kodeBuku)}">${esc(l.kodeBuku)}</span></td><td>${esc(l.judulBuku)}</td><td>${esc(l.nama)} (Kls ${esc(l.kelas)})</td><td>${fmt(l.tanggalPinjam)}</td><td>${fmt(l.tanggalKembali)}</td><td>${d>0?`<span class="badge ${l.dendaLunas?'badge-plum':'badge-rose'}">${rupiah(d)} ${l.dendaLunas?'Lunas':'Belum'}</span>`:'-'}</td>
       <td style="display:flex;gap:6px;"><button class="icon-btn" title="Edit transaksi" data-editloan="${l.id}">${icon("pencil",15)}</button><button class="icon-btn" title="Hapus transaksi" data-delloan="${l.id}">${icon("trash2",15)}</button></td></tr>`; }).join("")}
     </tbody></table></div>`}
   `;
@@ -1733,7 +1748,7 @@ function perpanjanganHTML(){
   const al = activeLoans();
   return `<h3 class="panel-title">Perpanjangan Peminjaman</h3><p class="hint" style="margin-bottom:14px;">Setiap perpanjangan menambah ${state.settings.lamaPinjamHari} hari dari jatuh tempo saat ini.</p>
     ${al.length===0? `<div class="muted" style="text-align:center;padding:40px 0;">Tidak ada peminjaman aktif.</div>` : al.map(l=>`
-      <div class="loan-row ${isOverdue(l)?'late':''}"><div class="loan-left"><span class="kode-chip" style="background:var(--plum)">${esc(l.kodeBuku)}</span>
+      <div class="loan-row ${isOverdue(l)?'late':''}"><div class="loan-left"><span class="kode-chip" style="background:${kodeColor(l.kodeBuku)}">${esc(l.kodeBuku)}</span>
         <div><div class="loan-title">${esc(l.judulBuku)}</div><div class="loan-sub">${esc(l.nama)} · Kelas ${esc(l.kelas)} · jatuh tempo ${fmt(l.tanggalJatuhTempo)} · sudah diperpanjang ${l.perpanjang||0}×</div></div></div>
         <div class="loan-left">
           <button class="btn btn-outline btn-sm" data-extend="${l.id}">⏩ Perpanjang +${state.settings.lamaPinjamHari} hari</button>
@@ -1754,7 +1769,7 @@ function hilangRusakHTML(){
   const rusakBuku = state.books.filter(b=>b.statusFisik!=='baik');
   return `<h3 class="panel-title">Tandai Buku Dipinjam Hilang/Rusak</h3>
     ${activeLoans().length===0? `<div class="muted">Tidak ada peminjaman aktif.</div>` : activeLoans().map(l=>`
-      <div class="loan-row"><div class="loan-left"><span class="kode-chip" style="background:var(--plum)">${esc(l.kodeBuku)}</span><div><div class="loan-title">${esc(l.judulBuku)}</div><div class="loan-sub">${esc(l.nama)} · Kelas ${esc(l.kelas)}</div></div></div>
+      <div class="loan-row"><div class="loan-left"><span class="kode-chip" style="background:${kodeColor(l.kodeBuku)}">${esc(l.kodeBuku)}</span><div><div class="loan-title">${esc(l.judulBuku)}</div><div class="loan-sub">${esc(l.nama)} · Kelas ${esc(l.kelas)}</div></div></div>
         <div class="loan-left"><button class="btn btn-rose btn-sm" data-lostloan="${l.id}" data-kind="hilang">Tandai Hilang</button><button class="btn btn-rose btn-sm" data-lostloan="${l.id}" data-kind="rusak">Tandai Rusak</button></div>
       </div>`).join("")}
     <h3 class="panel-title" style="margin-top:22px;">Buku Tersedia — Tandai Rusak Tanpa Dipinjam</h3>
@@ -1795,7 +1810,7 @@ function dendaHTML(){
   const totalBelum = list.filter(l=>!l.dendaLunas).reduce((s,l)=>s+dendaLoan(l),0);
   return `<div class="alert-box alert-gold">Total denda belum lunas: <b>&nbsp;${rupiah(totalBelum)}</b></div>
     ${list.length===0? `<div class="muted" style="text-align:center;padding:40px 0;">Tidak ada denda.</div>` : `<div class="table-wrap"><table class="data-table"><thead><tr><th>Kode</th><th>Judul</th><th>Peminjam</th><th>Terlambat</th><th>Denda</th><th>Status</th><th></th></tr></thead><tbody>
-    ${list.map(l=>`<tr><td><span class="kode-chip" style="background:var(--plum)">${esc(l.kodeBuku)}</span></td><td>${esc(l.judulBuku)}</td><td>${esc(l.nama)} (Kls ${esc(l.kelas)})</td><td>${hariTerlambat(l)} hari</td><td>${rupiah(dendaLoan(l))}</td>
+    ${list.map(l=>`<tr><td><span class="kode-chip" style="background:${kodeColor(l.kodeBuku)}">${esc(l.kodeBuku)}</span></td><td>${esc(l.judulBuku)}</td><td>${esc(l.nama)} (Kls ${esc(l.kelas)})</td><td>${hariTerlambat(l)} hari</td><td>${rupiah(dendaLoan(l))}</td>
       <td><span class="badge ${l.dendaLunas?'badge-plum':'badge-rose'}">${l.dendaLunas?'Lunas':'Belum Lunas'}</span></td>
       <td style="display:flex;gap:6px;"><button class="btn btn-sm ${l.dendaLunas?'btn-outline':'btn-gold'}" data-lunas="${l.id}">${l.dendaLunas?'Batal Lunas':'Tandai Lunas'}</button>
       <button class="icon-btn" title="Edit transaksi" data-editloan="${l.id}">${icon("pencil",15)}</button><button class="icon-btn" title="Hapus transaksi" data-delloan="${l.id}">${icon("trash2",15)}</button></td></tr>`).join("")}
@@ -2031,12 +2046,16 @@ function cetakKartuAnggotaHTML(){
 }
 function cetakKartuBukuHTML(){
   return `<div class="panel"><h3 class="panel-title">Kartu Buku</h3>
-    <p class="hint" style="margin-bottom:14px;">Kartu identitas setiap buku lengkap dengan kode QR. Bisa ditempel di bagian dalam sampul buku agar identitas dan riwayat buku mudah ditelusuri.</p>
+    <p class="hint" style="margin-bottom:10px;">Kartu identitas setiap buku lengkap dengan kode QR. Bisa ditempel di bagian dalam sampul buku agar identitas dan riwayat buku mudah ditelusuri.</p>
+    <div class="kode-legend">
+      <span style="background:${kodeColor("A0001")}">A</span><span style="background:${kodeColor("B0001")}">B</span><span style="background:${kodeColor("C0001")}">C</span><span style="background:${kodeColor("D0001")}">D</span><span style="background:${kodeColor("E0001")}">E</span><span style="background:${kodeColor("F0001")}">F</span><span style="background:${kodeColor("G0001")}">G</span><span style="background:${kodeColor("H0001")}">H</span>
+      <small style="color:var(--ink-soft);align-self:center;">Warna mengikuti huruf awal kode buku.</small>
+    </div>
     <div class="toolbar">
       <button class="btn btn-primary" id="btnCetakSemuaKartuBuku">${icon("printer",15)} Cetak Semua Kartu Buku</button>
     </div>
     <div class="table-wrap"><table class="data-table"><thead><tr><th>Kode</th><th>Judul</th><th></th></tr></thead><tbody>
-      ${state.books.map(b=>`<tr><td><span class="kode-chip" style="background:${katByKode(b.kategori).color}">${esc(b.kode)}</span></td><td>${esc(b.judul)}</td><td><button class="btn btn-outline btn-sm" data-printbukukartu="${b.id}">${icon("printer",15)} Cetak</button></td></tr>`).join("")}
+      ${state.books.map(b=>`<tr><td><span class="kode-chip" style="background:${kodeColor(b.kode)}">${esc(b.kode)}</span></td><td>${esc(b.judul)}</td><td><button class="btn btn-outline btn-sm" data-printbukukartu="${b.id}">${icon("printer",15)} Cetak</button></td></tr>`).join("")}
     </tbody></table></div></div>`;
 }
 function cetakKatalogHTML(){
@@ -2047,7 +2066,7 @@ function cetakBuktiHTML(){
   const list = [...state.loans].sort((a,b)=>new Date(b.tanggalPinjam)-new Date(a.tanggalPinjam)).slice(0,50);
   return `<div class="panel"><h3 class="panel-title">Bukti Peminjaman / Pengembalian</h3>
     <div class="table-wrap"><table class="data-table"><thead><tr><th>Kode</th><th>Judul</th><th>Peminjam</th><th>Status</th><th></th></tr></thead><tbody>
-      ${list.map(l=>`<tr><td><span class="kode-chip" style="background:var(--plum)">${esc(l.kodeBuku)}</span></td><td>${esc(l.judulBuku)}</td><td>${esc(l.nama)}</td><td>${l.status}</td><td><button class="btn btn-outline btn-sm" data-printbukti="${l.id}">${icon("printer",15)} Cetak</button></td></tr>`).join("")}
+      ${list.map(l=>`<tr><td><span class="kode-chip" style="background:${kodeColor(l.kodeBuku)}">${esc(l.kodeBuku)}</span></td><td>${esc(l.judulBuku)}</td><td>${esc(l.nama)}</td><td>${l.status}</td><td><button class="btn btn-outline btn-sm" data-printbukti="${l.id}">${icon("printer",15)} Cetak</button></td></tr>`).join("")}
     </tbody></table></div></div>`;
 }
 function bindCetakExtra(){
@@ -2712,7 +2731,7 @@ function loanModalHTML(){
   return `<div class="modal-backdrop" id="loanBackdrop"><div class="modal" style="max-width:380px;">
     <div class="modal-header" style="align-items:flex-start;"><div>
       <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--gold);font-weight:700;">Formulir Peminjaman</div>
-      <h3 class="modal-title" style="margin-top:3px;">${esc(b.judul)}</h3><span class="kode-chip" style="background:${kat.color}">${esc(b.kode)}</span>
+      <h3 class="modal-title" style="margin-top:3px;">${esc(b.judul)}</h3><span class="kode-chip" style="background:${kodeColor(b.kode)}">${esc(b.kode)}</span>
     </div><button class="close-x" id="closeLoanModal">${icon("x",15)}</button></div>
     <div class="field" style="margin-top:14px;"><label class="field-label">Anggota</label>
       <select id="l_anggota">${state.anggota.sort((a,b2)=>a.nama.localeCompare(b2.nama)).map(a=>`<option value="${a.id}">${esc(a.nama)} — Kelas ${esc(a.kelas)}</option>`).join("")}</select>
@@ -2929,7 +2948,7 @@ function printLabels(){
   const list=[...state.books].sort((a,b)=>a.kode.localeCompare(b.kode));
   if(list.length===0){ showToast("Belum ada buku untuk dicetak","rose"); return; }
   const area=document.getElementById("printArea");
-  area.innerHTML = `<div class="label-grid">${list.map(b=>`<div class="label-card"><div class="qr qr-slot" data-qr="${esc(b.kode)}"></div><div class="label-kode">${esc(b.kode)}</div><div class="label-judul">${esc(b.judul)}</div><div class="label-brand">${esc(state.settings.namaMaktabah)} · Kalibagor</div></div>`).join("")}</div>`;
+  area.innerHTML = `<div class="label-grid">${list.map(b=>`<div class="label-card"><div class="qr qr-slot" data-qr="${esc(b.kode)}"></div><div class="label-kode" style="color:${kodeColor(b.kode)}">${esc(b.kode)}</div><div class="label-judul">${esc(b.judul)}</div><div class="label-brand">${esc(state.settings.namaMaktabah)} · Kalibagor</div></div>`).join("")}</div>`;
   printAfterImagesReady();
 }
 function kartuAnggotaCardHTML(a){
@@ -2964,7 +2983,7 @@ function printSemuaKartuBuku(){
     const rak=(state.rakList.find(r=>r.kode===b.rak)||{}).nama||"-";
     return `<div class="id-card book-card-print">
       <div class="id-card-head">${esc(state.settings.namaMaktabah)}<small>Kartu Identitas Buku · Maktabah Marhalah Ula (Ibtidaiyah) Al-Faruq</small></div>
-      <span class="book-code">${esc(b.kode)}</span>
+      <span class="book-code" style="background:${kodeColor(b.kode)};color:#fff;">${esc(b.kode)}</span>
       <div class="book-print-title">${esc(b.judul)}</div>
       <div class="book-kat">${esc(kat.nama)}</div>
       <div class="book-footer">
@@ -2987,7 +3006,7 @@ function printKartuBuku(bookId){
   const area=document.getElementById("printArea");
   area.innerHTML = `<div class="id-card-grid"><div class="id-card book-card-print">
     <div class="id-card-head">${esc(state.settings.namaMaktabah)}<small>Kartu Identitas Buku · Maktabah Marhalah Ula (Ibtidaiyah) Al-Faruq</small></div>
-    <span class="book-code">${esc(b.kode)}</span>
+    <span class="book-code" style="background:${kodeColor(b.kode)};color:#fff;">${esc(b.kode)}</span>
     <div class="book-print-title">${esc(b.judul)}</div>
     <div class="book-kat">${esc(kat.nama)}</div>
     <div class="book-footer">

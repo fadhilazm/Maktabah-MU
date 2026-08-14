@@ -221,11 +221,12 @@ const firebaseConfig = {
   .id-card-qr{ display:flex; justify-content:center; align-items:center; margin-top:9px; padding-top:7px; border-top:1px dashed #D7CBB4; position:relative; z-index:1; }
   .id-card-qr .qr-box{ width:76px; height:76px; padding:5px; background:#fff; border:1px solid #D6C9AD; border-radius:8px; display:flex; align-items:center; justify-content:center; }
   .id-card-qr img,.id-card-qr canvas{ width:64px!important; height:64px!important; image-rendering:pixelated; }
-  .book-card-print{ min-height:205px; border-left:7px solid var(--book-code-color,#B89737); overflow:hidden; position:relative; }
-  .book-card-print::before{ content:""; position:absolute; left:0; right:0; top:0; height:7px; background:var(--book-code-color,#B89737); }
+  .book-card-print{ min-height:205px; border-left:8px solid #B89737; overflow:hidden; position:relative; background:#fffdf8; }
+  .book-card-print::before{ content:""; position:absolute; left:0; right:0; top:0; height:7px; background:#B89737; }
   .book-card-print .book-print-title{ font-family:var(--display); font-size:15px; font-weight:800; line-height:1.2; color:var(--plum); margin:5px 0 7px; position:relative; z-index:1; }
-  .book-card-print .book-code{ display:inline-flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:10px; font-weight:900; background:var(--book-code-color,#B89737); color:#fff; padding:4px 9px; border-radius:6px; box-shadow:0 2px 0 rgba(0,0,0,.10); }
+  .book-card-print .book-code{ display:inline-flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:10px; font-weight:900; background:#B89737; color:#fff; padding:4px 9px; border-radius:6px; box-shadow:0 2px 0 rgba(0,0,0,.10); border:2px solid #B89737; }
   .book-card-print .book-kat{ font-size:8px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#7B6E5C; margin-bottom:7px; }
+  .book-code-color-mark{ width:100%; height:6px; border-radius:4px; margin:5px 0 7px; }
   .book-card-print .book-footer{ display:flex; justify-content:space-between; align-items:flex-end; gap:10px; margin-top:8px; position:relative; z-index:1; }
   .book-card-print .book-info{ font-size:9px; line-height:1.45; color:#554C42; flex:1; }
   .book-card-print .book-info b{ color:var(--plum); }
@@ -1366,6 +1367,7 @@ function anggotaHTML(){
         <option value="kelas">Urutkan: Kelas 1 → 6</option>
         <option value="kelas-desc">Urutkan: Kelas 6 → 1</option>
       </select>
+      <button class="btn btn-gold" id="btnScanMember">${icon("scanLine",15)} Scan Anggota</button>
       <button class="btn btn-primary" id="btnTambahAnggota">+ Tambah Anggota</button>
     </div>
     <div id="anggotaTableWrap"></div>
@@ -1404,6 +1406,7 @@ function bindAnggota(){
   document.getElementById("anggotaSearch").addEventListener("input", e=>{ state.search=e.target.value; renderAnggotaTable(); });
   const sort = document.getElementById("anggotaSort");
   if(sort) sort.addEventListener("change", renderAnggotaTable);
+  document.getElementById("btnScanMember").addEventListener("click", ()=>{ state.scanMode="anggota"; state.scanOpen=true; renderModal(); });
   document.getElementById("btnTambahAnggota").addEventListener("click", ()=>openAnggotaModal("add", {nis:"", nama:"", kelas:"1", lp:"L", alamat:"", tglDaftar:iso(todayDate)}));
   renderAnggotaTable();
 }
@@ -1565,7 +1568,7 @@ function katalogShellHTML(){
         <option value="tersedia" ${state.statusFilter==='tersedia'?'selected':''}>Tersedia</option>
         <option value="dipinjam" ${state.statusFilter==='dipinjam'?'selected':''}>Dipinjam</option></select>
       <button class="btn btn-outline" id="btnCetakLabel">${icon("printer",15)} Cetak Label QR</button>
-      <button class="btn btn-gold" id="btnScanBook">${icon("scanLine",15)} Scan Buku</button><button class="btn btn-outline" id="btnScanMember">${icon("scanLine",15)} Scan Anggota</button>
+      <button class="btn btn-gold" id="btnScanBook">${icon("scanLine",15)} Scan Buku</button>
       <button class="btn btn-primary" id="btnTambahBuku">+ Tambah Buku</button>
     </div>
     <div id="katalogGrid"></div>
@@ -1577,7 +1580,6 @@ function bindKatalogToolbar(){
   document.getElementById("statusFilterSelect").addEventListener("change", e=>{ state.statusFilter=e.target.value; renderKatalogGrid(); });
   document.getElementById("btnCetakLabel").addEventListener("click", printLabels);
   document.getElementById("btnScanBook").addEventListener("click", ()=>{ state.scanMode="buku"; state.scanOpen=true; renderModal(); });
-  document.getElementById("btnScanMember").addEventListener("click", ()=>{ state.scanMode="anggota"; state.scanOpen=true; renderModal(); });
   document.getElementById("btnTambahBuku").addEventListener("click", openAddBook);
 }
 function renderKatalogGrid(){
@@ -2982,9 +2984,10 @@ function printSemuaKartuBuku(){
   area.innerHTML = `<div class="id-card-grid">${list.map(b=>{
     const kat=katByKode(b.kategori);
     const rak=(state.rakList.find(r=>r.kode===b.rak)||{}).nama||"-";
-    return `<div class="id-card book-card-print" style="--book-code-color:${kodeColor(b.kode)}">
+    return `<div class="id-card book-card-print" style="border-left-color:${kodeColor(b.kode)};">
       <div class="id-card-head">${esc(state.settings.namaMaktabah)}<small>Kartu Identitas Buku · Maktabah Marhalah Ula (Ibtidaiyah) Al-Faruq</small></div>
-      <span class="book-code" style="background:${kodeColor(b.kode)};color:#fff;">${esc(b.kode)}</span>
+      <div class="book-code-color-mark" style="background:${kodeColor(b.kode)};"></div>
+      <span class="book-code" style="background:${kodeColor(b.kode)};border-color:${kodeColor(b.kode)};color:#fff;">${esc(b.kode)}</span>
       <div class="book-print-title">${esc(b.judul)}</div>
       <div class="book-kat">${esc(kat.nama)}</div>
       <div class="book-footer">
@@ -3005,9 +3008,10 @@ function printKartuBuku(bookId){
   const b=state.books.find(x=>x.id===bookId); if(!b){ showToast("Buku tidak ditemukan","rose"); return; }
   const kat=katByKode(b.kategori);
   const area=document.getElementById("printArea");
-  area.innerHTML = `<div class="id-card-grid"><div class="id-card book-card-print" style="--book-code-color:${kodeColor(b.kode)}">
+  area.innerHTML = `<div class="id-card-grid"><div class="id-card book-card-print" style="border-left-color:${kodeColor(b.kode)};">
     <div class="id-card-head">${esc(state.settings.namaMaktabah)}<small>Kartu Identitas Buku · Maktabah Marhalah Ula (Ibtidaiyah) Al-Faruq</small></div>
-    <span class="book-code" style="background:${kodeColor(b.kode)};color:#fff;">${esc(b.kode)}</span>
+    <div class="book-code-color-mark" style="background:${kodeColor(b.kode)};"></div>
+    <span class="book-code" style="background:${kodeColor(b.kode)};border-color:${kodeColor(b.kode)};color:#fff;">${esc(b.kode)}</span>
     <div class="book-print-title">${esc(b.judul)}</div>
     <div class="book-kat">${esc(kat.nama)}</div>
     <div class="book-footer">

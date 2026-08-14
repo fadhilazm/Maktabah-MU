@@ -657,7 +657,10 @@ function applyPersisted(raw){
     const p=typeof raw==='string'?JSON.parse(raw):raw;
     if(Array.isArray(p.books)) state.books=p.books;
     if(Array.isArray(p.loans)) state.loans=p.loans;
-    if(Array.isArray(p.riwayatLoans)) state.riwayatLoans=p.riwayatLoans;
+    // riwayatLoans adalah arsip lama yang dahulu dibuat ketika transaksi
+    // dihapus. Sekarang penghapusan transaksi berarti benar-benar dihapus.
+    // Abaikan arsip lama agar tidak muncul lagi di riwayat.
+    state.riwayatLoans=[];
     if(Array.isArray(p.kategoriList)) state.kategoriList=p.kategoriList;
     if(Array.isArray(p.anggota)) state.anggota=p.anggota;
     if(Array.isArray(p.rakList)) state.rakList=p.rakList;
@@ -1639,10 +1642,12 @@ function createLoanFromForm(){
 
 /* ============ RIWAYAT PEMINJAMAN ============ */
 function allLoanHistory(){
-  const activeAndClosed = Array.isArray(state.loans) ? state.loans : [];
-  const archived = Array.isArray(state.riwayatLoans) ? state.riwayatLoans : [];
+  // Satu sumber riwayat: transaksi yang masih tersimpan di state.loans.
+  // Transaksi yang benar-benar dihapus tidak boleh muncul lagi di riwayat
+  // buku maupun riwayat anggota.
+  const rows = Array.isArray(state.loans) ? state.loans : [];
   const seen = new Set();
-  return [...activeAndClosed, ...archived]
+  return rows
     .filter(l=>l && l.id && !seen.has(l.id) && (seen.add(l.id), true))
     .filter(l=>l.status!=="dipinjam")
     .sort((a,b)=>String(b.tanggalKembali||b.tanggalPinjam||"").localeCompare(String(a.tanggalKembali||a.tanggalPinjam||"")));
@@ -1887,13 +1892,11 @@ function saveLoanEditFromForm(){
 function deleteLoan(id){
   if(!guardAdmin()) return;
   const l = state.loans.find(x=>x.id===id); if(!l) return;
-  if(confirm(`Hapus transaksi peminjaman "${l.judulBuku}" oleh ${l.nama}? Tindakan ini tidak bisa dibatalkan.`)){
-    if(l.status!=="dipinjam"){
-      if(!Array.isArray(state.riwayatLoans)) state.riwayatLoans=[];
-      if(!state.riwayatLoans.some(x=>x.id===l.id)) state.riwayatLoans.push({...l});
-    }
+  if(confirm(`Hapus transaksi peminjaman "${l.judulBuku}" oleh ${l.nama}? Data ini juga akan dihapus dari riwayat buku dan riwayat anggota.`)){
+    // Hapus permanen dari sumber transaksi. Jangan membuat arsip baru.
     state.loans = state.loans.filter(x=>x.id!==id);
-    scheduleSave(); showToast("Transaksi dihapus; riwayat tetap disimpan","rose"); renderContent();
+    state.riwayatLoans = (state.riwayatLoans||[]).filter(x=>x.id!==id);
+    scheduleSave(); showToast("Transaksi dan riwayatnya dihapus","rose"); renderContent();
   }
 }
 function clearHistoryLoans(){

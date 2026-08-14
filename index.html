@@ -221,9 +221,10 @@ const firebaseConfig = {
   .id-card-qr{ display:flex; justify-content:center; align-items:center; margin-top:9px; padding-top:7px; border-top:1px dashed #D7CBB4; position:relative; z-index:1; }
   .id-card-qr .qr-box{ width:76px; height:76px; padding:5px; background:#fff; border:1px solid #D6C9AD; border-radius:8px; display:flex; align-items:center; justify-content:center; }
   .id-card-qr img,.id-card-qr canvas{ width:64px!important; height:64px!important; image-rendering:pixelated; }
-  .book-card-print{ min-height:205px; }
+  .book-card-print{ min-height:205px; border-left:7px solid var(--book-code-color,#B89737); overflow:hidden; position:relative; }
+  .book-card-print::before{ content:""; position:absolute; left:0; right:0; top:0; height:7px; background:var(--book-code-color,#B89737); }
   .book-card-print .book-print-title{ font-family:var(--display); font-size:15px; font-weight:800; line-height:1.2; color:var(--plum); margin:5px 0 7px; position:relative; z-index:1; }
-  .book-card-print .book-code{ display:inline-block; font-family:var(--mono); font-size:9px; font-weight:800; background:var(--gold); color:var(--plum-deep); padding:3px 7px; border-radius:999px; }
+  .book-card-print .book-code{ display:inline-flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:10px; font-weight:900; background:var(--book-code-color,#B89737); color:#fff; padding:4px 9px; border-radius:6px; box-shadow:0 2px 0 rgba(0,0,0,.10); }
   .book-card-print .book-kat{ font-size:8px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#7B6E5C; margin-bottom:7px; }
   .book-card-print .book-footer{ display:flex; justify-content:space-between; align-items:flex-end; gap:10px; margin-top:8px; position:relative; z-index:1; }
   .book-card-print .book-info{ font-size:9px; line-height:1.45; color:#554C42; flex:1; }
@@ -833,11 +834,11 @@ const katByKode = (kode) => state.kategoriList.find(k=>k.kode===kode) || {kode,n
 const kodeColor = (kode) => {
   const key = String(kode||"").trim().charAt(0).toUpperCase();
   const palette = {
-    A:"#2F6B57", B:"#7A3E68", C:"#3F6F8F", D:"#A45A3D", E:"#587A63",
-    F:"#8A6239", G:"#66558F", H:"#A64F63", I:"#6F7D3A", J:"#365C7A",
-    K:"#8A6B2F", L:"#4E7A78", M:"#7B536E", N:"#6A6A3F", O:"#596B8A",
-    P:"#8B5E4B", Q:"#5D6B5A", R:"#6B4F7A", S:"#3D7080", T:"#7C6040",
-    U:"#4D745B", V:"#74516B", W:"#4D6580", X:"#80643E", Y:"#5B7350", Z:"#654F72"
+    A:"#D64545", B:"#3B82C4", C:"#E0B52B", D:"#2F8F68", E:"#8B5CF6",
+    F:"#E07832", G:"#0F8B8D", H:"#C64A87", I:"#6B8E23", J:"#5B6FB5",
+    K:"#B06B2D", L:"#4B9B8A", M:"#A04E78", N:"#7A7A35", O:"#597AAB",
+    P:"#C05A3A", Q:"#648A5A", R:"#7953A6", S:"#31839A", T:"#A06A35",
+    U:"#3D9165", V:"#9B527A", W:"#4F75A5", X:"#8B6B3D", Y:"#5F8A48", Z:"#75558F"
   };
   return palette[key] || "#6B6178";
 };
@@ -2981,7 +2982,7 @@ function printSemuaKartuBuku(){
   area.innerHTML = `<div class="id-card-grid">${list.map(b=>{
     const kat=katByKode(b.kategori);
     const rak=(state.rakList.find(r=>r.kode===b.rak)||{}).nama||"-";
-    return `<div class="id-card book-card-print">
+    return `<div class="id-card book-card-print" style="--book-code-color:${kodeColor(b.kode)}">
       <div class="id-card-head">${esc(state.settings.namaMaktabah)}<small>Kartu Identitas Buku · Maktabah Marhalah Ula (Ibtidaiyah) Al-Faruq</small></div>
       <span class="book-code" style="background:${kodeColor(b.kode)};color:#fff;">${esc(b.kode)}</span>
       <div class="book-print-title">${esc(b.judul)}</div>
@@ -3004,7 +3005,7 @@ function printKartuBuku(bookId){
   const b=state.books.find(x=>x.id===bookId); if(!b){ showToast("Buku tidak ditemukan","rose"); return; }
   const kat=katByKode(b.kategori);
   const area=document.getElementById("printArea");
-  area.innerHTML = `<div class="id-card-grid"><div class="id-card book-card-print">
+  area.innerHTML = `<div class="id-card-grid"><div class="id-card book-card-print" style="--book-code-color:${kodeColor(b.kode)}">
     <div class="id-card-head">${esc(state.settings.namaMaktabah)}<small>Kartu Identitas Buku · Maktabah Marhalah Ula (Ibtidaiyah) Al-Faruq</small></div>
     <span class="book-code" style="background:${kodeColor(b.kode)};color:#fff;">${esc(b.kode)}</span>
     <div class="book-print-title">${esc(b.judul)}</div>

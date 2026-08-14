@@ -488,9 +488,9 @@ function seedKontrib(){
     { id:uid(), jenis:"Penerbit", nama:"Pena Hikmah" },
   ];
 }
-function seedAnggota() { /* Demo seed disabled for production. */ }
-function seedBooks() { /* Demo seed disabled for production. */ }
-function seedLoans() { /* Demo seed disabled for production. */ }
+function seedAnggota() { return []; }
+function seedBooks() { return []; }
+function seedLoans() { return []; }
 function seedTarget(){ return [{kelas:"1",target:8},{kelas:"2",target:8},{kelas:"3",target:10},{kelas:"4",target:10},{kelas:"5",target:12},{kelas:"6",target:12}]; }
 
 /* ============ STATE ============ */
@@ -520,6 +520,23 @@ let state = {
   anggotaModal:null, rakModal:null, kontribModal:null, pinPrompt:null, authModal:null,
   laporanFrom:"", laporanTo:"",
 };
+
+// Pastikan struktur state selalu aman meskipun Firebase/localStorage berisi data lama, null, atau format tidak lengkap.
+function ensureStateShape(){
+  const arrays = [
+    "books","loans","kategoriList","anggota","rakList","kontribList","targetLiterasi"
+  ];
+  for(const key of arrays){
+    if(!Array.isArray(state[key])) state[key]=[];
+  }
+  if(!state.settings || typeof state.settings !== "object" || Array.isArray(state.settings)){
+    state.settings={};
+  }
+  if(!Array.isArray(state.settings.panduanLangkah)){
+    state.settings.panduanLangkah=[];
+  }
+}
+ensureStateShape();
 
 const GROUPS = [
   { key:"dashboard", label:"Dashboard", icon:icon("layoutDashboard",15) },
@@ -634,17 +651,18 @@ function applyPersisted(raw){
   if(!raw) return false;
   try{
     const p=typeof raw==='string'?JSON.parse(raw):raw;
-    if(p.books) state.books=p.books;
-    if(p.loans) state.loans=p.loans;
-    if(p.kategoriList) state.kategoriList=p.kategoriList;
-    if(p.anggota) state.anggota=p.anggota;
-    if(p.rakList) state.rakList=p.rakList;
-    if(p.kontribList) state.kontribList=p.kontribList;
-    if(p.targetLiterasi) state.targetLiterasi=p.targetLiterasi;
+    if(Array.isArray(p.books)) state.books=p.books;
+    if(Array.isArray(p.loans)) state.loans=p.loans;
+    if(Array.isArray(p.kategoriList)) state.kategoriList=p.kategoriList;
+    if(Array.isArray(p.anggota)) state.anggota=p.anggota;
+    if(Array.isArray(p.rakList)) state.rakList=p.rakList;
+    if(Array.isArray(p.kontribList)) state.kontribList=p.kontribList;
+    if(Array.isArray(p.targetLiterasi)) state.targetLiterasi=p.targetLiterasi;
     if(p.settings) state.settings={...state.settings,...p.settings};
+    ensureStateShape();
     normalizeSettings();
     return true;
-  }catch(e){ console.error("Data tersimpan tidak valid",e); return false; }
+  }catch(e){ console.error("Data tersimpan tidak valid",e); ensureStateShape(); return false; }
 }
 async function savePublicMirror(){
   if(!firebaseReady || !currentUser) return;
@@ -712,6 +730,7 @@ async function loadPrivateData(){
       const local=localStorage.getItem(STORAGE_KEY);
       if(local && applyPersisted(local)) await savePrivateFirebase();
     }
+    ensureStateShape();
     normalizeSettings();
     // Migrasikan nama lama yang masih tersimpan di Firebase/localStorage.
     if(isAdmin() && state.settings?.namaMaktabah === "Maktabah Marhalah Ula (Ibtidaiyah) Al-Faruq") {
@@ -731,11 +750,13 @@ function bindPrivateRealtime(){
     const val=snap.val(); if(!val) return;
     applyPersisted(val);
     try{ localStorage.setItem(STORAGE_KEY,persistPayload()); }catch(e){}
+    ensureStateShape();
     if(state.view==="admin") render();
   };
   const settingsListener=snap=>{
     const val=snap.val(); if(!val) return;
     state.settings={...state.settings,...val};
+    ensureStateShape();
     normalizeSettings();
     try{ localStorage.setItem(STORAGE_KEY,persistPayload()); }catch(e){}
     if(state.view==="admin") render();
@@ -787,11 +808,11 @@ function signOutMaktabah(){
 
 /* ============ DERIVED HELPERS ============ */
 const katByKode = (kode) => state.kategoriList.find(k=>k.kode===kode) || {kode,nama:"Tanpa kategori",color:"#6B6178"};
-const isDipinjam = (kode) => state.loans.some(l=>l.kodeBuku===kode && l.status==="dipinjam");
-const bookByKode = (kode) => state.books.find(b=>b.kode===kode);
-const anggotaById = (id) => state.anggota.find(a=>a.id===id);
-const activeLoans = () => state.loans.filter(l=>l.status==="dipinjam").sort((a,b)=>new Date(a.tanggalJatuhTempo)-new Date(b.tanggalJatuhTempo));
-const historyLoans = () => state.loans.filter(l=>l.status==="dikembalikan").sort((a,b)=>new Date(b.tanggalKembali)-new Date(a.tanggalKembali));
+const isDipinjam = (kode) => (Array.isArray(state.loans)?state.loans:[]).some(l=>l.kodeBuku===kode && l.status==="dipinjam");
+const bookByKode = (kode) => (Array.isArray(state.books)?state.books:[]).find(b=>b.kode===kode);
+const anggotaById = (id) => (Array.isArray(state.anggota)?state.anggota:[]).find(a=>a.id===id);
+const activeLoans = () => (Array.isArray(state.loans)?state.loans:[]).filter(l=>l.status==="dipinjam").sort((a,b)=>new Date(a.tanggalJatuhTempo)-new Date(b.tanggalJatuhTempo));
+const historyLoans = () => (Array.isArray(state.loans)?state.loans:[]).filter(l=>l.status==="dikembalikan").sort((a,b)=>new Date(b.tanggalKembali)-new Date(a.tanggalKembali));
 const isOverdue = (l) => new Date(l.tanggalJatuhTempo) < todayDate && l.status==="dipinjam";
 function hariTerlambat(l){
   const ref = l.status==="dikembalikan" ? new Date(l.tanggalKembali) : todayDate;
@@ -980,6 +1001,7 @@ function publicCatalogHTML(){
   </section>`;
 }
 function renderPublic(){
+  ensureStateShape();
   const root=document.getElementById("root");
   root.innerHTML=publicHTML();
   const bind=()=>{
@@ -1012,6 +1034,7 @@ function renderPublic(){
 
 /* ============ ROOT RENDER ============ */
 function render(){
+  ensureStateShape();
   if(state.view==="public"){ renderPublic(); return; }
   const root=document.getElementById("root");
   const g = GROUPS.find(x=>x.key===state.group);
@@ -1059,6 +1082,7 @@ function render(){
 }
 
 function renderContent(){
+  ensureStateShape();
   const el=document.getElementById("content");
   const g=state.group, s=state.sub;
   if(g==="dashboard"){ el.innerHTML = dashboardHTML(); bindDashboardExtras(); }
@@ -2063,10 +2087,10 @@ function bindBackup(){
       try{
         const p = JSON.parse(reader.result);
         if(!confirm("Timpa semua data saat ini dengan file backup ini?")) return;
-        if(p.books) state.books=p.books; if(p.loans) state.loans=p.loans; if(p.kategoriList) state.kategoriList=p.kategoriList;
-        if(p.anggota) state.anggota=p.anggota; if(p.rakList) state.rakList=p.rakList; if(p.kontribList) state.kontribList=p.kontribList;
-        if(p.targetLiterasi) state.targetLiterasi=p.targetLiterasi; if(p.settings) state.settings={...state.settings,...p.settings};
-        scheduleSave(); showToast("Data berhasil dipulihkan","plum"); render();
+        if(Array.isArray(p.books)) state.books=p.books; if(Array.isArray(p.loans)) state.loans=p.loans; if(Array.isArray(p.kategoriList)) state.kategoriList=p.kategoriList;
+        if(Array.isArray(p.anggota)) state.anggota=p.anggota; if(Array.isArray(p.rakList)) state.rakList=p.rakList; if(Array.isArray(p.kontribList)) state.kontribList=p.kontribList;
+        if(Array.isArray(p.targetLiterasi)) state.targetLiterasi=p.targetLiterasi; if(p.settings && typeof p.settings==='object') state.settings={...state.settings,...p.settings};
+        ensureStateShape(); scheduleSave(); showToast("Data berhasil dipulihkan","plum"); render();
       }catch(err){ showToast("File backup tidak valid","rose"); }
     };
     reader.readAsText(file);

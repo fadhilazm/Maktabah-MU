@@ -1166,19 +1166,39 @@ function bindDashboardExtras(){
 
 /* ============ MASTER: ANGGOTA ============ */
 function anggotaHTML(){
-  const list = [...state.anggota].sort((a,b)=>a.nama.localeCompare(b.nama));
   return `
     <div class="toolbar">
       <div class="search-box"><span>${icon("search",15)}</span><input id="anggotaSearch" placeholder="Cari nama atau NIS..." value="${esc(state.search)}"/></div>
+      <select id="anggotaSort" class="select" aria-label="Urutkan data anggota">
+        <option value="nama">Urutkan: Nama A–Z</option>
+        <option value="kelas">Urutkan: Kelas 1 → 6</option>
+        <option value="kelas-desc">Urutkan: Kelas 6 → 1</option>
+      </select>
       <button class="btn btn-primary" id="btnTambahAnggota">+ Tambah Anggota</button>
     </div>
     <div id="anggotaTableWrap"></div>
   `;
 }
+function sortAnggotaList(list){
+  const mode = document.getElementById("anggotaSort")?.value || "nama";
+  const kelasNum = v => {
+    const m = String(v ?? "").match(/\d+/);
+    return m ? Number(m[0]) : 999;
+  };
+  return [...list].sort((a,b)=>{
+    if(mode === "kelas" || mode === "kelas-desc"){
+      const d = kelasNum(a.kelas) - kelasNum(b.kelas);
+      if(d !== 0) return mode === "kelas-desc" ? -d : d;
+      return String(a.nama||"").localeCompare(String(b.nama||""), "id", {sensitivity:"base"});
+    }
+    return String(a.nama||"").localeCompare(String(b.nama||""), "id", {sensitivity:"base"});
+  });
+}
 function renderAnggotaTable(){
   const wrap = document.getElementById("anggotaTableWrap"); if(!wrap) return;
   const q = state.search.toLowerCase();
-  const list = state.anggota.filter(a=>a.nama.toLowerCase().includes(q) || a.nis.toLowerCase().includes(q)).sort((a,b)=>a.nama.localeCompare(b.nama));
+  const filtered = state.anggota.filter(a=>String(a.nama||"").toLowerCase().includes(q) || String(a.nis||"").toLowerCase().includes(q));
+  const list = sortAnggotaList(filtered);
   wrap.innerHTML = `<div class="table-wrap"><table class="data-table"><thead><tr><th>NIS</th><th>Nama</th><th>Kelas</th><th>L/P</th><th>Terdaftar</th><th></th></tr></thead><tbody>
     ${list.map(a=>`<tr><td>${esc(a.nis)}</td><td>${esc(a.nama)}</td><td>Kelas ${esc(a.kelas)}</td><td>${esc(a.lp)}</td><td>${fmt(a.tglDaftar)}</td>
       <td style="display:flex;gap:6px;"><button class="icon-btn" data-editanggota="${a.id}">${icon("pencil",15)}</button><button class="icon-btn" data-copyanggota="${a.id}">${icon("copy",15)}</button><button class="icon-btn" data-delanggota="${a.id}">${icon("trash2",15)}</button></td></tr>`).join("")}
@@ -1189,6 +1209,8 @@ function renderAnggotaTable(){
 }
 function bindAnggota(){
   document.getElementById("anggotaSearch").addEventListener("input", e=>{ state.search=e.target.value; renderAnggotaTable(); });
+  const sort = document.getElementById("anggotaSort");
+  if(sort) sort.addEventListener("change", renderAnggotaTable);
   document.getElementById("btnTambahAnggota").addEventListener("click", ()=>openAnggotaModal("add", {nis:"", nama:"", kelas:"1", lp:"L", alamat:"", tglDaftar:iso(todayDate)}));
   renderAnggotaTable();
 }

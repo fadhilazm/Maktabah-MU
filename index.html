@@ -1,3 +1,4 @@
+<!-- PRODUCTION: demo seed data disabled -->
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -487,43 +488,9 @@ function seedKontrib(){
     { id:uid(), jenis:"Penerbit", nama:"Pena Hikmah" },
   ];
 }
-function seedAnggota(){
-  return [
-    { id:"m1", nis:"2201", nama:"Muhammad Rizki", kelas:"1", lp:"L", alamat:"", tglDaftar: iso(addDays(todayDate,-120)) },
-    { id:"m2", nis:"2202", nama:"Fatimah Azzahra", kelas:"2", lp:"P", alamat:"", tglDaftar: iso(addDays(todayDate,-110)) },
-    { id:"m3", nis:"2203", nama:"Yusuf Ibrahim", kelas:"3", lp:"L", alamat:"", tglDaftar: iso(addDays(todayDate,-100)) },
-    { id:"m4", nis:"2204", nama:"Zahra Amelia", kelas:"4", lp:"P", alamat:"", tglDaftar: iso(addDays(todayDate,-95)) },
-    { id:"m5", nis:"2205", nama:"Afifah N. H", kelas:"5", lp:"P", alamat:"", tglDaftar: iso(addDays(todayDate,-200)) },
-    { id:"m6", nis:"2206", nama:"Abdullah Malik", kelas:"6", lp:"L", alamat:"", tglDaftar: iso(addDays(todayDate,-180)) },
-    { id:"m7", nis:"2207", nama:"Nabiya", kelas:"5", lp:"P", alamat:"", tglDaftar: iso(addDays(todayDate,-190)) },
-    { id:"m8", nis:"2208", nama:"Khonsa", kelas:"2", lp:"P", alamat:"", tglDaftar: iso(addDays(todayDate,-90)) },
-  ];
-}
-function seedBooks(){
-  return [
-    { id:"s1", kode:"A0001", kategori:"A", judul:"Indahnya Kehidupan Surga Versi Anak 1", penyusun:"Abu Ishaq Musa", penerbit:"At Tuqa", tahunTerbit:"1443H/2022M", sumber:"Beli", tanggalDiterima:"2022-03-01", keterangan:"", rak:"R1", statusFisik:"baik" },
-    { id:"s2", kode:"A0002", kategori:"A", judul:"Indahnya Kehidupan Surga Versi Anak 2", penyusun:"Abu Ishaq Musa", penerbit:"At Tuqa", tahunTerbit:"1443H/2022M", sumber:"Beli", tanggalDiterima:"2022-03-01", keterangan:"", rak:"R1", statusFisik:"baik" },
-    { id:"s3", kode:"A0011", kategori:"A", judul:"Indahnya Kehidupan Surga (Pengantar)", penyusun:"Fathul Mujib (Pengantar)", penerbit:"At Tuqa", tahunTerbit:"1443H/2021M", sumber:"Beli", tanggalDiterima:"2022-03-01", keterangan:"", rak:"R1", statusFisik:"baik" },
-    { id:"s4", kode:"A0019", kategori:"A", judul:"Pend. Sejarah Islam 4 MI", penyusun:"Fathul Mujib", penerbit:"At Tuqa", tahunTerbit:"1440H/2019M", sumber:"Beli", tanggalDiterima:"2021-09-05", keterangan:"", rak:"R1", statusFisik:"baik" },
-    { id:"s5", kode:"A0026", kategori:"A", judul:"Ayo Menghafal Al Qur'an", penyusun:"Fathul Mujib", penerbit:"Pena Hikmah", tahunTerbit:"1442H/2020M", sumber:"Beli", tanggalDiterima:"2021-09-05", keterangan:"", rak:"R1", statusFisik:"baik" },
-    { id:"s6", kode:"A0028", kategori:"A", judul:"Kisah Hebat Para Ulama", penyusun:"Ust. Abu Umar as-Sidawi", penerbit:"At Tuqa", tahunTerbit:"1442H/2021M", sumber:"Infak", tanggalDiterima:"2021-09-05", keterangan:"Wakaf", rak:"R1", statusFisik:"baik" },
-    { id:"s7", kode:"A0029", kategori:"A", judul:"Khalifah Harun Ar-Rasyid", penyusun:"Al-Ust. Abu Hanan Harts", penerbit:"At Tuqa", tahunTerbit:"1441H/2019M", sumber:"Beli", tanggalDiterima:"2022-04-06", keterangan:"", rak:"R1", statusFisik:"baik" },
-    { id:"s8", kode:"A0030", kategori:"A", judul:"10 Mukjizat Nabi Muhammad", penyusun:"Al. Ust. Abu Amr as-Sidawi", penerbit:"At Tuqa", tahunTerbit:"1440H/2019M", sumber:"Beli", tanggalDiterima:"2022-04-06", keterangan:"", rak:"R1", statusFisik:"baik" },
-    { id:"s9", kode:"A0031", kategori:"A", judul:"Keajaiban Hewan, Pohon, dan Batu dalam Al Qur'an dan Hadits", penyusun:"Ummu Abdil Aziz Asma", penerbit:"At Tuqa", tahunTerbit:"1441H/2019M", sumber:"Beli", tanggalDiterima:"2022-04-06", keterangan:"", rak:"R1", statusFisik:"baik" },
-  ];
-}
-function seedLoans(){
-  return [
-    { id:uid(), kodeBuku:"A0001", judulBuku:"Indahnya Kehidupan Surga Versi Anak 1", anggotaId:"m1", nama:"Muhammad Rizki", kelas:"1", tanggalPinjam:iso(addDays(todayDate,-4)), tanggalJatuhTempo:iso(addDays(todayDate,3)), tanggalKembali:null, status:"dipinjam", perpanjang:0, dendaLunas:false },
-    { id:uid(), kodeBuku:"A0002", judulBuku:"Indahnya Kehidupan Surga Versi Anak 2", anggotaId:"m2", nama:"Fatimah Azzahra", kelas:"2", tanggalPinjam:iso(addDays(todayDate,-2)), tanggalJatuhTempo:iso(addDays(todayDate,5)), tanggalKembali:null, status:"dipinjam", perpanjang:0, dendaLunas:false },
-    { id:uid(), kodeBuku:"A0011", judulBuku:"Indahnya Kehidupan Surga (Pengantar)", anggotaId:"m3", nama:"Yusuf Ibrahim", kelas:"3", tanggalPinjam:iso(addDays(todayDate,-6)), tanggalJatuhTempo:iso(addDays(todayDate,1)), tanggalKembali:null, status:"dipinjam", perpanjang:0, dendaLunas:false },
-    { id:uid(), kodeBuku:"A0019", judulBuku:"Pend. Sejarah Islam 4 MI", anggotaId:"m4", nama:"Zahra Amelia", kelas:"4", tanggalPinjam:iso(addDays(todayDate,-1)), tanggalJatuhTempo:iso(addDays(todayDate,6)), tanggalKembali:null, status:"dipinjam", perpanjang:0, dendaLunas:false },
-    { id:uid(), kodeBuku:"A0026", judulBuku:"Ayo Menghafal Al Qur'an", anggotaId:"m5", nama:"Afifah N. H", kelas:"5", tanggalPinjam:iso(addDays(todayDate,-9)), tanggalJatuhTempo:iso(addDays(todayDate,-2)), tanggalKembali:null, status:"dipinjam", perpanjang:0, dendaLunas:false },
-    { id:uid(), kodeBuku:"A0028", judulBuku:"Kisah Hebat Para Ulama", anggotaId:"m6", nama:"Abdullah Malik", kelas:"6", tanggalPinjam:iso(addDays(todayDate,-3)), tanggalJatuhTempo:iso(addDays(todayDate,4)), tanggalKembali:null, status:"dipinjam", perpanjang:0, dendaLunas:false },
-    { id:uid(), kodeBuku:"A0029", judulBuku:"Khalifah Harun Ar-Rasyid", anggotaId:"m7", nama:"Nabiya", kelas:"5", tanggalPinjam:iso(addDays(todayDate,-20)), tanggalJatuhTempo:iso(addDays(todayDate,-13)), tanggalKembali:iso(addDays(todayDate,-13)), status:"dikembalikan", perpanjang:0, dendaLunas:true },
-    { id:uid(), kodeBuku:"A0030", judulBuku:"10 Mukjizat Nabi Muhammad", anggotaId:"m8", nama:"Khonsa", kelas:"2", tanggalPinjam:iso(addDays(todayDate,-16)), tanggalJatuhTempo:iso(addDays(todayDate,-9)), tanggalKembali:iso(addDays(todayDate,-9)), status:"dikembalikan", perpanjang:0, dendaLunas:true },
-  ];
-}
+function seedAnggota() { /* Demo seed disabled for production. */ }
+function seedBooks() { /* Demo seed disabled for production. */ }
+function seedLoans() { /* Demo seed disabled for production. */ }
 function seedTarget(){ return [{kelas:"1",target:8},{kelas:"2",target:8},{kelas:"3",target:10},{kelas:"4",target:10},{kelas:"5",target:12},{kelas:"6",target:12}]; }
 
 /* ============ STATE ============ */

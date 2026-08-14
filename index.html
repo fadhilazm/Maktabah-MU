@@ -1942,51 +1942,94 @@ function bindBackup(){
 function impexpHTML(){
   return `<div class="settings-card">
     <h3 class="panel-title">${icon("library",16)} Import / Export Data Buku</h3>
-    <p class="hint" style="margin-bottom:10px;">Format yang didukung: CSV, Excel (.xlsx/.xls), PDF, dan Word (.docx). Untuk PDF/Word, gunakan tabel atau baris data dengan kolom yang jelas.</p>
-    <p class="hint" style="margin-bottom:10px;">Kolom buku: kode,kategori,judul,penyusun,penerbit,tahunTerbit,sumber,tanggalDiterima,rak,keterangan</p>
+    <p class="hint" style="margin-bottom:10px;">Format yang didukung: CSV, Excel (.xlsx/.xls), PDF, dan Word (.docx). Sistem sekarang juga mengenali format <b>BUKU BESAR MAKTABAH</b> dari PDF/Word dan tidak lagi bergantung pada header yang harus persis sama.</p>
+    <p class="hint" style="margin-bottom:10px;">Kolom standar: kode, kategori, judul, penyusun/pengarang, penerbit, tahun terbit, sumber, tanggal diterima, rak, keterangan.</p>
     <button class="btn btn-outline btn-block" id="exportBukuCsv">${icon("download",15)} Export Data Buku (.csv)</button>
     <div class="field" style="margin-top:12px;"><label class="field-label">Import Data Buku</label><input type="file" id="importBukuFile" accept=".csv,.xlsx,.xls,.pdf,.docx"/></div>
 
     <hr style="border:none;border-top:1px dashed var(--line);margin:18px 0;"/>
 
     <h3 class="panel-title">${icon("users",16)} Import / Export Data Anggota</h3>
-    <p class="hint" style="margin-bottom:10px;">Kolom anggota: nis,nama,kelas,lp,alamat,tglDaftar</p>
+    <p class="hint" style="margin-bottom:10px;">Kolom anggota standar: nis, nama, kelas, lp, alamat, tglDaftar. PDF daftar santri juga dapat dibaca dari baris yang berisi NIS + nama + kelas.</p>
     <button class="btn btn-outline btn-block" id="exportAnggotaCsv">${icon("download",15)} Export Data Anggota (.csv)</button>
     <div class="field" style="margin-top:12px;"><label class="field-label">Import Data Anggota</label><input type="file" id="importAnggotaFile" accept=".csv,.xlsx,.xls,.pdf,.docx"/></div>
 
     <div class="hint" style="margin-top:16px;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--ivory);">
-      ${icon("info",14)} <b>Catatan:</b> Excel paling akurat untuk data tabel. PDF/Word akan dibaca dari teks/tabel yang tersedia; setelah impor, periksa kembali data sebelum digunakan.
+      ${icon("info",14)} <b>Catatan:</b> setelah file dipilih, sistem akan mencoba mengenali format otomatis. Data kosong/duplikat akan dilewati dan hasil impor akan diberi laporan jumlah berhasil, dilewati, dan alasan jika ada.
     </div>
   </div>`;
 }
 
 function normalizeImportKey(v){
-  return String(v??"").toLowerCase().replace(/[^a-z0-9]/g,"");
+  return String(v??"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,"");
 }
 function cleanImportCell(v){
-  return String(v??"").replace(/\u00a0/g," ").replace(/\s+/g," ").trim();
+  return String(v??"").replace(/\u00a0/g," ").replace(/[\u0000-\u001f]/g," ").replace(/\s+/g," ").trim();
+}
+function normalizeBookCode(v){
+  const s=cleanImportCell(v).toUpperCase();
+  const m=s.match(/\b([A-Z])\s*[-./]?\s*(\d{3,5})\b/);
+  return m ? `${m[1]}${m[2].padStart(4,"0")}` : s.replace(/\s+/g,"");
+}
+function parseCSV(text){
+  const rows=[]; let row=[], cell="", q=false;
+  const t=String(text||"");
+  for(let i=0;i<t.length;i++){
+    const c=t[i], n=t[i+1];
+    if(c==='"' && q && n==='"'){ cell+='"'; i++; continue; }
+    if(c==='"'){ q=!q; continue; }
+    if(c===',' && !q){ row.push(cleanImportCell(cell)); cell=""; continue; }
+    if((c==='\n'||c==='\r') && !q){
+      if(c==='\r' && n==='\n') i++;
+      row.push(cleanImportCell(cell));
+      if(row.some(Boolean)) rows.push(row);
+      row=[]; cell=""; continue;
+    }
+    cell+=c;
+  }
+  row.push(cleanImportCell(cell));
+  if(row.some(Boolean)) rows.push(row);
+  return rows;
 }
 function parseDelimitedText(text){
-  const lines=String(text||"").split(/\r?\n/).map(cleanImportCell).filter(Boolean);
+  const raw=String(text||"").replace(/\r/g,"");
+  if(!raw.trim()) return [];
+  if(raw.includes(",") && /(^|\n)\s*[^\n]*,[^\n]*/.test(raw)) return parseCSV(raw);
+  const lines=raw.split("\n").map(cleanImportCell).filter(Boolean);
   if(!lines.length) return [];
-  // Prefer tab, then pipe, then semicolon, then comma.
-  const sample=lines.slice(0,8).join("\n");
-  let delim="\t";
-  if((sample.match(/\t/g)||[]).length===0){
-    const counts={ "|":(sample.match(/\|/g)||[]).length, ";":(sample.match(/;/g)||[]).length, ",":(sample.match(/,/g)||[]).length };
-    delim=Object.entries(counts).sort((a,b)=>b[1]-a[1])[0][1]>0 ? Object.entries(counts).sort((a,b)=>b[1]-a[1])[0][0] : null;
-  }
-  if(!delim) return lines.map(x=>[x]);
-  return lines.map(line=>{
-    if(delim===",") return parseCSV(line)[0]||[];
-    return line.split(delim).map(cleanImportCell);
-  });
+  const sample=lines.slice(0,10).join("\n");
+  const counts={"\t":(sample.match(/\t/g)||[]).length,"|":(sample.match(/\|/g)||[]).length,";":(sample.match(/;/g)||[]).length};
+  const best=Object.entries(counts).sort((a,b)=>b[1]-a[1])[0];
+  if(best && best[1]>0) return lines.map(line=>line.split(best[0]).map(cleanImportCell));
+  return lines.map(x=>[x]);
 }
+
+function pdfRowsFromContent(content){
+  const rows={};
+  (content.items||[]).forEach(it=>{
+    const text=cleanImportCell(it.str); if(!text) return;
+    const y=Math.round((it.transform&&it.transform[5])||0);
+    const key=Object.keys(rows).find(k=>Math.abs(Number(k)-y)<=3) ?? String(y);
+    (rows[key] ||= []).push({x:(it.transform&&it.transform[4])||0,text});
+  });
+  return Object.keys(rows).sort((a,b)=>Number(b)-Number(a)).map(k=>rows[k].sort((a,b)=>a.x-b.x));
+}
+
+async function readPdfRows(file){
+  if(typeof pdfjsLib==="undefined") throw new Error("Pembaca PDF belum termuat. Periksa koneksi internet lalu buka ulang halaman.");
+  pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+  const pdf=await pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise;
+  const all=[];
+  for(let pno=1;pno<=pdf.numPages;pno++){
+    const page=await pdf.getPage(pno);
+    all.push(...pdfRowsFromContent(await page.getTextContent()));
+  }
+  return all;
+}
+
 async function readImportFile(file){
   const ext=(file.name.split(".").pop()||"").toLowerCase();
-  if(ext==="csv"){
-    return parseDelimitedText(await file.text());
-  }
+  if(ext==="csv") return parseDelimitedText(await file.text());
   const buf=await file.arrayBuffer();
   if(ext==="xlsx"||ext==="xls"){
     if(typeof XLSX==="undefined") throw new Error("Pembaca Excel belum termuat.");
@@ -1996,37 +2039,33 @@ async function readImportFile(file){
   }
   if(ext==="docx"){
     if(typeof mammoth==="undefined") throw new Error("Pembaca Word belum termuat.");
-    const result=await mammoth.extractRawText({arrayBuffer:buf});
-    return parseDelimitedText(result.value);
-  }
-  if(ext==="pdf"){
-    if(typeof pdfjsLib==="undefined") throw new Error("Pembaca PDF belum termuat.");
-    pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
-    const pdf=await pdfjsLib.getDocument({data:buf}).promise;
-    const all=[];
-    for(let pno=1;pno<=pdf.numPages;pno++){
-      const page=await pdf.getPage(pno);
-      const content=await page.getTextContent();
-      const items=content.items||[];
-      // Group PDF text by approximate Y coordinate so tables become rows.
-      const rows={};
-      items.forEach(it=>{
-        const y=Math.round((it.transform&&it.transform[5])||0);
-        const key=Object.keys(rows).find(k=>Math.abs(Number(k)-y)<=3) ?? String(y);
-        (rows[key] ||= []).push({x:(it.transform&&it.transform[4])||0,text:cleanImportCell(it.str)});
-      });
-      Object.keys(rows).sort((a,b)=>Number(b)-Number(a)).forEach(k=>{
-        const row=rows[k].sort((a,b)=>a.x-b.x).map(x=>x.text).filter(Boolean);
-        if(row.length) all.push(row);
-      });
+    // HTML keeps table cells separated; raw text is only the fallback.
+    const html=await mammoth.convertToHtml({arrayBuffer:buf});
+    const doc=new DOMParser().parseFromString(html.value,"text/html");
+    const tables=[...doc.querySelectorAll("table")];
+    if(tables.length){
+      const out=[];
+      tables.forEach(t=>[...t.querySelectorAll("tr")].forEach(tr=>{
+        const cells=[...tr.querySelectorAll("th,td")].map(c=>cleanImportCell(c.textContent));
+        if(cells.some(Boolean)) out.push(cells);
+      }));
+      if(out.length) return out;
     }
-    return all;
+    const raw=await mammoth.extractRawText({arrayBuffer:buf});
+    return parseDelimitedText(raw.value);
   }
+  if(ext==="pdf") return (await readPdfRows(file)).map(r=>r.map(x=>x.text));
   throw new Error("Format file belum didukung. Gunakan CSV, Excel, PDF, atau Word (.docx).");
 }
+
 function headerMap(rows){
-  const h=(rows[0]||[]).map(normalizeImportKey);
-  return {h, rows:rows.slice(1)};
+  const normalized=(rows||[]).map(r=>r.map(normalizeImportKey));
+  let best=0, score=-1;
+  normalized.slice(0,12).forEach((r,i)=>{
+    const sc=r.filter(x=>["kode","kodebuku","nomor","nomorbuku","judul","judulbuku","nama","nis","kelas","penyusun","pengarang","penerbit","tahun","tahunterbit"].includes(x)).length;
+    if(sc>score){score=sc;best=i;}
+  });
+  return {h:normalized[best]||[], rows:(rows||[]).slice(best+1), headerIndex:best};
 }
 function getField(row,map,...keys){
   for(const k of keys){
@@ -2035,64 +2074,152 @@ function getField(row,map,...keys){
   }
   return "";
 }
+function findHeaderIndex(map, keys){
+  for(const k of keys){ const i=map.indexOf(normalizeImportKey(k)); if(i>=0) return i; }
+  return -1;
+}
+function parseYear(v){
+  const s=cleanImportCell(v); const m=s.match(/\b(\d{4})\b/); return m?m[1]:s;
+}
+function parseDateFlexible(v){
+  const s=cleanImportCell(v); if(!s) return "";
+  let m=s.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{2,4})$/);
+  if(m){ let y=Number(m[3]); if(y<100) y+=2000; return `${y}-${String(m[2]).padStart(2,"0")}-${String(m[1]).padStart(2,"0")}`; }
+  return /^\d{4}-\d{2}-\d{2}$/.test(s)?s:"";
+}
+
+/* Recognizes the actual BUKU BESAR layout used by the Maktabah PDF.
+   The PDF has a multi-line header, so the old importer incorrectly treated
+   the first visual row as the header and then could not find "judul". */
+function detectBookLedgerRows(rows){
+  const out=[];
+  for(const raw of rows||[]){
+    const r=raw.map(cleanImportCell).filter(Boolean); if(!r.length) continue;
+    const joined=r.join(" ");
+    const m=joined.match(/(?:^|\s)([A-Z])\s*(\d{3,5})(?=\s|$)/i);
+    if(!m) continue;
+    const kode=`${m[1].toUpperCase()}${m[2].padStart(4,"0")}`;
+    let idx=joined.indexOf(m[0]);
+    let rest=joined.slice(idx+m[0].length).trim();
+    // Remove the checkbox/check mark that appears in the ledger.
+    rest=rest.replace(/\s+√\s*/g," ").trim();
+    // Date at the end is the strongest anchor in the ledger.
+    const dm=rest.match(/(\d{1,2}[\/.-]\d{1,2}[\/.-]\d{2,4})\s*$/);
+    const tanggal=dm?parseDateFlexible(dm[1]):"";
+    if(dm) rest=rest.slice(0,dm.index).trim();
+    // Year is normally immediately before the check/date block.
+    const ym=rest.match(/(?:^|\s)(\d{4})(?:\s|$)/);
+    let tahun="";
+    if(ym){ tahun=ym[1]; rest=rest.slice(0,ym.index).trim(); }
+    // For this ledger, the remaining text is title + author + publisher.
+    // Prefer x/cell structure when available; otherwise keep title intact
+    // rather than silently inventing author/publisher values.
+    let judul=rest, penyusun="", penerbit="";
+    const source=joined.toLowerCase();
+    const pubMatch=rest.match(/\b(media\s+islamy|media\s+tasfiyah|pena\s+hikmah|at\s+tuqa)\b/i);
+    if(pubMatch){
+      penerbit=cleanImportCell(pubMatch[0]);
+      const before=rest.slice(0,pubMatch.index).trim();
+      // A title/author boundary is not always recoverable from PDF text;
+      // use known "Tim penyusun" marker when present.
+      const tm=before.match(/^(.*?)(?:\s+)((?:(?:Ust\.?|Al[- ]Ust\.?|Abu|Ummu|Ibnu|Syaikh|Sy\.|Dr\.?|H\.?|Muhammad|Ahmad|Tim)\s+).*)$/i);
+      if(tm){ judul=cleanImportCell(tm[1]); penyusun=cleanImportCell(tm[2]); }
+      else {
+        // Common ledger form: title + author. If no reliable author marker
+        // exists, keep the whole phrase as title instead of guessing.
+        const parts=before.split(/\s+/);
+        const marker=parts.findIndex((x,i)=>i>1 && /^(abu|ummu|ust\.?|ibnu|syaikh|sy\.?|muhammad|ahmad)$/i.test(x));
+        if(marker>1){ judul=parts.slice(0,marker).join(" "); penyusun=parts.slice(marker).join(" "); }
+        else judul=before;
+      }
+    } else {
+      const tm=rest.match(/^(.*?)(?:\s+)(Tim\s+penyusun)$/i);
+      if(tm){ judul=cleanImportCell(tm[1]); penyusun=cleanImportCell(tm[2]); }
+    }
+    // If the title is visibly wrapped in quotes in the source, retain the words.
+    judul=judul.replace(/^\s*[“\"]\s*|\s*[”\"]\s*$/g,"").trim();
+    if(!judul) continue;
+    out.push({kode,kategori:kode[0],judul,penyusun,penerbit,tahunTerbit:tahun,sumber:"",tanggalDiterima:tanggal,rak:"",keterangan:""});
+  }
+  return out;
+}
+
+function looksLikeBookLedger(rows){
+  const sample=(rows||[]).slice(0,80).map(r=>r.join(" ")).join(" ");
+  return /BUKU\s+BESAR\s+MAKTABAH/i.test(sample) || /\b[A-Z]\s*0\d{3}\b/.test(sample) && /penerbit|tahun\s*terbit/i.test(sample);
+}
+
+function looksLikeMemberRows(rows){
+  let n=0;
+  for(const r of rows||[]){
+    const s=r.join(" ");
+    if(/\b\d{3,}\b/.test(s) && /[A-Za-zÀ-ÿ]{3,}/.test(s) && /\b(?:kelas|[1-6])\b/i.test(s)) n++;
+  }
+  return n>=2;
+}
+
 async function importBooksFromFile(file){
   const rows=await readImportFile(file);
-  if(!rows.length) throw new Error("Tidak ada data yang dapat dibaca.");
-  const {h,rows:body}=headerMap(rows);
-  const aliases={
-    kode:["kode","kodebuku","code"],
-    kategori:["kategori","category"],
-    judul:["judul","judulbuku","title"],
-    penyusun:["penyusun","penulis","pengarang","author"],
-    penerbit:["penerbit","publisher"],
-    tahunTerbit:["tahunterbit","tahun","year"],
-    sumber:["sumber","source"],
-    tanggalDiterima:["tanggalditerima","tglditerima","tanggal"],
-    rak:["rak","lokasi","shelf"],
-    keterangan:["keterangan","catatan","notes"]
-  };
-  let added=0;
-  body.forEach(r=>{
-    const kode=getField(r,h,...aliases.kode), judul=getField(r,h,...aliases.judul);
-    if(!kode||!judul) return;
-    const up=kode.toUpperCase();
-    if(state.books.some(b=>b.kode===up)) return;
-    state.books.push({id:uid(),kode:up,kategori:getField(r,h,...aliases.kategori)||(state.kategoriList[0]?state.kategoriList[0].kode:"A"),
-      judul,penyusun:getField(r,h,...aliases.penyusun),penerbit:getField(r,h,...aliases.penerbit),
-      tahunTerbit:getField(r,h,...aliases.tahunTerbit),sumber:getField(r,h,...aliases.sumber)||"Beli",
-      tanggalDiterima:getField(r,h,...aliases.tanggalDiterima)||iso(todayDate),rak:getField(r,h,...aliases.rak),
-      keterangan:getField(r,h,...aliases.keterangan),statusFisik:"baik"});
+  if(!rows.length) throw new Error("Tidak ada data yang dapat dibaca dari file.");
+
+  let importedRows=[];
+  if(looksLikeBookLedger(rows)) importedRows=detectBookLedgerRows(rows);
+  else {
+    const {h,rows:body}=headerMap(rows);
+    const aliases={
+      kode:["kode","kodebuku","code","nomorbuku"], kategori:["kategori","category"], judul:["judul","judulbuku","title"],
+      penyusun:["penyusun","penulis","pengarang","author"], penerbit:["penerbit","publisher"], tahunTerbit:["tahunterbit","tahun","year"],
+      sumber:["sumber","source"], tanggalDiterima:["tanggalditerima","tglditerima","tanggal","tanggalbeli"], rak:["rak","lokasi","shelf"], keterangan:["keterangan","catatan","notes"]
+    };
+    importedRows=body.map(r=>({kode:normalizeBookCode(getField(r,h,...aliases.kode)),kategori:getField(r,h,...aliases.kategori),judul:getField(r,h,...aliases.judul),penyusun:getField(r,h,...aliases.penyusun),penerbit:getField(r,h,...aliases.penerbit),tahunTerbit:getField(r,h,...aliases.tahunTerbit),sumber:getField(r,h,...aliases.sumber),tanggalDiterima:parseDateFlexible(getField(r,h,...aliases.tanggalDiterima)),rak:getField(r,h,...aliases.rak),keterangan:getField(r,h,...aliases.keterangan)})).filter(x=>x.kode&&x.judul);
+  }
+  if(!importedRows.length) throw new Error("File terbaca, tetapi format data buku belum dikenali. Pastikan ada kode buku dan judul.");
+
+  let added=0, skipped=0;
+  importedRows.forEach(d=>{
+    const kode=normalizeBookCode(d.kode); if(!kode||!d.judul){skipped++;return;}
+    if(state.books.some(b=>normalizeBookCode(b.kode)===kode)){skipped++;return;}
+    state.books.push({id:uid(),kode,kategori:d.kategori||kode[0]||"A",judul:cleanImportCell(d.judul),penyusun:cleanImportCell(d.penyusun),penerbit:cleanImportCell(d.penerbit),tahunTerbit:parseYear(d.tahunTerbit),sumber:cleanImportCell(d.sumber)||"Beli",tanggalDiterima:d.tanggalDiterima||iso(todayDate),rak:cleanImportCell(d.rak),keterangan:cleanImportCell(d.keterangan),statusFisik:"baik"});
     added++;
   });
-  scheduleSave(); render(); showToast(`${added} buku diimpor dari ${file.name}`,"plum");
+  scheduleSave(); render(); showToast(`Import buku selesai: ${added} masuk, ${skipped} dilewati.`, added?"plum":"rose");
 }
+
 async function importMembersFromFile(file){
   const rows=await readImportFile(file);
-  if(!rows.length) throw new Error("Tidak ada data yang dapat dibaca.");
+  if(!rows.length) throw new Error("Tidak ada data yang dapat dibaca dari file.");
   const {h,rows:body}=headerMap(rows);
-  const aliases={
-    nis:["nis","nomorinduk","id"],
-    nama:["nama","name"],
-    kelas:["kelas","class"],
-    lp:["lp","jeniskelamin","jk"],
-    alamat:["alamat","address"],
-    tglDaftar:["tgldaftar","tanggaldaftar","tanggal"]
-  };
-  let added=0;
-  body.forEach(r=>{
-    const nama=getField(r,h,...aliases.nama);
-    if(!nama) return;
-    state.anggota.push({id:uid(),nis:getField(r,h,...aliases.nis),nama,kelas:getField(r,h,...aliases.kelas)||"1",
-      lp:getField(r,h,...aliases.lp)||"L",alamat:getField(r,h,...aliases.alamat),tglDaftar:getField(r,h,...aliases.tglDaftar)||iso(todayDate)});
+  const aliases={nis:["nis","nomorinduk","id"],nama:["nama","name"],kelas:["kelas","class"],lp:["lp","jeniskelamin","jk","jenis kelamin"],alamat:["alamat","address"],tglDaftar:["tgldaftar","tanggaldaftar","tanggal"]};
+  let candidates=[];
+  const hasHeader=findHeaderIndex(h,["nama","name"])>=0 || findHeaderIndex(h,["nis","nomorinduk"])>=0;
+  if(hasHeader){
+    candidates=body.map(r=>({nis:getField(r,h,...aliases.nis),nama:getField(r,h,...aliases.nama),kelas:getField(r,h,...aliases.kelas),lp:getField(r,h,...aliases.lp),alamat:getField(r,h,...aliases.alamat),tglDaftar:parseDateFlexible(getField(r,h,...aliases.tglDaftar))})).filter(x=>x.nama);
+  } else {
+    // Generic PDF roster fallback: take the first numeric token as NIS and
+    // the following text as the name; class can be supplied by section rows.
+    let currentKelas="";
+    for(const r of rows){
+      const s=r.join(" ");
+      const km=s.match(/\b(?:kelas|kls)\s*([1-6])\b/i); if(km){currentKelas=km[1]; continue;}
+      const nm=s.match(/^\s*(\d{3,})\s+(.+?)(?:\s+([1-6])\s*)?$/);
+      if(nm) candidates.push({nis:nm[1],nama:cleanImportCell(nm[2]),kelas:nm[3]||currentKelas,lp:"",alamat:"",tglDaftar:""});
+    }
+  }
+  if(!candidates.length) throw new Error("File terbaca, tetapi data anggota belum dikenali. Pastikan ada NIS dan nama.");
+  let added=0,skipped=0;
+  candidates.forEach(d=>{
+    const nis=cleanImportCell(d.nis), nama=cleanImportCell(d.nama);
+    if(!nama){skipped++;return;}
+    if((nis && state.anggota.some(a=>cleanImportCell(a.nis)===nis)) || state.anggota.some(a=>a.nama.toLowerCase()===nama.toLowerCase())){skipped++;return;}
+    state.anggota.push({id:uid(),nis,nama,kelas:cleanImportCell(d.kelas)||"1",lp:(cleanImportCell(d.lp)||"L").toUpperCase(),alamat:cleanImportCell(d.alamat),tglDaftar:parseDateFlexible(d.tglDaftar)||iso(todayDate)});
     added++;
   });
-  scheduleSave(); render(); showToast(`${added} anggota diimpor dari ${file.name}`,"plum");
+  scheduleSave(); render(); showToast(`Import anggota selesai: ${added} masuk, ${skipped} dilewati.`, added?"plum":"rose");
 }
 function bindImpexp(){
   const eb=document.getElementById("exportBukuCsv");
   if(eb) eb.addEventListener("click", ()=>{
-    const rows=[["kode","kategori","judul","penyusun","penerbit","tahunTerbit","sumber","tanggalDiterima","rak","keterangan"],
-      ...state.books.map(b=>[b.kode,b.kategori,b.judul,b.penyusun,b.penerbit,b.tahunTerbit,b.sumber,b.tanggalDiterima,b.rak,b.keterangan])];
+    const rows=[["kode","kategori","judul","penyusun","penerbit","tahunTerbit","sumber","tanggalDiterima","rak","keterangan"],...state.books.map(b=>[b.kode,b.kategori,b.judul,b.penyusun,b.penerbit,b.tahunTerbit,b.sumber,b.tanggalDiterima,b.rak,b.keterangan])];
     downloadFile(`data-buku-${iso(todayDate)}.csv`, toCSV(rows), "text/csv"); showToast("Data buku diekspor","plum");
   });
   const ib=document.getElementById("importBukuFile");
@@ -2105,7 +2232,7 @@ function bindImpexp(){
   });
   const ea=document.getElementById("exportAnggotaCsv");
   if(ea) ea.addEventListener("click", ()=>{
-    const rows=[["nis","nama","kelas","lp","alamat","tglDaftar"], ...state.anggota.map(a=>[a.nis,a.nama,a.kelas,a.lp,a.alamat,a.tglDaftar])];
+    const rows=[["nis","nama","kelas","lp","alamat","tglDaftar"],...state.anggota.map(a=>[a.nis,a.nama,a.kelas,a.lp,a.alamat,a.tglDaftar])];
     downloadFile(`data-anggota-${iso(todayDate)}.csv`, toCSV(rows), "text/csv"); showToast("Data anggota diekspor","plum");
   });
   const ia=document.getElementById("importAnggotaFile");

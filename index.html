@@ -499,7 +499,7 @@ function seedTarget(){ return [{kelas:"1",target:8},{kelas:"2",target:8},{kelas:
 
 /* ============ STATE ============ */
 let state = {
-  books: seedBooks(), loans: seedLoans(), riwayatLoans: [], kategoriList: seedKategoriList(),
+  books: seedBooks(), loans: seedLoans(), riwayatLoans: [], deletedLoanIds: [], kategoriList: seedKategoriList(),
   anggota: seedAnggota(), rakList: seedRak(), kontribList: seedKontrib(), targetLiterasi: seedTarget(),
   settings: { 
     namaMaktabah:"Maktabah Marhalah Ula (Ibtidaiyah) Al-Faruq", 
@@ -528,7 +528,7 @@ let state = {
 // Pastikan struktur state selalu aman meskipun Firebase/localStorage berisi data lama, null, atau format tidak lengkap.
 function ensureStateShape(){
   const arrays = [
-    "books","loans","riwayatLoans","kategoriList","anggota","rakList","kontribList","targetLiterasi"
+    "books","loans","riwayatLoans","deletedLoanIds","kategoriList","anggota","rakList","kontribList","targetLiterasi"
   ];
   for(const key of arrays){
     if(!Array.isArray(state[key])) state[key]=[];
@@ -646,7 +646,7 @@ function normalizeSettings(){
 function persistPayload(){
   normalizeSettings();
   return JSON.stringify({
-    books:state.books, loans:state.loans, riwayatLoans:state.riwayatLoans, kategoriList:state.kategoriList,
+    books:state.books, loans:state.loans, riwayatLoans:state.riwayatLoans, deletedLoanIds:state.deletedLoanIds, kategoriList:state.kategoriList,
     anggota:state.anggota, rakList:state.rakList, kontribList:state.kontribList,
     targetLiterasi:state.targetLiterasi, settings:state.settings
   });
@@ -661,6 +661,7 @@ function applyPersisted(raw){
     // dihapus. Sekarang penghapusan transaksi berarti benar-benar dihapus.
     // Abaikan arsip lama agar tidak muncul lagi di riwayat.
     state.riwayatLoans=[];
+    if(Array.isArray(p.deletedLoanIds)) state.deletedLoanIds=p.deletedLoanIds.map(String); else state.deletedLoanIds=[];
     if(Array.isArray(p.kategoriList)) state.kategoriList=p.kategoriList;
     if(Array.isArray(p.anggota)) state.anggota=p.anggota;
     if(Array.isArray(p.rakList)) state.rakList=p.rakList;
@@ -683,7 +684,7 @@ async function savePublicMirror(){
 }
 function privateDataPayload(){
   return {
-    books:state.books, loans:state.loans, riwayatLoans:state.riwayatLoans, kategoriList:state.kategoriList,
+    books:state.books, loans:state.loans, riwayatLoans:state.riwayatLoans, deletedLoanIds:state.deletedLoanIds, kategoriList:state.kategoriList,
     anggota:state.anggota, rakList:state.rakList, kontribList:state.kontribList,
     targetLiterasi:state.targetLiterasi
   };
@@ -819,8 +820,9 @@ const katByKode = (kode) => state.kategoriList.find(k=>k.kode===kode) || {kode,n
 const isDipinjam = (kode) => (Array.isArray(state.loans)?state.loans:[]).some(l=>l.kodeBuku===kode && l.status==="dipinjam");
 const bookByKode = (kode) => (Array.isArray(state.books)?state.books:[]).find(b=>b.kode===kode);
 const anggotaById = (id) => (Array.isArray(state.anggota)?state.anggota:[]).find(a=>a.id===id);
-const activeLoans = () => (Array.isArray(state.loans)?state.loans:[]).filter(l=>l.status==="dipinjam").sort((a,b)=>new Date(a.tanggalJatuhTempo)-new Date(b.tanggalJatuhTempo));
-const historyLoans = () => (Array.isArray(state.loans)?state.loans:[]).filter(l=>l.status==="dikembalikan").sort((a,b)=>new Date(b.tanggalKembali)-new Date(a.tanggalKembali));
+const visibleLoans = () => { const deleted=new Set((state.deletedLoanIds||[]).map(String)); return (Array.isArray(state.loans)?state.loans:[]).filter(l=>l && !deleted.has(String(l.id))); };
+const activeLoans = () => visibleLoans().filter(l=>l.status==="dipinjam").sort((a,b)=>new Date(a.tanggalJatuhTempo)-new Date(b.tanggalJatuhTempo));
+const historyLoans = () => visibleLoans().filter(l=>l.status==="dikembalikan").sort((a,b)=>new Date(b.tanggalKembali)-new Date(a.tanggalKembali));
 const isOverdue = (l) => new Date(l.tanggalJatuhTempo) < todayDate && l.status==="dipinjam";
 function hariTerlambat(l){
   const ref = l.status==="dikembalikan" ? new Date(l.tanggalKembali) : todayDate;
@@ -1642,13 +1644,14 @@ function createLoanFromForm(){
 
 /* ============ RIWAYAT PEMINJAMAN ============ */
 function allLoanHistory(){
-  // Satu sumber riwayat: transaksi yang masih tersimpan di state.loans.
-  // Transaksi yang benar-benar dihapus tidak boleh muncul lagi di riwayat
-  // buku maupun riwayat anggota.
+  // Satu sumber riwayat: transaksi yang masih tersimpan dan belum ditandai terhapus.
+  // deletedLoanIds adalah "tombstone" agar transaksi yang sudah dihapus tidak dapat
+  // muncul kembali dari sinkronisasi Firebase/localStorage lama.
   const rows = Array.isArray(state.loans) ? state.loans : [];
+  const deleted = new Set((state.deletedLoanIds||[]).map(String));
   const seen = new Set();
   return rows
-    .filter(l=>l && l.id && !seen.has(l.id) && (seen.add(l.id), true))
+    .filter(l=>l && l.id && !deleted.has(String(l.id)) && !seen.has(l.id) && (seen.add(l.id), true))
     .filter(l=>l.status!=="dipinjam")
     .sort((a,b)=>String(b.tanggalKembali||b.tanggalPinjam||"").localeCompare(String(a.tanggalKembali||a.tanggalPinjam||"")));
 }
@@ -1665,7 +1668,7 @@ function memberHistoryHTML(a){
     <div class="modal-header"><div><div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--gold);font-weight:700;">Riwayat Anggota</div><h3 class="modal-title">${esc(a.nama)}</h3><div class="hint">NIS ${esc(a.nis||"-")} · Kelas ${esc(a.kelas||"-")}</div></div><button class="close-x" id="closeHistoryModal">${icon("x",15)}</button></div>
     ${active.length?`<div class="panel" style="margin-bottom:12px;border-color:#ead2d2;"><b>Pinjaman aktif (${active.length})</b>${active.map(l=>`<div style="padding:9px 0;border-bottom:1px solid var(--line);"><b>${esc(l.judulBuku)}</b> · ${fmt(l.tanggalPinjam)} · jatuh tempo ${fmt(l.tanggalJatuhTempo)}</div>`).join("")}</div>`:""}
     <div class="row-between"><h4 class="panel-title" style="margin:0;">Buku yang pernah dipinjam (${hist.length})</h4></div>
-    ${hist.length?`<div class="table-wrap" style="margin-top:10px;"><table class="data-table"><thead><tr><th>Tanggal</th><th>Buku</th><th>Kode</th><th>Kembali</th><th>Status</th></tr></thead><tbody>${hist.map(l=>`<tr><td>${fmt(l.tanggalPinjam)}</td><td>${esc(l.judulBuku)}</td><td>${esc(l.kodeBuku)}</td><td>${fmt(l.tanggalKembali)}</td><td>${esc(l.status)}</td></tr>`).join("")}</tbody></table></div>`:`<div class="muted" style="padding:30px 0;text-align:center;">Belum ada riwayat peminjaman.</div>`}
+    ${hist.length?`<div class="table-wrap" style="margin-top:10px;"><table class="data-table"><thead><tr><th>Tanggal</th><th>Buku</th><th>Kode</th><th>Kembali</th><th>Status</th><th>Aksi</th></tr></thead><tbody>${hist.map(l=>`<tr><td>${fmt(l.tanggalPinjam)}</td><td>${esc(l.judulBuku)}</td><td>${esc(l.kodeBuku)}</td><td>${fmt(l.tanggalKembali)}</td><td>${esc(l.status)}</td><td><button type="button" class="btn btn-rose btn-sm" data-delhistory="${esc(l.id)}" title="Hapus riwayat ini">${icon("trash2",14)} Hapus</button></td></tr>`).join("")}</tbody></table></div>`:`<div class="muted" style="padding:30px 0;text-align:center;">Belum ada riwayat peminjaman.</div>`}
   </div></div>`;
 }
 function bookHistoryHTML(b){
@@ -1675,7 +1678,7 @@ function bookHistoryHTML(b){
     <div class="modal-header"><div><div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--gold);font-weight:700;">Riwayat Buku</div><h3 class="modal-title">${esc(b.judul)}</h3><div class="hint">${esc(b.kode)} · ${esc(b.penyusun||"-")}</div></div><button class="close-x" id="closeHistoryModal">${icon("x",15)}</button></div>
     <div class="panel" style="margin-bottom:12px;"><b>Status saat ini:</b> ${active?`🔴 Dipinjam oleh ${esc(active.nama)} · Kelas ${esc(active.kelas)} · jatuh tempo ${fmt(active.tanggalJatuhTempo)}`:`🟢 Tersedia`}${!active?` <button type="button" class="btn btn-gold btn-sm" id="historyLoanBookBtn" style="margin-left:8px;">Pinjam Buku</button>`:""}</div>
     <h4 class="panel-title" style="margin:0;">Pernah dipinjam oleh (${hist.length})</h4>
-    ${hist.length?`<div class="table-wrap" style="margin-top:10px;"><table class="data-table"><thead><tr><th>Tanggal</th><th>Peminjam</th><th>Kelas</th><th>Kembali</th><th>Status</th></tr></thead><tbody>${hist.map(l=>`<tr><td>${fmt(l.tanggalPinjam)}</td><td>${esc(l.nama)}</td><td>${esc(l.kelas)}</td><td>${fmt(l.tanggalKembali)}</td><td>${esc(l.status)}</td></tr>`).join("")}</tbody></table></div>`:`<div class="muted" style="padding:30px 0;text-align:center;">Belum pernah tercatat dipinjam.</div>`}
+    ${hist.length?`<div class="table-wrap" style="margin-top:10px;"><table class="data-table"><thead><tr><th>Tanggal</th><th>Peminjam</th><th>Kelas</th><th>Kembali</th><th>Status</th><th>Aksi</th></tr></thead><tbody>${hist.map(l=>`<tr><td>${fmt(l.tanggalPinjam)}</td><td>${esc(l.nama)}</td><td>${esc(l.kelas)}</td><td>${fmt(l.tanggalKembali)}</td><td>${esc(l.status)}</td><td><button type="button" class="btn btn-rose btn-sm" data-delhistory="${esc(l.id)}" title="Hapus riwayat ini">${icon("trash2",14)} Hapus</button></td></tr>`).join("")}</tbody></table></div>`:`<div class="muted" style="padding:30px 0;text-align:center;">Belum pernah tercatat dipinjam.</div>`}
   </div></div>`;
 }
 function openMemberHistory(id){
@@ -1691,8 +1694,21 @@ function historyModalHTML(){
 }
 function bindHistoryModal(){
   document.getElementById("historyLoanBookBtn")?.addEventListener("click",()=>{ const b=state.historyModal?.data; state.historyModal=null; if(b) openLoanModal(b.id); });
+  document.querySelectorAll("[data-delhistory]").forEach(btn=>btn.addEventListener("click",()=>deleteHistoryLoan(btn.dataset.delhistory)));
   document.getElementById("historyBackdrop")?.addEventListener("click",e=>{if(e.target.id==="historyBackdrop"){state.historyModal=null;renderModal();}});
   document.getElementById("closeHistoryModal")?.addEventListener("click",()=>{state.historyModal=null;renderModal();});
+}
+function deleteHistoryLoan(id){
+  if(!guardAdmin()) return;
+  const loan=state.loans.find(l=>String(l.id)===String(id));
+  if(!loan){ showToast("Data riwayat sudah tidak ditemukan.","rose"); return; }
+  if(!confirm(`Hapus riwayat peminjaman "${loan.judulBuku}" oleh ${loan.nama}? Data akan dihapus dari riwayat buku dan riwayat anggota.`)) return;
+  state.deletedLoanIds=Array.from(new Set([...(state.deletedLoanIds||[]).map(String),String(id)]));
+  state.loans=state.loans.filter(l=>String(l.id)!==String(id));
+  state.riwayatLoans=(state.riwayatLoans||[]).filter(l=>String(l.id)!==String(id));
+  scheduleSave();
+  showToast("Riwayat peminjaman berhasil dihapus.","rose");
+  if(state.historyModal){ renderModal(); } else { renderContent(); }
 }
 
 function loanListHTML(list, showLunas){
@@ -1894,8 +1910,9 @@ function deleteLoan(id){
   const l = state.loans.find(x=>x.id===id); if(!l) return;
   if(confirm(`Hapus transaksi peminjaman "${l.judulBuku}" oleh ${l.nama}? Data ini juga akan dihapus dari riwayat buku dan riwayat anggota.`)){
     // Hapus permanen dari sumber transaksi. Jangan membuat arsip baru.
-    state.loans = state.loans.filter(x=>x.id!==id);
-    state.riwayatLoans = (state.riwayatLoans||[]).filter(x=>x.id!==id);
+    state.deletedLoanIds = Array.from(new Set([...(state.deletedLoanIds||[]).map(String), String(id)]));
+    state.loans = state.loans.filter(x=>String(x.id)!==String(id));
+    state.riwayatLoans = (state.riwayatLoans||[]).filter(x=>String(x.id)!==String(id));
     scheduleSave(); showToast("Transaksi dan riwayatnya dihapus","rose"); renderContent();
   }
 }
@@ -1904,9 +1921,10 @@ function clearHistoryLoans(){
   const hist = historyLoans();
   if(hist.length===0){ showToast("Tidak ada riwayat untuk dihapus","rose"); return; }
   if(confirm(`Hapus semua ${hist.length} riwayat pengembalian? Catatan denda terkait juga akan hilang. Tindakan ini tidak bisa dibatalkan.`)){
-    const histIds = new Set(hist.map(l=>l.id));
-    state.loans = state.loans.filter(l=>!histIds.has(l.id));
-    state.riwayatLoans = (state.riwayatLoans||[]).filter(l=>!histIds.has(l.id));
+    const histIds = new Set(hist.map(l=>String(l.id)));
+    state.deletedLoanIds = Array.from(new Set([...(state.deletedLoanIds||[]).map(String), ...histIds]));
+    state.loans = state.loans.filter(l=>!histIds.has(String(l.id)));
+    state.riwayatLoans = (state.riwayatLoans||[]).filter(l=>!histIds.has(String(l.id)));
     scheduleSave(); showToast("Riwayat pengembalian dihapus","rose"); renderContent();
   }
 }
@@ -2033,6 +2051,7 @@ function deleteLaporanData(){
   }
   if(!ids.size){ showToast("Tidak ada data transaksi pada periode tersebut.","rose"); return; }
   if(!confirm(`Hapus ${ids.size} transaksi yang menjadi sumber laporan pada periode ${from||"awal"} s.d. ${to||"akhir"}? Data buku dan anggota tidak ikut terhapus. Tindakan ini tidak bisa dibatalkan.`)) return;
+  state.deletedLoanIds = Array.from(new Set([...(state.deletedLoanIds||[]).map(String), ...[...ids].map(String)]));
   state.loans=state.loans.filter(l=>!ids.has(l.id));
   state.riwayatLoans=(state.riwayatLoans||[]).filter(l=>!ids.has(l.id));
   scheduleSave(); showToast(`${ids.size} data transaksi dihapus dari sumber laporan.` ,"rose"); renderContent();

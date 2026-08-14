@@ -530,7 +530,20 @@ function seedTarget(){ return [{kelas:"1",target:8},{kelas:"2",target:8},{kelas:
 let state = {
   books: seedBooks(), loans: seedLoans(), kategoriList: seedKategoriList(),
   anggota: seedAnggota(), rakList: seedRak(), kontribList: seedKontrib(), targetLiterasi: seedTarget(),
-  settings: { namaMaktabah:"Maktabah Marhalah Ula (Ibtidaiyah) Al-Faruq", lamaPinjamHari:7, dendaPerHari:200, pinAdmin:"1234" },
+  settings: { 
+    namaMaktabah:"Maktabah Marhalah Ula (Ibtidaiyah) Al-Faruq", 
+    tentangMaktabah:"Maktabah Marhalah Ula (Ibtidaiyah) Al-Faruq adalah sarana pendukung pembelajaran dan literasi santri. Koleksi diarahkan untuk mendukung kebutuhan pembelajaran, terutama buku pendidikan Islam, bahasa Arab, adab, sejarah, dan bacaan anak.", 
+    panduanPeminjaman:"1. Pilih buku yang ingin dipinjam.\n2. Serahkan kartu anggota kepada petugas.\n3. Petugas mencatat peminjaman dan tanggal pengembalian.\n4. Jaga buku dengan baik selama dipinjam.\n5. Kembalikan buku sesuai tanggal yang telah ditentukan.", 
+    panduanLangkah:[
+      {judul:"Cari Buku",detail:"Cari judul buku yang ingin dipinjam melalui katalog Maktabah."},
+      {judul:"Cek Ketersediaan",detail:"Pastikan buku yang dipilih tersedia untuk dipinjam."},
+      {judul:"Serahkan Kartu",detail:"Datang kepada petugas dan serahkan kartu peminjaman."},
+      {judul:"Petugas Mencatat",detail:"Petugas mencatat transaksi peminjaman pada sistem Maktabah."},
+      {judul:"Buku Dibawa",detail:"Setelah transaksi selesai, buku dapat dibawa sesuai ketentuan Maktabah."},
+      {judul:"Kembalikan Buku",detail:"Setelah selesai membaca, kembalikan buku kepada petugas beserta kartu peminjaman."}
+    ],
+    lamaPinjamHari:7, dendaPerHari:200, pinAdmin:"1234" 
+  },
   mode:"admin",
   view:(location.hash==="#admin" ? "admin" : "public"),
   loaded:false,
@@ -627,7 +640,20 @@ function normalizeMaktabahName(value){
   return v;
 }
 function normalizeSettings(){
-  state.settings = { ...state.settings, namaMaktabah: normalizeMaktabahName(state.settings?.namaMaktabah) };
+  const defaults = [
+    {judul:"Cari Buku",detail:"Cari judul buku yang ingin dipinjam melalui katalog Maktabah."},
+    {judul:"Cek Ketersediaan",detail:"Pastikan buku yang dipilih tersedia untuk dipinjam."},
+    {judul:"Serahkan Kartu",detail:"Datang kepada petugas dan serahkan kartu peminjaman."},
+    {judul:"Petugas Mencatat",detail:"Petugas mencatat transaksi peminjaman pada sistem Maktabah."},
+    {judul:"Buku Dibawa",detail:"Setelah transaksi selesai, buku dapat dibawa sesuai ketentuan Maktabah."},
+    {judul:"Kembalikan Buku",detail:"Setelah selesai membaca, kembalikan buku kepada petugas beserta kartu peminjaman."}
+  ];
+  const incoming = Array.isArray(state.settings?.panduanLangkah) ? state.settings.panduanLangkah : [];
+  const panduanLangkah = incoming.length ? incoming.map((x,i)=>({
+    judul:String(x?.judul||defaults[i]?.judul||("Langkah "+(i+1))).trim(),
+    detail:String(x?.detail||defaults[i]?.detail||"").trim()
+  })).filter(x=>x.judul||x.detail) : defaults;
+  state.settings = { ...state.settings, namaMaktabah: normalizeMaktabahName(state.settings?.namaMaktabah), panduanLangkah };
 }
 function persistPayload(){
   normalizeSettings();
@@ -658,7 +684,7 @@ async function savePublicMirror(){
   try{
     await db.ref(PUBLIC_PATH).set({
       books: state.books,
-      settings: { namaMaktabah: state.settings.namaMaktabah }
+      settings: { namaMaktabah: state.settings.namaMaktabah, tentangMaktabah: state.settings.tentangMaktabah, panduanPeminjaman: state.settings.panduanPeminjaman }
     });
   }catch(e){ console.error("Gagal memperbarui katalog publik",e); }
 }
@@ -877,8 +903,8 @@ function publicHTML(){
       </div>
       <div class="public-quick">
         <div class="public-quick-card" data-public-catalog><div class="public-quick-icon">${icon("library",15)}</div><div class="public-quick-title">Katalog Buku</div><div class="public-quick-text">Cari dan lihat koleksi yang tersedia.</div></div>
-        <div class="public-quick-card" data-public-info><div class="public-quick-icon">${icon("info",15)}</div><div class="public-quick-title">Tentang Maktabah</div><div class="public-quick-text">Kenali fungsi dan layanan Maktabah Al-Faruq.</div></div>
-        <div class="public-quick-card" data-public-info><div class="public-quick-icon">${icon("bookOpen",15)}</div><div class="public-quick-title">Panduan Peminjaman</div><div class="public-quick-text">Ketahui alur sederhana meminjam dan mengembalikan buku.</div></div>
+        <div class="public-quick-card" data-public-about><div class="public-quick-icon">${icon("info",15)}</div><div class="public-quick-title">Tentang Maktabah</div><div class="public-quick-text">Kenali fungsi dan layanan Maktabah Al-Faruq.</div></div>
+        <div class="public-quick-card" data-public-guide><div class="public-quick-icon">${icon("bookOpen",15)}</div><div class="public-quick-title">Panduan Peminjaman</div><div class="public-quick-text">Ketahui alur sederhana meminjam dan mengembalikan buku.</div></div>
         <div class="public-quick-card" data-admin-login><div class="public-quick-icon">${icon("lockKeyhole",15)}</div><div class="public-quick-title">Area Petugas</div><div class="public-quick-text">Masuk ke dashboard untuk mengelola Maktabah.</div></div>
       </div>
     </section>
@@ -938,10 +964,31 @@ function publicHTML(){
     </div>
 
     <section class="public-section" id="publicInfo">
-      <div class="public-section-head"><div><h3 class="public-section-title">Tentang Maktabah</h3><p class="public-section-desc">Maktabah Marhalah Ula (Ibtidaiyah) Al-Faruq adalah sarana pendukung pembelajaran dan literasi santri.</p></div></div>
-      <div style="background:#fff;border:1px solid #E7DCC7;border-radius:18px;padding:22px;line-height:1.8;font-size:13px;color:#655C4D">
-        <b style="color:#294536">Membaca · Belajar · Memahami · Mengamalkan</b><br>
-        Koleksi diarahkan untuk mendukung kebutuhan pembelajaran Marhalah Ibtidaiyah, terutama buku-buku pendidikan Islam, bahasa Arab, adab, sejarah, dan bacaan anak.
+      <div class="public-section-head"><div><h3 class="public-section-title" id="publicAbout">Tentang Maktabah</h3><p class="public-section-desc">Informasi mengenai fungsi dan layanan Maktabah.</p></div></div>
+      <div style="background:#fff;border:1px solid #E7DCC7;border-radius:18px;padding:22px;line-height:1.8;font-size:13px;color:#655C4D;white-space:pre-line">
+        <b style="color:#294536">Membaca · Belajar · Memahami · Mengamalkan</b>
+        <div style="margin-top:10px">${esc(state.settings.tentangMaktabah || "Maktabah Marhalah Ula (Ibtidaiyah) Al-Faruq adalah sarana pendukung pembelajaran dan literasi santri.")}</div>
+      </div>
+      <div id="publicGuide" style="margin-top:18px;background:#fff;border:1px solid #E7DCC7;border-radius:18px;padding:22px;color:#655C4D">
+        <div class="public-section-head" style="margin-bottom:14px">
+          <div><h3 class="public-section-title">Panduan Peminjaman</h3><p class="public-section-desc">Ikuti langkah demi langkah sampai buku dikembalikan.</p></div>
+        </div>
+        <div id="publicGuideSteps" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+          ${state.settings.panduanLangkah.map((s,i)=>`<button type="button" class="public-link" data-guide-step="${i}" style="border:1px solid #E1D7C4;border-radius:999px;padding:7px 10px;background:${i===0?'#294536':'#F7F3EA'};color:${i===0?'#fff':'#5E5649'};cursor:pointer">${i+1}. ${esc(s.judul)}</button>`).join("")}
+        </div>
+        <div id="publicGuidePanel" style="border:1px solid #E7DCC7;background:#FAF8F2;border-radius:16px;padding:18px">
+          <div id="publicGuideNumber" style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#8A7B66;font-weight:700">Langkah 1</div>
+          <h4 id="publicGuideTitle" style="margin:5px 0 7px;color:#294536;font-size:19px"></h4>
+          <p id="publicGuideDetail" style="margin:0;line-height:1.75"></p>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:14px">
+          <button type="button" id="publicGuidePrev" class="btn btn-outline btn-sm">← Sebelumnya</button>
+          <span id="publicGuideProgress" style="font-size:12px;color:#8A7B66" aria-live="polite"></span>
+          <button type="button" id="publicGuideNext" class="btn btn-primary btn-sm">Berikutnya →</button>
+        </div>
+        <div style="margin-top:13px;padding-top:12px;border-top:1px solid #EEE4D4;font-size:12px;color:#7B715F">
+          <b>Catatan:</b> kartu peminjaman wajib diberikan kepada petugas saat meminjam dan mengembalikan buku.
+        </div>
       </div>
     </section>
 
@@ -970,7 +1017,9 @@ function renderPublic(){
   root.innerHTML=publicHTML();
   const bind=()=>{
     document.querySelectorAll("[data-public-home]").forEach(b=>b.onclick=()=>{window.scrollTo({top:0,behavior:"smooth"});});
-    document.querySelectorAll("[data-public-info]").forEach(b=>b.onclick=()=>document.getElementById("publicInfo")?.scrollIntoView({behavior:"smooth"}));
+    document.querySelectorAll("[data-public-info],[data-public-about]").forEach(b=>b.onclick=()=>document.getElementById("publicAbout")?.scrollIntoView({behavior:"smooth",block:"start"}));
+    document.querySelectorAll("[data-public-guide]").forEach(b=>b.onclick=()=>document.getElementById("publicGuide")?.scrollIntoView({behavior:"smooth",block:"start"}));
+    bindPublicGuideStepper();
     document.querySelectorAll("[data-public-catalog]").forEach(b=>b.onclick=()=>{
       const mount=document.getElementById("publicCatalogMount");
       mount.innerHTML=publicCatalogHTML();
@@ -1109,6 +1158,38 @@ function bindContentActions(){
   const anggotaSearchCari = document.getElementById("anggotaSearchCari");
   if(anggotaSearchCari){ anggotaSearchCari.addEventListener("input", e=>{ state.search=e.target.value; renderCariAnggotaResult(); }); renderCariAnggotaResult(); }
   bindCetakExtra(); bindSetting(); bindAkses(); bindBackup(); bindImpexp();
+}
+
+
+function bindPublicGuideStepper(){
+  const steps = Array.isArray(state.settings?.panduanLangkah) ? state.settings.panduanLangkah : [];
+  if(!steps.length) return;
+  let current = 0;
+  const title = document.getElementById("publicGuideTitle");
+  const detail = document.getElementById("publicGuideDetail");
+  const number = document.getElementById("publicGuideNumber");
+  const progress = document.getElementById("publicGuideProgress");
+  const prev = document.getElementById("publicGuidePrev");
+  const next = document.getElementById("publicGuideNext");
+  const buttons = Array.from(document.querySelectorAll("[data-guide-step]"));
+  if(!title || !detail || !number || !progress || !prev || !next) return;
+  function paint(){
+    const item = steps[current] || {};
+    number.textContent = `Langkah ${current+1} dari ${steps.length}`;
+    title.textContent = item.judul || `Langkah ${current+1}`;
+    detail.textContent = item.detail || "";
+    progress.textContent = `${current+1} / ${steps.length}`;
+    prev.disabled = current===0;
+    next.disabled = current===steps.length-1;
+    buttons.forEach((b,i)=>{
+      b.style.background = i===current ? "#294536" : "#F7F3EA";
+      b.style.color = i===current ? "#fff" : "#5E5649";
+    });
+  }
+  buttons.forEach((b,i)=>b.addEventListener("click",()=>{current=i;paint()}));
+  prev.addEventListener("click",()=>{if(current>0){current--;paint()}});
+  next.addEventListener("click",()=>{if(current<steps.length-1){current++;paint()}});
+  paint();
 }
 
 /* ============ DASHBOARD ============ */
@@ -1922,6 +2003,23 @@ function settingHTML(){
       <div class="field"><label class="field-label">Denda per Hari (Rp)</label><input type="number" id="st_denda" value="${st.dendaPerHari}" min="0"/></div>
     </div>
     <div class="field"><label class="field-label">PIN Mode Admin</label><input id="st_pin" value="${esc(st.pinAdmin)}" maxlength="8"/></div>
+    <div class="field">
+      <label class="field-label">Tentang Maktabah</label>
+      <textarea id="st_tentang" rows="5" placeholder="Tulis informasi tentang Maktabah...">${esc(st.tentangMaktabah||"")}</textarea>
+      <div class="hint">Teks ini tampil di halaman depan pada bagian <b>Tentang Maktabah</b>.</div>
+    </div>
+    <div class="field">
+      <label class="field-label">Panduan Peminjaman — Skema Interaktif</label>
+      <div class="hint" style="margin-bottom:10px">Atur judul dan penjelasan tiap langkah. Pengunjung akan melihatnya sebagai tombol langkah yang bisa diklik.</div>
+      <div id="guideEditor">
+        ${(st.panduanLangkah||[]).map((s,i)=>`
+          <div class="field-row guide-editor-row" data-guide-row="${i}" style="margin-bottom:10px">
+            <div class="field"><label class="field-label">Langkah ${i+1} — Judul</label><input data-guide-title="${i}" value="${esc(s.judul||"")}"/></div>
+            <div class="field"><label class="field-label">Penjelasan</label><input data-guide-detail="${i}" value="${esc(s.detail||"")}"/></div>
+          </div>`).join("")}
+      </div>
+      <div class="hint">Contoh: “Serahkan Kartu” → “Serahkan kartu peminjaman kepada petugas untuk dicatat.”</div>
+    </div>
     <p class="hint">PIN ini hanya pencegah salah pencet, bukan keamanan data sesungguhnya — siapa pun yang membuka kode sumber halaman bisa melihatnya.</p>
     <button class="btn btn-primary btn-block" id="saveSettingBtn" style="margin-top:14px;">Simpan Pengaturan</button>
   </div>`;
@@ -1933,6 +2031,15 @@ function bindSetting(){
     state.settings = {
       ...state.settings,
       namaMaktabah: document.getElementById("st_nama").value.trim() || state.settings.namaMaktabah,
+      tentangMaktabah: document.getElementById("st_tentang").value.trim() || state.settings.tentangMaktabah,
+      panduanPeminjaman: (Array.from(document.querySelectorAll("[data-guide-title]")).map((el,i)=>({
+        judul: el.value.trim(),
+        detail: document.querySelector(`[data-guide-detail="${i}"]`)?.value.trim() || ""
+      })).filter(x=>x.judul || x.detail)),
+      panduanLangkah: Array.from(document.querySelectorAll("[data-guide-title]")).map((el,i)=>({
+        judul: el.value.trim(),
+        detail: document.querySelector(`[data-guide-detail="${i}"]`)?.value.trim() || ""
+      })).filter(x=>x.judul || x.detail),
       lamaPinjamHari: parseInt(document.getElementById("st_lama").value,10) || 7,
       dendaPerHari: parseInt(document.getElementById("st_denda").value,10) || 0,
       pinAdmin: document.getElementById("st_pin").value.trim() || state.settings.pinAdmin,

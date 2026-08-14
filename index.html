@@ -2138,6 +2138,65 @@ function detectBookLedgerRows(rows){
   return out;
 }
 
+async function readImportFile(file){
+  if(!file) throw new Error("File tidak dipilih.");
+  const name=String(file.name||"").toLowerCase();
+  const ext=name.split(".").pop();
+
+  // PDF: use PDF.js and return visual rows/cells.
+  if(ext === "pdf" || file.type === "application/pdf"){
+    return await readPdfRows(file);
+  }
+
+  // Word DOCX: read tables when present; otherwise fall back to raw text.
+  if(ext === "docx" || file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document"){
+    if(typeof mammoth === "undefined") throw new Error("Pembaca Word belum termuat. Periksa koneksi internet lalu buka ulang halaman.");
+    const buf=await file.arrayBuffer();
+    try{
+      const result=await mammoth.convertToHtml({arrayBuffer:buf});
+      const html=result && result.value ? result.value : "";
+      const doc=new DOMParser().parseFromString(html,"text/html");
+      const rows=[];
+      doc.querySelectorAll("table").forEach(table=>{
+        table.querySelectorAll("tr").forEach(tr=>{
+          const cells=[...tr.querySelectorAll("th,td")].map(td=>cleanImportCell(td.textContent));
+          if(cells.some(Boolean)) rows.push(cells);
+        });
+      });
+      if(rows.length) return rows;
+      const raw=await mammoth.extractRawText({arrayBuffer:buf});
+      return parseDelimitedText(raw && raw.value ? raw.value : "");
+    }catch(err){
+      // If HTML conversion fails, try raw text once more.
+      try{
+        const raw=await mammoth.extractRawText({arrayBuffer:buf});
+        return parseDelimitedText(raw && raw.value ? raw.value : "");
+      }catch(e){
+        throw new Error("File Word tidak dapat dibaca: "+(err.message||e.message||"format tidak dikenali."));
+      }
+    }
+  }
+
+  // Excel / CSV. SheetJS is used for both .xlsx/.xls and CSV so the
+  // importer works consistently on Android, tablet, and desktop.
+  if(["xlsx","xls","csv"].includes(ext) || /csv|spreadsheet|excel/.test(file.type||"")){
+    if(typeof XLSX === "undefined") throw new Error("Pembaca Excel belum termuat. Periksa koneksi internet lalu buka ulang halaman.");
+    const buf=await file.arrayBuffer();
+    const wb=XLSX.read(buf,{type:"array",cellDates:true});
+    const all=[];
+    (wb.SheetNames||[]).forEach(sheetName=>{
+      const ws=wb.Sheets[sheetName];
+      const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:"",raw:false,blankrows:false});
+      if(rows.length) all.push(...rows.map(r=>r.map(cleanImportCell)));
+    });
+    return all;
+  }
+
+  // Plain text fallback.
+  const text=await file.text();
+  return parseDelimitedText(text);
+}
+
 function looksLikeBookLedger(rows){
   const sample=(rows||[]).slice(0,80).map(r=>r.join(" ")).join(" ");
   return /BUKU\s+BESAR\s+MAKTABAH/i.test(sample) || /\b[A-Z]\s*0\d{3}\b/.test(sample) && /penerbit|tahun\s*terbit/i.test(sample);

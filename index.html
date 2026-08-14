@@ -2034,8 +2034,17 @@ async function readImportFile(file){
   if(ext==="xlsx"||ext==="xls"){
     if(typeof XLSX==="undefined") throw new Error("Pembaca Excel belum termuat.");
     const wb=XLSX.read(buf,{type:"array"});
-    const ws=wb.Sheets[wb.SheetNames[0]];
-    return XLSX.utils.sheet_to_json(ws,{header:1,defval:""}).map(r=>r.map(cleanImportCell)).filter(r=>r.some(Boolean));
+    // Jangan selalu memakai sheet pertama. Banyak file sekolah memiliki
+    // sheet Cover/Daftar Isi sebelum sheet data sebenarnya.
+    let bestRows=[], bestScore=-1;
+    for(const name of wb.SheetNames){
+      const ws=wb.Sheets[name];
+      const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:""}).map(r=>r.map(cleanImportCell)).filter(r=>r.some(Boolean));
+      const flat=rows.slice(0,40).flat().map(normalizeImportKey);
+      const score=flat.reduce((n,x)=>n+( ["nis","nomorinduk","nama","namalengkap","namasantri","namasiswa","kelas","rombel","jeniskelamin","jk"].includes(x)?1:0),0);
+      if(score>bestScore || (score===bestScore && rows.length>bestRows.length)){bestScore=score;bestRows=rows;}
+    }
+    return bestRows;
   }
   if(ext==="docx"){
     if(typeof mammoth==="undefined") throw new Error("Pembaca Word belum termuat.");
@@ -2058,14 +2067,19 @@ async function readImportFile(file){
   throw new Error("Format file belum didukung. Gunakan CSV, Excel, PDF, atau Word (.docx).");
 }
 
-function headerMap(rows){
-  const normalized=(rows||[]).map(r=>r.map(normalizeImportKey));
-  let best=0, score=-1;
-  normalized.slice(0,12).forEach((r,i)=>{
-    const sc=r.filter(x=>["kode","kodebuku","nomor","nomorbuku","judul","judulbuku","nama","nis","kelas","penyusun","pengarang","penerbit","tahun","tahunterbit"].includes(x)).length;
-    if(sc>score){score=sc;best=i;}
-  });
-  return {h:normalized[best]||[], rows:(rows||[]).slice(best+1), headerIndex:best};
+function headerMap(rows, type="generic"){
+  const aliases = type === "members"
+    ? ["nis","nomorinduk","nomorinduksantri","noinduk","nidsantri","idsantri","id","nama","namalengkap","namaanggota","namasantri","namasiswa","namamurid","name","kelas","rombel","tingkat","jeniskelamin","jeniskelamin","jk","lp","alamat"]
+    : ["kode","kodebuku","nomorbuku","code","judul","judulbuku","title","kategori","category","penyusun","penulis","pengarang","author","penerbit","publisher","tahun","tahunterbit","year","sumber","tanggal","tanggalditerima","rak","lokasi","shelf","keterangan","catatan","notes"];
+  let best=0, bestScore=-1;
+  const limit=Math.min((rows||[]).length,40);
+  for(let i=0;i<limit;i++){
+    const r=(rows[i]||[]).map(normalizeImportKey).filter(Boolean);
+    if(!r.length) continue;
+    const score=r.reduce((n,x)=>n+(aliases.includes(x)?1:0),0);
+    if(score>bestScore){bestScore=score;best=i;}
+  }
+  return {h:((rows||[])[best]||[]).map(normalizeImportKey), rows:(rows||[]).slice(best+1), headerIndex:best, headerScore:Math.max(0,bestScore)};
 }
 function getField(row,map,...keys){
   for(const k of keys){
@@ -2188,10 +2202,10 @@ async function importBooksFromFile(file){
 async function importMembersFromFile(file){
   const rows=await readImportFile(file);
   if(!rows.length) throw new Error("Tidak ada data yang dapat dibaca dari file.");
-  const {h,rows:body}=headerMap(rows);
-  const aliases={nis:["nis","nomorinduk","id"],nama:["nama","name"],kelas:["kelas","class"],lp:["lp","jeniskelamin","jk","jenis kelamin"],alamat:["alamat","address"],tglDaftar:["tgldaftar","tanggaldaftar","tanggal"]};
+  const {h,rows:body,headerScore}=headerMap(rows,"members");
+  const aliases={nis:["nis","nomorinduk","nomorinduksantri","noinduk","nidsantri","idsantri","id"],nama:["nama","namalengkap","namaanggota","namasantri","namasiswa","namamurid","name"],kelas:["kelas","rombel","tingkat","class"],lp:["lp","jeniskelamin","jk","jenis kelamin","lakiperempuan","gender"],alamat:["alamat","address","domisili"],tglDaftar:["tgldaftar","tanggaldaftar","tanggal"]};
   let candidates=[];
-  const hasHeader=findHeaderIndex(h,["nama","name"])>=0 || findHeaderIndex(h,["nis","nomorinduk"])>=0;
+  const hasHeader=headerScore>0 && (findHeaderIndex(h,["nama","namalengkap","namasantri","namasiswa","name"])>=0 || findHeaderIndex(h,["nis","nomorinduk","noinduk"])>=0);
   if(hasHeader){
     candidates=body.map(r=>({nis:getField(r,h,...aliases.nis),nama:getField(r,h,...aliases.nama),kelas:getField(r,h,...aliases.kelas),lp:getField(r,h,...aliases.lp),alamat:getField(r,h,...aliases.alamat),tglDaftar:parseDateFlexible(getField(r,h,...aliases.tglDaftar))})).filter(x=>x.nama);
   } else {

@@ -3078,11 +3078,21 @@ function handleScanResult(text){
     stopScan();
     state.scanTxnMemberId=a.id;
     state.scanIgnoreValue=normalized; state.scanIgnoreUntil=0; state.scanWrongNoticeAt=0;
+    // Setelah anggota terbaca, tetap berada dalam mode "menunggu buku".
+    // Kamera tidak dihentikan dan tidak ada timeout pendek antara scan anggota → scan buku.
     state.scanMode="loan-book"; state.scanOpen=true; renderModal(); return;
   }
 
   const book=state.books.find(b=>String(b.kode||"").trim().toUpperCase()===normalized);
-  if(!book){ stopScan(); showToast(`Kode buku "${raw}" tidak ditemukan — pastikan QR buku yang dipindai.`,"rose"); return; }
+  if(!book){
+    // Jangan menutup scanner hanya karena hasil scan sementara bukan kode buku.
+    // Petugas boleh mengarahkan kamera ulang dengan tempo cepat/sedang/lambat.
+    if(Date.now()-Number(state.scanWrongNoticeAt||0)>1800){
+      state.scanWrongNoticeAt=Date.now();
+      showToast(`Kode buku "${raw}" belum dikenali — silakan arahkan lagi ke QR buku.`,"rose");
+    }
+    return;
+  }
 
   if(mode==="loan-book"){
     const a=anggotaById(state.scanTxnMemberId);

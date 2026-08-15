@@ -264,7 +264,7 @@ const firebaseConfig = {
 .public-hero-dots{position:absolute;z-index:4;right:22px;bottom:18px;display:flex;gap:6px;}
 .public-hero-dot{width:8px;height:8px;border:1px solid rgba(255,255,255,.85);border-radius:50%;padding:0;background:rgba(255,255,255,.28);cursor:pointer;}
 .public-hero-dot.active{width:22px;border-radius:999px;background:#F1D48A;border-color:#F1D48A;}
-.public-hero-arrow{position:absolute;z-index:4;top:50%;transform:translateY(-50%);width:36px;height:36px;border:1px solid rgba(255,255,255,.35);border-radius:50%;background:rgba(30,45,35,.35);color:#fff;display:grid;place-items:center;cursor:pointer;backdrop-filter:blur(5px);}
+.public-hero-arrow{display:none!important;position:absolute;z-index:4;top:50%;transform:translateY(-50%);width:36px;height:36px;border:1px solid rgba(255,255,255,.35);border-radius:50%;background:rgba(30,45,35,.35);color:#fff;display:grid;place-items:center;cursor:pointer;backdrop-filter:blur(5px);}
 .public-hero-arrow:hover{background:rgba(30,45,35,.62);}
 .public-hero-prev{left:14px}.public-hero-next{right:14px}
 .public-hero-content{max-width:540px;color:#fff}
@@ -873,9 +873,95 @@ function publicBookCard(b){
   </article>`;
 }
 const publicHeroArt = [
-  `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900"><defs><linearGradient id="g" x1="0" x2="1"><stop stop-color="#d7c7a2"/><stop offset="1" stop-color="#55745f"/></linearGradient></defs><rect width="1600" height="900" fill="url(#g)"/><rect x="920" y="80" width="520" height="650" rx="20" fill="#654631"/><rect x="960" y="120" width="440" height="570" rx="8" fill="#294033"/><g fill="#cba64e"><rect x="990" y="150" width="65" height="140"/><rect x="1065" y="150" width="85" height="140"/><rect x="1160" y="150" width="55" height="140"/><rect x="1225" y="150" width="80" height="140"/><rect x="1315" y="150" width="60" height="140"/><rect x="990" y="320" width="65" height="140"/><rect x="1065" y="320" width="85" height="140"/><rect x="1160" y="320" width="55" height="140"/><rect x="1225" y="320" width="80" height="140"/><rect x="1315" y="320" width="60" height="140"/><rect x="990" y="490" width="65" height="140"/><rect x="1065" y="490" width="85" height="140"/><rect x="1160" y="490" width="55" height="140"/><rect x="1225" y="490" width="80" height="140"/><rect x="1315" y="490" width="60" height="140"/></g><rect x="140" y="120" width="590" height="470" rx="25" fill="#eadfc5"/><path d="M180 560h510M435 120v440M140 350h590M435 120L140 350M435 120l295 230" stroke="#76583c" stroke-width="14" fill="none"/><rect x="220" y="640" width="680" height="90" rx="28" fill="#4a3325"/><rect x="310" y="590" width="500" height="85" rx="10" fill="#f5ecd7" transform="rotate(-4 560 630)"/><path d="M380 620h320M400 642h280" stroke="#b49a70" stroke-width="9"/><rect y="740" width="1600" height="160" fill="#2b3d31"/></svg>`)}`,
-  `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900"><defs><linearGradient id="a" y1="0" y2="1"><stop stop-color="#b9cbbb"/><stop offset="1" stop-color="#3b5845"/></linearGradient></defs><rect width="1600" height="900" fill="url(#a)"/><rect x="100" y="100" width="600" height="620" rx="25" fill="#eee5d0"/><rect x="145" y="145" width="510" height="530" fill="#31483a"/><g fill="#b89248"><rect x="175" y="175" width="70" height="135"/><rect x="255" y="175" width="95" height="135"/><rect x="360" y="175" width="60" height="135"/><rect x="430" y="175" width="85" height="135"/><rect x="525" y="175" width="90" height="135"/><rect x="175" y="340" width="70" height="135"/><rect x="255" y="340" width="95" height="135"/><rect x="360" y="340" width="60" height="135"/><rect x="430" y="340" width="85" height="135"/><rect x="525" y="340" width="90" height="135"/><rect x="175" y="505" width="70" height="135"/><rect x="255" y="505" width="95" height="135"/><rect x="360" y="505" width="60" height="135"/><rect x="430" y="505" width="85" height="135"/><rect x="525" y="505" width="90" height="135"/></g><rect x="800" y="150" width="620" height="70" rx="20" fill="#735138"/><rect x="850" y="220" width="520" height="360" rx="18" fill="#d7bd91"/><rect x="915" y="275" width="390" height="220" rx="8" fill="#f4ecd8"/><path d="M950 330h310M950 370h270M950 410h310M990 450h220" stroke="#8d7658" stroke-width="10" opacity=".65"/><rect x="750" y="610" width="700" height="50" rx="20" fill="#493225"/><rect x="835" y="660" width="80" height="170" fill="#493225"/><rect x="1285" y="660" width="80" height="170" fill="#493225"/></svg>`)}`,
-  `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900"><defs><linearGradient id="b" x1="0" x2="1"><stop stop-color="#284535"/><stop offset="1" stop-color="#b19661"/></linearGradient></defs><rect width="1600" height="900" fill="url(#b)"/><rect x="130" y="100" width="560" height="620" rx="25" fill="#efe4c9"/><rect x="170" y="140" width="480" height="540" fill="#304a3a"/><g fill="#d2ad55"><rect x="205" y="175" width="60" height="130"/><rect x="275" y="175" width="90" height="130"/><rect x="375" y="175" width="55" height="130"/><rect x="440" y="175" width="85" height="130"/><rect x="535" y="175" width="75" height="130"/><rect x="205" y="335" width="60" height="130"/><rect x="275" y="335" width="90" height="130"/><rect x="375" y="335" width="55" height="130"/><rect x="440" y="335" width="85" height="130"/><rect x="535" y="335" width="75" height="130"/><rect x="205" y="495" width="60" height="130"/><rect x="275" y="495" width="90" height="130"/><rect x="375" y="495" width="55" height="130"/><rect x="440" y="495" width="85" height="130"/><rect x="535" y="495" width="75" height="130"/></g><rect x="800" y="150" width="590" height="470" rx="28" fill="#eadfc5"/><path d="M840 190h510M840 190v390M1350 190v390M840 580h510M1095 190v390M840 380h510M870 215l225 165 225-165" stroke="#76583c" stroke-width="14" fill="none"/><rect x="700" y="665" width="740" height="55" rx="20" fill="#4b3325"/><rect x="790" y="720" width="75" height="120" fill="#4b3325"/><rect x="1275" y="720" width="75" height="120" fill="#4b3325"/><rect x="900" y="610" width="330" height="55" rx="8" fill="#f4ecd9"/><path d="M945 638h240" stroke="#b28e55" stroke-width="8"/></svg>`)}`,
+  `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900">
+<defs>
+ <linearGradient id="bg1" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#1d3328"/><stop offset=".55" stop-color="#496653"/><stop offset="1" stop-color="#c6a15b"/></linearGradient>
+ <linearGradient id="wood1" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#6d4a32"/><stop offset="1" stop-color="#3b291f"/></linearGradient>
+ <radialGradient id="light1"><stop stop-color="#fff5c9" stop-opacity=".85"/><stop offset="1" stop-color="#fff5c9" stop-opacity="0"/></radialGradient>
+ <pattern id="geo1" width="90" height="90" patternUnits="userSpaceOnUse"><path d="M45 4L86 45 45 86 4 45z M45 18L72 45 45 72 18 45z" fill="none" stroke="#d7b96c" stroke-width="2" opacity=".45"/></pattern>
+</defs>
+<rect width="1600" height="900" fill="url(#bg1)"/>
+<circle cx="980" cy="170" r="360" fill="url(#light1)"/>
+<rect x="0" y="0" width="1600" height="900" fill="url(#geo1)" opacity=".12"/>
+<!-- arched window -->
+<path d="M145 600V300Q145 115 330 115T515 300V600Z" fill="#e8ddc6" opacity=".96"/>
+<path d="M190 565V305Q190 165 330 165T470 305V565Z" fill="#3f594a"/>
+<path d="M330 165V565M190 365H470M205 300Q330 205 455 300" fill="none" stroke="#b99a5d" stroke-width="12"/>
+<!-- tall bookcase -->
+<rect x="930" y="92" width="520" height="650" rx="18" fill="url(#wood1)"/>
+<rect x="965" y="125" width="450" height="585" rx="10" fill="#243d30"/>
+<g fill="#caa55c">
+ <rect x="995" y="155" width="54" height="145" rx="5"/><rect x="1058" y="155" width="78" height="145" rx="5"/><rect x="1145" y="155" width="50" height="145" rx="5"/><rect x="1205" y="155" width="88" height="145" rx="5"/><rect x="1302" y="155" width="76" height="145" rx="5"/>
+ <rect x="995" y="325" width="70" height="145" rx="5"/><rect x="1074" y="325" width="55" height="145" rx="5"/><rect x="1138" y="325" width="85" height="145" rx="5"/><rect x="1232" y="325" width="57" height="145" rx="5"/><rect x="1298" y="325" width="80" height="145" rx="5"/>
+ <rect x="995" y="495" width="52" height="145" rx="5"/><rect x="1056" y="495" width="90" height="145" rx="5"/><rect x="1155" y="495" width="65" height="145" rx="5"/><rect x="1229" y="495" width="82" height="145" rx="5"/><rect x="1320" y="495" width="58" height="145" rx="5"/>
+</g>
+<g fill="#f1d98a" opacity=".55"><rect x="985" y="305" width="410" height="8" rx="4"/><rect x="985" y="475" width="410" height="8" rx="4"/><rect x="985" y="645" width="410" height="8" rx="4"/></g>
+<!-- desk and open book -->
+<rect x="270" y="650" width="620" height="42" rx="18" fill="#3a281d"/>
+<rect x="330" y="692" width="48" height="170" fill="#3a281d"/><rect x="780" y="692" width="48" height="170" fill="#3a281d"/>
+<path d="M405 650L585 620L770 650L585 695Z" fill="#f4ead2"/>
+<path d="M585 620V695M435 646L550 635M615 635L735 646" fill="none" stroke="#b79b69" stroke-width="5"/>
+</svg>`)}`,
+  `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900">
+<defs>
+ <linearGradient id="bg2" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f1e7d1"/><stop offset=".48" stop-color="#cdbd98"/><stop offset="1" stop-color="#526957"/></linearGradient>
+ <linearGradient id="wall2" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fff7e6"/><stop offset="1" stop-color="#d9c8a4"/></linearGradient>
+ <pattern id="stars2" width="120" height="120" patternUnits="userSpaceOnUse"><path d="M60 12L72 48 108 60 72 72 60 108 48 72 12 60 48 48z" fill="none" stroke="#8d7448" stroke-width="2" opacity=".28"/></pattern>
+</defs>
+<rect width="1600" height="900" fill="url(#bg2)"/>
+<rect width="1600" height="900" fill="url(#stars2)"/>
+<!-- wall arch and niche -->
+<path d="M120 610V245Q120 75 310 75T500 245V610Z" fill="url(#wall2)"/>
+<path d="M170 570V260Q170 125 310 125T450 260V570Z" fill="#3d5747"/>
+<path d="M310 125V570M170 360H450M185 265Q310 175 435 265" fill="none" stroke="#b39152" stroke-width="11"/>
+<!-- low library wall -->
+<rect x="720" y="150" width="700" height="430" rx="22" fill="#59402d"/>
+<rect x="755" y="185" width="630" height="360" rx="10" fill="#2d4939"/>
+<g fill="#d1aa5b">
+ <rect x="785" y="215" width="72" height="105" rx="4"/><rect x="868" y="215" width="58" height="105" rx="4"/><rect x="937" y="215" width="90" height="105" rx="4"/><rect x="1038" y="215" width="66" height="105" rx="4"/><rect x="1115" y="215" width="82" height="105" rx="4"/><rect x="1208" y="215" width="55" height="105" rx="4"/><rect x="1274" y="215" width="82" height="105" rx="4"/>
+ <rect x="785" y="345" width="55" height="155" rx="4"/><rect x="850" y="345" width="85" height="155" rx="4"/><rect x="945" y="345" width="64" height="155" rx="4"/><rect x="1019" y="345" width="78" height="155" rx="4"/><rect x="1107" y="345" width="56" height="155" rx="4"/><rect x="1172" y="345" width="86" height="155" rx="4"/><rect x="1267" y="345" width="89" height="155" rx="4"/>
+</g>
+<!-- central study table -->
+<rect x="430" y="660" width="930" height="46" rx="20" fill="#493126"/>
+<rect x="520" y="705" width="55" height="150" fill="#493126"/><rect x="1210" y="705" width="55" height="150" fill="#493126"/>
+<rect x="570" y="585" width="640" height="82" rx="12" fill="#f8f0dd"/>
+<path d="M610 615H1170M610 642H1130" stroke="#9d855d" stroke-width="6"/>
+<!-- brass lamp -->
+<path d="M1000 585V500" stroke="#a27b3c" stroke-width="10"/><path d="M955 500H1045L1015 550H985Z" fill="#d5b45f"/><circle cx="1000" cy="565" r="38" fill="#fff0ae" opacity=".28"/>
+</svg>`)}`,
+  `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900">
+<defs>
+ <linearGradient id="bg3" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#172d24"/><stop offset=".5" stop-color="#45614f"/><stop offset="1" stop-color="#b18c52"/></linearGradient>
+ <linearGradient id="floor3" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#8d6847"/><stop offset="1" stop-color="#3b2b22"/></linearGradient>
+ <pattern id="geom3" width="100" height="100" patternUnits="userSpaceOnUse"><path d="M50 5L95 50 50 95 5 50zM50 25L75 50 50 75 25 50z" fill="none" stroke="#e0c27b" stroke-width="2" opacity=".25"/></pattern>
+</defs>
+<rect width="1600" height="900" fill="url(#bg3)"/>
+<rect width="1600" height="900" fill="url(#geom3)"/>
+<!-- perspective floor -->
+<path d="M0 570L800 450L1600 570V900H0Z" fill="url(#floor3)"/>
+<g stroke="#b38a52" stroke-width="5" opacity=".45">
+ <path d="M800 450L180 900M800 450L420 900M800 450L620 900M800 450L980 900M800 450L1180 900M800 450L1420 900"/>
+ <path d="M0 650H1600M0 735H1600M0 820H1600"/>
+</g>
+<!-- grand shelves -->
+<rect x="60" y="90" width="500" height="560" rx="18" fill="#4b3326"/>
+<rect x="100" y="130" width="420" height="480" fill="#233c30"/>
+<rect x="1040" y="90" width="500" height="560" rx="18" fill="#4b3326"/>
+<rect x="1080" y="130" width="420" height="480" fill="#233c30"/>
+<g fill="#c9a256">
+ <rect x="130" y="160" width="60" height="120" rx="4"/><rect x="200" y="160" width="85" height="120" rx="4"/><rect x="295" y="160" width="55" height="120" rx="4"/><rect x="360" y="160" width="75" height="120" rx="4"/><rect x="445" y="160" width="50" height="120" rx="4"/>
+ <rect x="130" y="305" width="85" height="120" rx="4"/><rect x="225" y="305" width="55" height="120" rx="4"/><rect x="290" y="305" width="82" height="120" rx="4"/><rect x="382" y="305" width="60" height="120" rx="4"/><rect x="452" y="305" width="43" height="120" rx="4"/>
+ <rect x="1110" y="160" width="60" height="120" rx="4"/><rect x="1180" y="160" width="85" height="120" rx="4"/><rect x="1275" y="160" width="55" height="120" rx="4"/><rect x="1340" y="160" width="75" height="120" rx="4"/><rect x="1425" y="160" width="50" height="120" rx="4"/>
+ <rect x="1110" y="305" width="85" height="120" rx="4"/><rect x="1205" y="305" width="55" height="120" rx="4"/><rect x="1270" y="305" width="82" height="120" rx="4"/><rect x="1362" y="305" width="60" height="120" rx="4"/><rect x="1432" y="305" width="43" height="120" rx="4"/>
+</g>
+<!-- central arch -->
+<path d="M570 650V265Q570 95 800 95T1030 265V650Z" fill="#e9dec6"/>
+<path d="M625 600V280Q625 150 800 150T975 280V600Z" fill="#324c3d"/>
+<path d="M800 150V600M625 365H975M645 285Q800 180 955 285" fill="none" stroke="#b99758" stroke-width="12"/>
+<!-- central lectern/book -->
+<path d="M660 650L800 610L940 650L800 690Z" fill="#f4ead3"/>
+<path d="M800 610V690" stroke="#ad8d58" stroke-width="5"/>
+</svg>`)}`
 ];
 
 function publicHTML(){
@@ -902,8 +988,6 @@ function publicHTML(){
       <div class="public-hero-card" id="publicHeroCarousel" aria-label="Galeri Maktabah">
         <div class="public-hero-slide active" data-hero-slide="0" style="background-image:var(--hero-img)"></div>
         ${publicHeroArt.map((img,i)=>`<div class="public-hero-slide" data-hero-slide="${i+1}" style="background-image:url('${img}')"></div>`).join("")}
-        <button class="public-hero-arrow public-hero-prev" type="button" id="publicHeroPrev" aria-label="Gambar sebelumnya">${icon("chevronLeft",18)}</button>
-        <button class="public-hero-arrow public-hero-next" type="button" id="publicHeroNext" aria-label="Gambar berikutnya">${icon("chevronRight",18)}</button>
         <div class="public-hero-content">
           <span class="public-kicker">Maktabah Marhalah Ula (Ibtidaiyah) Al-Faruq</span>
           <h2>Ruang untuk <span>membaca</span>, belajar & bertumbuh.</h2>

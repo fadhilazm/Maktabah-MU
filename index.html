@@ -1052,9 +1052,21 @@ function render(){
     if(x.key==="master") return {...x, subs:x.subs.filter(s=>s.key==="anggota" || s.key==="buku")};
     return x;
   }).filter(Boolean);
-  if(!isAdmin() && (state.group==="sistem" || (state.group==="master" && !["anggota","buku"].includes(state.sub)))){ state.group="dashboard"; state.sub=null; }
-  const g = allowedGroups.find(x=>x.key===state.group);
+
+  // Petugas tetap boleh membuka Master Data, tetapi hanya Data Anggota dan Data Buku.
+  // Jika sebelumnya state.sub masih menunjuk submenu khusus admin, arahkan ke Data Anggota
+  // agar klik "Master Data" tidak langsung terpental kembali ke Dashboard.
+  if(!isAdmin() && state.group==="master" && !["anggota","buku"].includes(state.sub)){
+    state.sub="anggota";
+  }
+  if(!isAdmin() && state.group==="sistem"){
+    state.group="dashboard";
+    state.sub=null;
+  }
+
+  let g = allowedGroups.find(x=>x.key===state.group);
   if(g && g.subs && !state.sub) state.sub = g.subs[0].key;
+  g = allowedGroups.find(x=>x.key===state.group);
   root.innerHTML = `
     <header class="top">
       <div class="max">

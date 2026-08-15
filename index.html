@@ -831,7 +831,7 @@ function hariTerlambat(l){
 }
 function dendaLoan(l){ return hariTerlambat(l) * (state.settings.dendaPerHari||0); }
 function isAdmin(){ return currentRole==="admin" && !!currentUser; }
-function guardAdmin(){ if(!isAdmin()){ showToast("Aksi ini butuh mode Admin — buka Sistem ▸ Hak Akses", "rose"); return false; } return true; }
+function guardAdmin(){ if(!isAdmin()){ showToast("Aksi ini khusus Admin. Silakan masuk menggunakan akun Admin untuk melanjutkan.", "rose"); return false; } return true; }
 
 /* ============ TOAST ============ */
 let toastTimer=null;
@@ -1047,7 +1047,13 @@ function render(){
   ensureStateShape();
   if(state.view==="public"){ renderPublic(); return; }
   const root=document.getElementById("root");
-  const g = GROUPS.find(x=>x.key===state.group);
+  const allowedGroups = isAdmin() ? GROUPS : GROUPS.map(x=>{
+    if(x.key==="sistem") return null;
+    if(x.key==="master") return {...x, subs:x.subs.filter(s=>s.key==="anggota" || s.key==="buku")};
+    return x;
+  }).filter(Boolean);
+  if(!isAdmin() && (state.group==="sistem" || (state.group==="master" && !["anggota","buku"].includes(state.sub)))){ state.group="dashboard"; state.sub=null; }
+  const g = allowedGroups.find(x=>x.key===state.group);
   if(g && g.subs && !state.sub) state.sub = g.subs[0].key;
   root.innerHTML = `
     <header class="top">
@@ -1062,11 +1068,11 @@ function render(){
             <button class="mode-badge" id="publicSiteBtn">${icon('globe')}Publik</button>
             <button class="mode-badge" id="logoutBtn">${icon('logout')}Keluar</button>
             <span id="firebaseStatus" class="mode-badge" style="cursor:default">${icon('database')}Firebase</span>
-            <button class="mode-badge" id="modeBadge">${isAdmin() ? icon('shieldCheck')+'Mode Admin' : icon('user')+'Mode Petugas'}</button>
+            <span class="mode-badge" id="modeBadge" style="cursor:default;${isAdmin()?'background:#5C2D5F;color:#fff;border-color:#5C2D5F;':'background:#2F6FA3;color:#fff;border-color:#2F6FA3;'}">${isAdmin() ? icon('shieldCheck')+' MODE ADMIN' : icon('user')+' MODE PETUGAS'}</span>
           </div>
         </div>
         <div class="group-tabs">
-          ${GROUPS.map(t=>`<button class="group-btn ${state.group===t.key?'active':''}" data-group="${t.key}"><span>${t.icon}</span> ${t.label}</button>`).join("")}
+          ${allowedGroups.map(t=>`<button class="group-btn ${state.group===t.key?'active':''}" data-group="${t.key}"><span>${t.icon}</span> ${t.label}</button>`).join("")}
         </div>
       </div>
     </header>
@@ -1074,11 +1080,10 @@ function render(){
       ${g && g.subs ? `<div class="subtabs">${g.subs.map(s=>`<button class="sub-btn ${state.sub===s.key?'active':''}" data-sub="${s.key}">${s.label}</button>`).join("")}</div>` : ""}
       <div id="content"></div>
     </div></main>
-    <footer>Data disimpan bersama (shared) untuk semua pengguna halaman ini · ${esc(state.settings.namaMaktabah)}, Kalibagor</footer>
+    <footer><b style="color:${isAdmin()?"#5C2D5F":"#2F6FA3"}">${isAdmin()?"MODE ADMIN":"MODE PETUGAS"}</b> · Data disimpan bersama (shared) untuk semua pengguna halaman ini · ${esc(state.settings.namaMaktabah)}, Kalibagor</footer>
     <div id="modalRoot"></div>
     <div id="toastRoot"></div>
   `;
-  document.getElementById("modeBadge").addEventListener("click", openModeToggle);
   document.getElementById("publicSiteBtn").addEventListener("click", ()=>{ state.view="public"; location.hash=""; render(); });
   document.getElementById("logoutBtn").addEventListener("click", signOutMaktabah);
   document.querySelectorAll("[data-group]").forEach(b=>b.addEventListener("click", ()=>{ state.group=b.dataset.group; state.sub=null; state.search=""; render(); }));
@@ -1090,7 +1095,21 @@ function render(){
     renderContent();
   }));
   renderContent();
+  applyRoleUI();
   renderModal();
+}
+
+function applyRoleUI(){
+  if(isAdmin()) return;
+  const adminSelectors = [
+    "#btnTambahAnggota", "#btnTambahBuku", "#btnTambahKontrib", "#btnTambahRak",
+    "#btnClearHistory", "#btnDeleteLaporan", "#backupBtn",
+    "[data-edit]", "[data-del]", "[data-copybook]", "[data-editanggota]",
+    "[data-delanggota]", "[data-copyanggota]", "[data-editkontrib]", "[data-delkontrib]",
+    "[data-editrak]", "[data-delrak]", "[data-kat-del]", "[data-editloan]",
+    "[data-delloan]", "[data-delhistory]", "[data-restorebook]"
+  ];
+  document.querySelectorAll(adminSelectors.join(",")).forEach(el=>el.remove());
 }
 
 function renderContent(){
@@ -1124,6 +1143,7 @@ function renderContent(){
   else if(g==="laporan") el.innerHTML = laporanHTML();
   else if(g==="cetak") el.innerHTML = cetakHTML();
   else if(g==="sistem"){
+    if(!isAdmin()){ state.group="dashboard"; state.sub="dashboard"; render(); return; }
     if(s==="setting") el.innerHTML = settingHTML();
     else if(s==="akses") el.innerHTML = aksesHTML();
     else if(s==="backup") el.innerHTML = backupHTML();
@@ -2635,8 +2655,12 @@ function renderModal(){
 /* ---- Firebase Auth modal ---- */
 function authModalHTML(){
   return `<div class="modal-backdrop" id="authBackdrop"><div class="modal" style="max-width:430px;">
-    <div class="modal-header"><h3 class="modal-title">${icon('lockKeyhole',17)} Masuk Area Petugas</h3><button class="close-x" id="closeAuthModal" aria-label="Tutup">${icon('x',18)}</button></div>
-    <p class="hint" style="margin:0 0 16px;">Gunakan akun Firebase yang sudah didaftarkan untuk Maktabah. Akun Admin dan Petugas dapat memiliki hak berbeda.</p>
+    <div class="modal-header"><h3 class="modal-title">${icon('lockKeyhole',17)} Masuk Maktabah</h3><button class="close-x" id="closeAuthModal" aria-label="Tutup">${icon('x',18)}</button></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
+      <div style="padding:10px;border-radius:10px;background:#F4EAF5;border:1px solid #D9C5DB;font-size:12px;"><b>🛡 Admin</b><br><span style="color:#75657A">Akses penuh & pengaturan</span></div>
+      <div style="padding:10px;border-radius:10px;background:#EAF3FA;border:1px solid #C6DCEB;font-size:12px;"><b>👤 Petugas</b><br><span style="color:#5E7180">Operasional & transaksi</span></div>
+    </div>
+    <p class="hint" style="margin:0 0 16px;">Gunakan akun Firebase yang sudah didaftarkan. Hak akses ditentukan otomatis oleh role akun, jadi Petugas tidak dapat masuk sebagai Admin hanya dengan memilih mode.</p>
     <div class="field"><label class="field-label">Email</label><input id="authEmail" type="email" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="nama@contoh.com"/></div>
     <div class="field" style="margin-top:12px;"><label class="field-label">Password</label><input id="authPassword" type="password" autocomplete="current-password" placeholder="Password"/></div>
     <button class="btn btn-primary btn-block" id="authLoginBtn" style="margin-top:16px;">${icon('logIn',16)} Masuk</button>
@@ -3278,3 +3302,6 @@ window.addEventListener("hashchange", ()=>{
 </script>
 </body>
 </html>
+
+<style>.role-admin-only{display:none!important}</style>
+<script>function applyRoleUI(){if(String(window.currentRole||'').toLowerCase()==='petugas'){document.querySelectorAll('[data-admin-only],.admin-only').forEach(e=>e.remove());}}document.addEventListener('DOMContentLoaded',()=>setTimeout(applyRoleUI,300));</script>
